@@ -14,6 +14,7 @@ type Components = {
   NavItem: Container
   PageHeading: Container
   DemoHeading: Container
+  Link: Container,
 }
 
 type UseDocsAppOptions = Partial<Components> & {
@@ -77,8 +78,56 @@ const WildcardRoute = ({ docsByPath, demosByPath, Components }: WildcardRoutePro
   const doc = docsByPath[path]
   const demos = demosByPath[path]
 
+
+if (doc) {
   return <DocRoute doc={doc} demos={demos} path={path} Components={Components} />
+} else {
+    return <NotFound {...{ path, Components }} availablePaths={Object.keys(docsByPath)} />
 }
+}
+
+type NotFoundProps = {
+  path: string
+  availablePaths: string[]
+  Components: Components
+}
+
+
+const NotFound = ({ path, availablePaths, Components }: NotFoundProps) => {
+  const componentName = path.split('/').slice(-1)[0]
+  return (
+  <>
+    <Components.PageHeading>404 - Not Found</Components.PageHeading>
+
+    <p>None of the docs you passed to <code>&lt;DocsApp&lt;</code> have the path <code>{path}</code></p>
+
+    <p>Try:</p>
+
+    <pre
+      dangerouslySetInnerHTML={{__html: `// path/to/${componentName}.doc.tsx
+import { Doc, Demo } from "design-docs"
+import { ${componentName} } from "./${componentName}"
+
+export const default = (
+  <Doc path="${path}">
+    Intro text goes here
+  </Doc>
+)
+
+export const SomeDemoScenario = (
+  <Demo>
+    <${componentName} ... />
+  </Demo>
+)
+`}}
+    />
+
+    <p>Here are all the paths which _were_ found:</p>
+    <ul>
+      {availablePaths.map((path) => <li>{path}</li>)}
+    </ul>
+  </>)
+  }
 
 type Category = {
   name: string,
@@ -137,8 +186,7 @@ type DocRouteProps = {
   Components: Components
 }
 
-const DocRoute = ({ doc, demos, path, Components }: DocRouteProps) => {
-  return <>
+const DocRoute = ({ doc, demos, path, Components }: DocRouteProps) => ( <>
     <Components.PageHeading>{doc.props.path}</Components.PageHeading>
     {doc}
     {Object.entries(demos).map(([name, demo]) => (
@@ -148,7 +196,7 @@ const DocRoute = ({ doc, demos, path, Components }: DocRouteProps) => {
       </React.Fragment>)
     )}
   </>
-}
+)
 
 const addSpaces = (name: string) => {
   if (name.startsWith('_')) return name.replace('_', '')
