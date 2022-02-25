@@ -37,3 +37,18 @@ export const NavItem: Container = ({ children }) => (
 export const NavHeading: Container = ({ children }) => (
   <div role="heading" aria-level={1} style={{ fontWeight: 600, padding: '10px 0' }}>{children}</div>
 )
+
+const CODE_STYLES = {fontFamily: `"andale mono", monospace`,
+    fontSize: "14px",
+    background: "#f9f9f9",
+    borderRadius: "4px",
+    lineHeight: "18px",
+  }
+
+export const Code: Container = ({ children }) => (
+  <code style={{...CODE_STYLES,     padding: "2px"
+}}>{children}</code>)
+
+export const Pre: Container = ({ children }) => (
+  <pre style={{...CODE_STYLES,     padding: "10px"}}>{children}</pre>)
+

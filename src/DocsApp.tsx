@@ -95,36 +95,36 @@ type NotFoundProps = {
 
 const NotFound = ({ path, availablePaths, Components }: NotFoundProps) => {
   const componentName = path.split('/').slice(-1)[0]
+  const { PageHeading, Code, Pre } = Components
+
   return (
   <>
-    <Components.PageHeading>404 - Not Found</Components.PageHeading>
+    <PageHeading>404 - Not Found</PageHeading>
 
-    <p>None of the docs you passed to <code>&lt;DocsApp&gt;</code> have the path <code>"{path}"</code></p>
+    <p>None of the docs you passed to <Code>&lt;DocsApp&gt;</Code> have the path <Code>"{path}"</Code></p>
 
     <p>Try:</p>
 
-    <pre
-      dangerouslySetInnerHTML={{__html: `// path/to/${componentName}.doc.tsx
+    <Pre>{`// path/to/${componentName}.doc.tsx
 import { Doc, Demo } from "design-docs"
 import { ${componentName} } from "."
 
 export const default = (
-  &lt;Doc path="${path}"&gt;
+  <Doc path="${path}">
     Intro text goes here
-  &lt;/Doc&gt;
+  </Doc>
 )
 
 export const SomeDemoScenario = (
-  &lt;Demo>
-    &lt;${componentName} ... /&gt;
-  &lt;/Demo&gt;
+  <Demo>
+    <${componentName} ... />
+  </Demo>
 )
-`}}
-    />
+`}</Pre>
 
     <p>Here are all the paths which were found:</p>
     <ul>
-      {availablePaths.map((path) => <li key={path}><code>"{path}"</code></li>)}
+      {availablePaths.map((path) => <li key={path}><Code>"{path}"</Code></li>)}
     </ul>
   </>)
   }
