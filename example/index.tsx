@@ -1,25 +1,30 @@
-import * as ButtonDocs from './Button.docs'
-import { DocsApp } from 'design-docs'
-import React from 'react'
-import { render } from 'react-dom'
-import { Link } from 'react-router-dom';
+import * as ButtonDocs from "./Button.docs"
+import { DocsApp } from "design-docs"
+import React from "react"
+import { render } from "react-dom"
+import { Link } from "react-router-dom"
 
 type Container = React.FC<{ children: React.ReactNode }>
 
 const PageHeading: Container = ({ children }) => (
-  <div className="page-heading" role="heading" aria-level="1">{children}</div>
+  <div className="page-heading" role="heading" aria-level="1">
+    {children}
+  </div>
 )
 
 const DesignSystemProvider: Container = ({ children }) => (
-  <><Styles />{children}</>
+  <>
+    <Styles />
+    {children}
+  </>
 )
 
-const NavLink: typeof Link = (props) =>  (
-  <Link className="link" {...props} />
-)
+const NavLink: typeof Link = (props) => <Link className="link" {...props} />
 
 const Styles = () => (
-  <style dangerouslySetInnerHTML={{__html: `
+  <style
+    dangerouslySetInnerHTML={{
+      __html: `
     body {
      font-family: sans-serif;
     }
@@ -34,7 +39,9 @@ const Styles = () => (
     .link:visited {
       color: green;
     }
-  `}} />
+  `,
+    }}
+  />
 )
 
 render(
@@ -44,5 +51,5 @@ render(
     PageHeading={PageHeading}
     NavLink={NavLink}
   />,
-  document.getElementById('root')
-);
+  document.getElementById("root")
+)

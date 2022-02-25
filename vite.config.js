@@ -1,27 +1,38 @@
-const path = require('path')
-const { defineConfig } = require('vite')
+import path from "path"
+import { defineConfig } from "vite"
+import react from "@vitejs/plugin-react"
 
-module.exports = defineConfig({
+export default defineConfig({
+  server: {
+    hmr: {
+      port: 443,
+    },
+  },
+
   resolve: {
     alias: {
-      'design-docs': path.resolve(__dirname, './src'),
-    }
+      "@": path.resolve(__dirname, "./src"),
+    },
   },
+
+  plugins: [react()],
+
   build: {
     sourcemap: true,
     lib: {
-      entry: path.resolve(__dirname, 'src/index.ts'),
-      name: 'DesignSystem',
-      fileName: (format) => `index.${format}.js`
+      entry: path.resolve(__dirname, "src/index.ts"),
+      name: "DesignDocs",
+      fileName: (format) => `index.${format}.js`,
     },
     rollupOptions: {
-      external: ['react', 'react-router-dom'],
+      // make sure to externalize deps that shouldn't be bundled
+      // into your library
+      external: [],
       output: {
-        globals: {
-          'react': 'React',
-          'react-router-dom': 'ReactRouterDom'
-        }
-      }
-    }
+        // Provide global variables to use in the UMD build
+        // for externalized deps
+        globals: {},
+      },
+    },
   },
 })

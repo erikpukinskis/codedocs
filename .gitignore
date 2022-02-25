@@ -1,2 +1,5 @@
+yarn-error.log
+vendor
+.DS_Store
 node_modules
 dist

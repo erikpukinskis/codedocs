@@ -1,6 +1,12 @@
-import React, { useMemo } from 'react';
-import { BrowserRouter, Link, Route, Routes, useLocation } from "react-router-dom";
-import * as Defaults from './Defaults';
+import React, { useMemo } from "react"
+import {
+  BrowserRouter,
+  Link,
+  Route,
+  Routes,
+  useLocation,
+} from "react-router-dom"
+import * as Defaults from "./Defaults"
 
 type DocSet = Record<string, JSX.Element>
 
@@ -8,13 +14,13 @@ type Components = {
   Columns: Container
   LeftColumn: Container
   MainColumn: Container
-  NavLink: React.FC<{ to: Parameters<typeof Link>[0]['to'] }>
+  NavLink: React.FC<{ to: Parameters<typeof Link>[0]["to"] }>
   NavList: Container
   NavHeading: Container
   NavItem: Container
   PageHeading: Container
   DemoHeading: Container
-  Link: Container,
+  Link: Container
 }
 
 type UseDocsAppOptions = Partial<Components> & {
@@ -26,12 +32,19 @@ type Container = React.FC<{ children: React.ReactNode }>
 
 const Passthrough: Container = ({ children }) => <>{children}</>
 
-export const DocsApp = ({ docs, DesignSystemProvider = Passthrough, ...ComponentOverrides }: UseDocsAppOptions) => {
-  const { tree, docsByPath, demosByPath } = useMemo(() => docsToTree(docs), [docs])
+export const DocsApp = ({
+  docs,
+  DesignSystemProvider = Passthrough,
+  ...ComponentOverrides
+}: UseDocsAppOptions) => {
+  const { tree, docsByPath, demosByPath } = useMemo(
+    () => docsToTree(docs),
+    [docs]
+  )
 
   const Components = {
     ...Defaults,
-    ...ComponentOverrides
+    ...ComponentOverrides,
   }
 
   return (
@@ -48,13 +61,16 @@ export const DocsApp = ({ docs, DesignSystemProvider = Passthrough, ...Component
           </Components.LeftColumn>
           <Components.MainColumn>
             <Routes>
-              <Route
-                path="/"
-                element={<>Welcome!</>}
-              />
+              <Route path="/" element={<>Welcome!</>} />
               <Route
                 path="*"
-                element={<WildcardRoute docsByPath={docsByPath} demosByPath={demosByPath} Components={Components} />}
+                element={
+                  <WildcardRoute
+                    docsByPath={docsByPath}
+                    demosByPath={demosByPath}
+                    Components={Components}
+                  />
+                }
               />
             </Routes>
           </Components.MainColumn>
@@ -70,7 +86,11 @@ type WildcardRouteProps = {
   Components: Components
 }
 
-const WildcardRoute = ({ docsByPath, demosByPath, Components }: WildcardRouteProps) => {
+const WildcardRoute = ({
+  docsByPath,
+  demosByPath,
+  Components,
+}: WildcardRouteProps) => {
   const location = useLocation()
   const path = location.pathname.slice(1)
   if (!path) return <>Welcome!</>
@@ -78,12 +98,18 @@ const WildcardRoute = ({ docsByPath, demosByPath, Components }: WildcardRoutePro
   const doc = docsByPath[path]
   const demos = demosByPath[path]
 
-
-if (doc) {
-  return <DocRoute doc={doc} demos={demos} path={path} Components={Components} />
-} else {
-    return <NotFound {...{ path, Components }} availablePaths={Object.keys(docsByPath)} />
-}
+  if (doc) {
+    return (
+      <DocRoute doc={doc} demos={demos} path={path} Components={Components} />
+    )
+  } else {
+    return (
+      <NotFound
+        {...{ path, Components }}
+        availablePaths={Object.keys(docsByPath)}
+      />
+    )
+  }
 }
 
 type NotFoundProps = {
@@ -92,20 +118,24 @@ type NotFoundProps = {
   Components: Components
 }
 
+const nameFromPath = (path: string) => path.split("/").slice(-1)[0]
 
 const NotFound = ({ path, availablePaths, Components }: NotFoundProps) => {
-  const componentName = path.split('/').slice(-1)[0]
+  const componentName = nameFromPath(path)
   const { PageHeading, Code, Pre } = Components
 
   return (
-  <>
-    <PageHeading>404 - Not Found</PageHeading>
+    <>
+      <PageHeading>404 - Not Found</PageHeading>
 
-    <p>None of the docs you passed to <Code>&lt;DocsApp&gt;</Code> have the path <Code>"{path}"</Code></p>
+      <p>
+        None of the docs you passed to <Code>&lt;DocsApp&gt;</Code> have the
+        path <Code>&quot;{path}&quot;</Code>
+      </p>
 
-    <p>Try:</p>
+      <p>Try:</p>
 
-    <Pre>{`// path/to/${componentName}.doc.tsx
+      <Pre>{`// path/to/${componentName}.doc.tsx
 import { Doc, Demo } from "design-docs"
 import { ${componentName} } from "."
 
@@ -122,28 +152,33 @@ export const SomeDemoScenario = (
 )
 `}</Pre>
 
-    <p>Here are all the paths which were found:</p>
-    <ul>
-      {availablePaths.map((path) => <li key={path}><Code>"{path}"</Code></li>)}
-    </ul>
-  </>)
-  }
+      <p>Here are all the paths which were found:</p>
+      <ul>
+        {availablePaths.map((path) => (
+          <li key={path}>
+            <Code>&quot;{path}&quot;</Code>
+          </li>
+        ))}
+      </ul>
+    </>
+  )
+}
 
 type Category = {
-  name: string,
+  name: string
   subcategories: Record<string, Category>
   docs: DocElement[]
 }
 
 type DocElement = JSX.Element & {
-  props: { path: string, order?: number };
+  props: { path: string; order?: number }
 }
 
 type DemoSet = Record<string, JSX.Element>
 
 const docsToTree = (docs: DocSet[]) => {
   const tree: Category = {
-    name: '',
+    name: "",
     subcategories: {},
     docs: [],
   }
@@ -157,7 +192,7 @@ const docsToTree = (docs: DocSet[]) => {
     delete demos.default
     demosByPath[doc.props.path] = demos
     docsByPath[doc.props.path] = doc
-    const breadcrumbs = doc.props.path.split('/')
+    const breadcrumbs = doc.props.path.split("/")
     let parent = tree
     while (breadcrumbs.length > 1) {
       const categoryName = breadcrumbs.shift()
@@ -167,7 +202,7 @@ const docsToTree = (docs: DocSet[]) => {
         const category: Category = {
           name: categoryName,
           subcategories: {},
-          docs: []
+          docs: [],
         }
         parent.subcategories[categoryName] = category
         parent = category
@@ -182,25 +217,27 @@ const docsToTree = (docs: DocSet[]) => {
 type DocRouteProps = {
   doc: DocElement
   demos: Record<string, JSX.Element>
-  path: string
   Components: Components
 }
 
-const DocRoute = ({ doc, demos, path, Components }: DocRouteProps) => ( <>
-    <Components.PageHeading>{doc.props.path}</Components.PageHeading>
+const DocRoute = ({ doc, demos, Components }: DocRouteProps) => (
+  <>
+    <Components.PageHeading>
+      {nameFromPath(doc.props.path)}
+    </Components.PageHeading>
     {doc}
     {Object.entries(demos).map(([name, demo]) => (
       <React.Fragment key={name}>
         <Components.DemoHeading>{addSpaces(name)}</Components.DemoHeading>
         {demo}
-      </React.Fragment>)
-    )}
+      </React.Fragment>
+    ))}
   </>
 )
 
 const addSpaces = (name: string) => {
-  if (name.startsWith('_')) return name.replace('_', '')
-  else return name.replace(/(.)([A-Z])/g, '$1 $2')
+  if (name.startsWith("_")) return name.replace("_", "")
+  else return name.replace(/(.)([A-Z])/g, "$1 $2")
 }
 
 type CategoryLinksProps = {
@@ -219,14 +256,18 @@ const CategoryLinks = ({ category, Components }: CategoryLinksProps) => {
         </Components.NavItem>
       ))}
       {category.docs.map((doc) => (
-        <Components.NavItem key={doc.props.path}><DocLink doc={doc} Components={Components} /></Components.NavItem>
+        <Components.NavItem key={doc.props.path}>
+          <DocLink doc={doc} Components={Components} />
+        </Components.NavItem>
       ))}
     </>
   )
 
   return (
     <>
-      {category.name && <Components.NavHeading>{category.name}</Components.NavHeading>}
+      {category.name && (
+        <Components.NavHeading>{category.name}</Components.NavHeading>
+      )}
       {links}
     </>
   )
@@ -239,11 +280,13 @@ type DocLinkProps = {
 
 const DocLink = ({ doc, Components }: DocLinkProps) => {
   return (
-    <Components.NavLink to={`/${doc.props.path}`}>{last(doc.props.path.split('/'))}</Components.NavLink>
+    <Components.NavLink to={`/${doc.props.path}`}>
+      {last(doc.props.path.split("/"))}
+    </Components.NavLink>
   )
 }
 
-const last = <T extends any>(array: T[]) => array[array.length - 1]
+const last = <T,>(array: T[]) => array[array.length - 1]
 
 const categoriesInOrder = (categories: Record<string, Category>) => {
   const list = Object.values(categories)

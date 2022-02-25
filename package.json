@@ -19,12 +19,18 @@
   "devDependencies": {
     "@types/react": "^17.0.38",
     "@types/react-dom": "^17.0.11",
+    "@typescript-eslint/eslint-plugin": "^5.12.1",
+    "@typescript-eslint/parser": "^5.12.1",
+    "@vitejs/plugin-react": "^1.2.0",
+    "eslint": "^8.9.0",
+    "eslint-plugin-react": "^7.28.0",
     "json": "^11.0.0",
+    "prettier": "^2.5.1",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
     "react-router-dom": "^6.2.1",
-    "typescript": "^4.5.4",
-    "vite": "^2.7.13"
+    "typescript": "^4.5.5",
+    "vite": "^2.8.4"
   },
   "repository": {
     "type": "git",
@@ -33,11 +39,15 @@
   "homepage": "https://github.com/erikpukinskis/design-docs",
   "scripts": {
     "example": "vite serve example --config vite.config.js",
-    "build": "rm -rf dist; npm run build:vite; npm run build:types; npm run build:files",
-    "build:vite": "vite build",
-    "build:types": "tsc --declaration --emitDeclarationOnly --outDir dist --skipLibCheck",
+    "build": "rm -rf dist/*; npm run build:vite; npm run build:types",
+    "build:vite": "vite build --mode development",
+    "build:types": "tsc --declaration --emitDeclarationOnly --outDir dist --skipLibCheck; mv dist/index.d.ts dist/index.umd.d.ts",
     "build:files": "mv dist/index.d.ts dist/index.umd.d.ts",
-    "check:types": "tsc --noEmit --skipLibCheck; if [ $? -eq 0 ]; then echo 8J+OiSBUeXBlcyBhcmUgZ29vZCEKCg== | base64 -d; fi",
-    "bump": "./bump.sh"
+    "check:types": "tsc --noEmit; if [ $? -eq 0 ]; then echo 8J+OiSBUeXBlcyBhcmUgZ29vZCEKCg== | base64 -d; fi",
+    "confgen": "npx confgen git yarn typescript react vite devServer:example library:DesignDocs:development eslint prettier",
+    "start:dev": "vite serve example --config vite.config.js",
+    "check:lint": "eslint --ignore-path .gitignore .; if [ $? -eq 0 ]; then echo 8J+OiSBObyBsaW50IGluIHRoaXMgY29kZSEKCg== | base64 -d; fi",
+    "fix:lint": "eslint --ignore-path .gitignore . --fix",
+    "fix:format": "prettier --write --ignore-path .gitignore ."
   }
 }
