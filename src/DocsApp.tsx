@@ -99,32 +99,32 @@ const NotFound = ({ path, availablePaths, Components }: NotFoundProps) => {
   <>
     <Components.PageHeading>404 - Not Found</Components.PageHeading>
 
-    <p>None of the docs you passed to <code>&lt;DocsApp&lt;</code> have the path <code>{path}</code></p>
+    <p>None of the docs you passed to <code>&lt;DocsApp&gt;</code> have the path <code>"{path}"</code></p>
 
     <p>Try:</p>
 
     <pre
       dangerouslySetInnerHTML={{__html: `// path/to/${componentName}.doc.tsx
 import { Doc, Demo } from "design-docs"
-import { ${componentName} } from "./${componentName}"
+import { ${componentName} } from "."
 
 export const default = (
-  <Doc path="${path}">
+  &lt;Doc path="${path}"&gt;
     Intro text goes here
-  </Doc>
+  &lt;/Doc&gt;
 )
 
 export const SomeDemoScenario = (
-  <Demo>
-    <${componentName} ... />
-  </Demo>
+  &lt;Demo>
+    &lt;${componentName} ... /&gt;
+  &lt;/Demo&gt;
 )
 `}}
     />
 
-    <p>Here are all the paths which _were_ found:</p>
+    <p>Here are all the paths which were found:</p>
     <ul>
-      {availablePaths.map((path) => <li>{path}</li>)}
+      {availablePaths.map((path) => <li key={path}><code>"{path}"</code></li>)}
     </ul>
   </>)
   }
