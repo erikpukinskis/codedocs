@@ -7,19 +7,34 @@ import { Link } from 'react-router-dom';
 type Container = React.FC<{ children: React.ReactNode }>
 
 const PageHeading: Container = ({ children }) => (
-  <div role="heading" aria-level="1">{children}</div>
+  <div className="page-heading" role="heading" aria-level="1">{children}</div>
 )
 
 const DesignSystemProvider: Container = ({ children }) => (
-  <div><Styles />{children}</div>
+  <><Styles />{children}</>
 )
 
-const Link: typeof Link = (...props) => {
-  <Link  {...props} />
-}
+const NavLink: typeof Link = (props) =>  (
+  <Link className="link" {...props} />
+)
 
 const Styles = () => (
-<>hello, world</>
+  <style dangerouslySetInnerHTML={{__html: `
+    body {
+     font-family: sans-serif;
+    }
+    .page-heading {
+      font-size: 1.5em;
+      font-weight: 600;
+      padding-bottom: 10px;
+    }
+    .link {
+      color: green;
+    }
+    .link:visited {
+      color: green;
+    }
+  `}} />
 )
 
 render(
@@ -27,6 +42,7 @@ render(
     docs={[ButtonDocs]}
     DesignSystemProvider={DesignSystemProvider}
     PageHeading={PageHeading}
+    NavLink={NavLink}
   />,
   document.getElementById('root')
 );
