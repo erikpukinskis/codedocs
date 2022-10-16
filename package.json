@@ -1,6 +1,6 @@
 {
   "license": "UNLICENSED",
-  "name": "design-docs",
+  "name": "codedocs",
   "version": "0.11.0",
   "files": [
     "dist"
@@ -35,15 +35,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/erikpukinskis/design-docs.git"
+    "url": "https://github.com/ambic-js/codedocs.git"
   },
-  "homepage": "https://github.com/erikpukinskis/design-docs",
+  "homepage": "https://github.com/ambic-js/codedocs",
   "scripts": {
     "example": "vite serve example --config vite.config.js",
     "build": "rm -rf dist/* && yarn build:lib && yarn build:types",
     "build:types": "tsc --declaration --emitDeclarationOnly -p tsconfig.dist.json --skipLibCheck && tsc-alias -p tsconfig.json && mv dist/index.d.ts dist/lib.umd.d.ts",
     "check:types": "tsc --noEmit -p tsconfig.json; if [ $? -eq 0 ]; then echo 8J+OiSBUeXBlcyBhcmUgZ29vZCEKCg== | base64 -d; else exit 1; fi",
-    "confgen": "npx confgen@latest @lib @app --name DesignDocs git yarn typescript react vite dist:lib eslint prettier",
+    "confgen": "npx confgen@latest @lib @app --name Codedocs git yarn typescript react vite dist:lib eslint prettier",
     "check:lint": "eslint --ignore-path .gitignore --no-error-on-unmatched-pattern .; if [ $? -eq 0 ]; then echo 8J+OiSBObyBsaW50IGluIHRoaXMgY29kZSEKCg== | base64 -d; else exit 1; fi",
     "fix:lint": "eslint --ignore-path .gitignore --no-error-on-unmatched-pattern . --fix; if [ $? -eq 0 ]; then echo 8J+OiSBObyBsaW50IGluIHRoaXMgY29kZSEKCg== | base64 -d; else exit 1; fi",
     "fix:format": "prettier --write --ignore-path .gitignore .",

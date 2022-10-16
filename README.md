@@ -4,7 +4,7 @@ Storybook is awesome. But it has three flaws:
 2. It's not designed to make nice public docs
 3. You can't document your Design System _in_ your Design System
 
-**design-docs** does all of those things.
+**Code Docs** does all of those things.
 
 Say goodbye to fiddling with your Storybook config until it kind of works like your app. Build your
 documentation _on the same infrastructure as your app_.
@@ -16,11 +16,11 @@ documentation _on the same infrastructure as your app_.
   do!
 - **Doesn't** provide interactive "knobs". Demos are just code samples.
 - **Doesn't** magically scan through your source tree and "analyze" it. Magic is great when it works, but
-  `design-docs` is _just normal React_. If you want another page on your documentation site, you import it and pass it to
+  Code Docs are _just normal React_. If you want another page on your documentation site, you import it and pass it to
   `<DocsApp>` manually.
 - **Doesn't** set up dev or deploy scripts for you. You are a professional application developer. You've
   probably already set up lots of infrastructure for deploying apps using your Design System. You
-  can keep doing that. `design-docs` just provides some React components that make it easy to turn
+  can keep doing that. The `codedocs` package provides some React components that make it easy to turn
   documentation files into site.
 - **Doesn't** look good by default. You provide all the components that are used to render the site. That's the
   point: document your Design System _in_ your Design System.
@@ -35,7 +35,7 @@ Your documentation files can still live alongside your code, but they just expor
 ```js
 // Button.docs.tsx
 import React from "react"
-import { Doc, Demo } from "design-docs"
+import { Doc, Demo } from "codedocs"
 import { Button } from "./Button"
 
 export default (
@@ -57,7 +57,7 @@ that's up to you. To get the site working, all you need to do is render `<DocsAp
 
 ```js
 import * as ButtonDocs from "./Button.docs"
-import { DocsApp } from "design-docs"
+import { DocsApp } from "codedocs"
 import React from "react"
 import { render } from "react-dom"
 
@@ -115,13 +115,13 @@ And you can also override any component that `<DocsApp>` uses:
 
 ### Example
 
-An example is provided in [example/](https://github.com/erikpukinskis/design-docs/tree/main/example)
+An example is provided in [app/](https://github.com/ambic-js/codedocs/tree/main/app)
 
-![screenshot of the example docs site with a button demo](https://raw.githubusercontent.com/erikpukinskis/design-docs/main/example/screenshot.png)
+![screenshot of the example docs site with a button demo](https://raw.githubusercontent.com/erikpukinskis/ambic-js/codedocs/main/example/screenshot.png)
 
 ### Future
 
-The general philosophy of `design-docs` is
+The general philosophy of Code Docs is
 
 1. It's OK to manually maintain docs, not everything has to be magic
 2. This is really about explanation not "documentation"

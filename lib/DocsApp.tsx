@@ -138,7 +138,7 @@ const NotFound = ({ path, availablePaths, Components }: NotFoundProps) => {
       <p>Try:</p>
 
       <Pre>{`// path/to/${componentName}.doc.tsx
-import { Doc, Demo } from "design-docs"
+import { Doc, Demo } from "codedocs"
 import { ${componentName} } from "."
 
 export const default = (
