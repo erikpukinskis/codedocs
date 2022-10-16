@@ -1,5 +1,5 @@
 import React from "react"
-import { Doc, Demo } from "design-docs"
+import { Doc, Demo } from ".."
 import { Button } from "./Button"
 
 export default (

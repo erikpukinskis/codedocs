@@ -1,7 +1,7 @@
 import React, { useMemo } from "react"
 import {
   BrowserRouter,
-  Link,
+  type Link,
   Route,
   Routes,
   useLocation,
@@ -10,17 +10,21 @@ import * as Defaults from "./Defaults"
 
 type DocSet = Record<string, JSX.Element>
 
+type LinkComponent = React.FC<{ to: Parameters<typeof Link>[0]["to"] }>
+
 type Components = {
   Columns: Container
   LeftColumn: Container
   MainColumn: Container
-  NavLink: React.FC<{ to: Parameters<typeof Link>[0]["to"] }>
+  NavLink: LinkComponent
   NavList: Container
   NavHeading: Container
   NavItem: Container
   PageHeading: Container
   DemoHeading: Container
-  Link: Container
+  Link: LinkComponent
+  Code: Container
+  Pre: Container
 }
 
 type UseDocsAppOptions = Partial<Components> & {
@@ -99,9 +103,7 @@ const WildcardRoute = ({
   const demos = demosByPath[path]
 
   if (doc) {
-    return (
-      <DocRoute doc={doc} demos={demos} path={path} Components={Components} />
-    )
+    return <DocRoute doc={doc} demos={demos} Components={Components} />
   } else {
     return (
       <NotFound
@@ -170,9 +172,7 @@ type Category = {
   docs: DocElement[]
 }
 
-type DocElement = JSX.Element & {
-  props: { path: string; order?: number }
-}
+type DocElement = React.ReactElement<{ path: string; order?: number }, never>
 
 type DemoSet = Record<string, JSX.Element>
 
@@ -188,6 +188,7 @@ const docsToTree = (docs: DocSet[]) => {
 
   docs.map((docsAndDemos) => {
     const doc = docsAndDemos.default as DocElement
+
     const demos = { ...docsAndDemos }
     delete demos.default
     demosByPath[doc.props.path] = demos
@@ -195,7 +196,7 @@ const docsToTree = (docs: DocSet[]) => {
     const breadcrumbs = doc.props.path.split("/")
     let parent = tree
     while (breadcrumbs.length > 1) {
-      const categoryName = breadcrumbs.shift()
+      const categoryName = shift(breadcrumbs)
       if (parent.subcategories[categoryName]) {
         parent = parent.subcategories[categoryName]
       } else {
@@ -234,6 +235,14 @@ const DocRoute = ({ doc, demos, Components }: DocRouteProps) => (
     ))}
   </>
 )
+
+function shift<T>(array: T[]) {
+  const value = array.shift()
+  if (!value) {
+    throw new Error("Tried to shift value off of empty array")
+  }
+  return value
+}
 
 const addSpaces = (name: string) => {
   if (name.startsWith("_")) return name.replace("_", "")

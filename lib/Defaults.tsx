@@ -1,9 +1,11 @@
 import React from "react"
-import { Link } from "react-router-dom"
+import { Link as _Link } from "react-router-dom"
 
 type Container = React.FC<{ children: React.ReactNode }>
 
-export const NavLink = Link
+export const NavLink = _Link
+
+export const Link = _Link
 
 export const Columns: Container = ({ children }) => (
   <div

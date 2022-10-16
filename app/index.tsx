@@ -1,13 +1,13 @@
 import * as ButtonDocs from "./Button.docs"
-import { DocsApp } from "design-docs"
+import { DocsApp } from ".."
 import React from "react"
 import { render } from "react-dom"
-import { Link } from "react-router-dom"
+import { type LinkProps, Link } from "react-router-dom"
 
 type Container = React.FC<{ children: React.ReactNode }>
 
 const PageHeading: Container = ({ children }) => (
-  <div className="page-heading" role="heading" aria-level="1">
+  <div className="page-heading" role="heading" aria-level={1}>
     {children}
   </div>
 )
@@ -19,7 +19,7 @@ const DesignSystemProvider: Container = ({ children }) => (
   </>
 )
 
-const NavLink: typeof Link = (props) => <Link className="link" {...props} />
+const NavLink = (props: LinkProps) => <Link className="link" {...props} />
 
 const Styles = () => (
   <style
