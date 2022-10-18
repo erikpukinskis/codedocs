@@ -1,0 +1,40 @@
+name: Publish docs
+
+on:
+  push:
+    branches: ["docs"]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  publish-docs:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Configure pages
+        uses: actions/configure-pages@v2
+      - name: Install
+        run: yarn install
+      - name: Build Codedocs
+        run: yarn build
+      - name: Build site
+        run: yarn build:docs
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: 'site'
+      - name: Deploy pages
+        id: deployment
+        uses: actions/deploy-pages@v1
+
