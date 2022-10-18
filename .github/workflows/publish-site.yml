@@ -29,7 +29,9 @@ jobs:
         uses: actions/configure-pages@v2
       - name: Install
         run: yarn install
-      - name: Build docs
+      - name: Build Codedocs
+        run: yarn build
+      - name: Build site
         run: yarn build:docs
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v1
