@@ -17,9 +17,9 @@ concurrency:
 
 jobs:
   deploy:
-    # environment:
-    #   name: github-pages
-    #   url: ${{ steps.deployment.outputs.page_url }}
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
       - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
@@ -37,6 +37,9 @@ jobs:
         uses: actions/upload-pages-artifact@v1
         with:
           path: 'site'
+      - name: Deploy pages
+        id: deployment
+        uses: actions/deploy-pages@v1
 
 #   # Allows you to run this workflow manually from the Actions tab
 #   workflow_dispatch:
