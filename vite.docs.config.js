@@ -12,10 +12,11 @@ export default defineConfig({
   plugins: [react()],
 
   build: {
-    outDir: 'site',
+    outDir: "site",
     assetsDir: "./",
+
     rollupOptions: {
-      input: path.resolve(__dirname, "docs", "index.html")
+      input: path.resolve(__dirname, "docs", "index.html"),
     },
   },
 })
