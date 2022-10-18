@@ -28,6 +28,7 @@
     "quote-props": ["error", "consistent-as-needed"],
     "array-element-newline": ["off"],
     "react/prop-types": ["off"],
+    "react/no-unescaped-entities": ["off"],
     "@typescript-eslint/consistent-type-imports": [
       "error",
       {

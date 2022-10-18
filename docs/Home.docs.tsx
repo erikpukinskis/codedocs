@@ -1,0 +1,90 @@
+import React from "react"
+import { Doc } from ".."
+
+export default (
+  <Doc path="Home">
+    <h1 id="document-code-in-code">
+      Document code <em>in</em> code
+    </h1>
+    <p>Markdown works great for documentation... until it doesn't.</p>
+    <p>
+      You start off writing simple headings, paragraphs, and tables. Markdown
+      does its job perfectly, it's easy to type and easy to read...
+    </p>
+    <p>
+      Then you want to embed some code samples. Great, Markdown can do syntax
+      highlighting...
+    </p>
+    <p>
+      Now you'd like a couple of custom components. Maybe some columns here and
+      there. Make better use of whitespace. No problem, Markdown lets you embed
+      a little HTML. It's manageable...
+    </p>
+    <p>
+      But now you want to run a simple demo in Markdown. So you move over to
+      MDX. You start embedding React components in your Markdown. Now things are
+      not looking so rosy:
+    </p>
+    <ul>
+      <li>You don't get type checking</li>
+      <li>You need a complex documentation builder like Storybook</li>
+      <li>
+        Now you want to customize the look of your documentation, better start
+        overriding styles...
+      </li>
+    </ul>
+    <h1 id="codedocs-is-different">Codedocs is different</h1>
+    <p>
+      If you're maintaining a codebase, you know how to read code. Is it really
+      so much worse?
+    </p>
+    <h3 id="markdown">Markdown</h3>
+    <pre>
+      <code>
+        {`---  
+title: React  
+description: A JavaScript library for building user interfaces  
+hide_table_of_contents:  true  
+---  
+  
+# React
+
+A JavaScript library for building user interfaces`}
+      </code>
+    </pre>
+    <h3 id="codedocs">Codedocs</h3>
+    <pre>
+      <code>
+        {`import { Doc, Title } from 'codedocs'
+
+export default (
+	<Doc path="Home">
+		<Title>React</Title>
+		<p>A JavaScript library for building user interfaces</p>
+	</Doc>
+)`}
+      </code>
+    </pre>
+    <h1 id="benefits">Benefits</h1>
+    <ul>
+      <li>Codedocs are fully type checked.</li>
+      <li>
+        For UI libraries, use the same build system you use for your library, no
+        special build needed.
+      </li>
+      <li>
+        Embed <em>anything</em>.
+      </li>
+      <li>
+        Use your own design system to style your site. No special theme object,
+        just override our components with yours.
+      </li>
+    </ul>
+  </Doc>
+)
+
+// export const _Button = (
+//   <Demo>
+//     <Button>Save</Button>
+//   </Demo>
+// )
