@@ -1,8 +1,6 @@
-name: Publish docs
+name: Docs
 
-on:
-  push:
-    branches: ["docs"]
+on: push
 
 permissions:
   contents: read
@@ -14,7 +12,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  publish-docs:
+  docs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -31,9 +29,11 @@ jobs:
       - name: Build site
         run: yarn build:docs
       - name: Upload artifact
+        if: github.ref == 'refs/heads/main'
         uses: actions/upload-pages-artifact@v1
         with:
           path: "site"
       - name: Deploy pages
+        if: github.ref == 'refs/heads/main'
         id: deployment
         uses: actions/deploy-pages@v1
