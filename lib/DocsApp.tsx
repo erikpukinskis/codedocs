@@ -85,12 +85,7 @@ const WildcardRoute = ({
   const currentPage = pagesByPath[path]
 
   if (!currentPage) {
-    return (
-      <NotFound
-        {...{ path, Components }}
-        availablePaths={Object.keys(pagesByPath)}
-      />
-    )
+    return <NotFound path={path} availablePaths={Object.keys(pagesByPath)} />
   }
 
   if (isHomePage(currentPage)) {

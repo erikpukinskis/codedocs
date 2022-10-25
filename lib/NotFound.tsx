@@ -1,23 +1,18 @@
 import React from "react"
 import { nameFromPath } from "./helpers"
-import { type Components } from "./components"
+import { useComponents } from "./components"
 
 type NotFoundProps = {
   path: string
   availablePaths: string[]
-  Components: Components
 }
 
-export const NotFound = ({
-  path,
-  availablePaths,
-  Components,
-}: NotFoundProps) => {
+export const NotFound = ({ path, availablePaths }: NotFoundProps) => {
   const componentName = nameFromPath(path)
-  const { PageHeading, Code, Pre } = Components
+  const { PageHeading, Code, Pre, MainColumn } = useComponents()
 
   return (
-    <>
+    <MainColumn>
       <PageHeading>404 - Not Found</PageHeading>
 
       <p>
@@ -52,6 +47,6 @@ export const SomeDemoScenario = (
           </li>
         ))}
       </ul>
-    </>
+    </MainColumn>
   )
 }

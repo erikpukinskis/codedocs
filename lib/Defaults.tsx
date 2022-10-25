@@ -32,7 +32,16 @@ export const GlobalStyles = () => (
         padding: 12px;
         border-radius: 4px;
         font-family: 'Recursive', monospace;
-        font-size: 16px;
+        font-size: 0.9em;
+      }
+
+      code {
+        padding: 0.2em;
+        font-size: 0.9em;
+        color: #9980fa;
+        background: rgba(153,128,250,.1);
+        border-radius: 4px;
+        font-family: 'Recursive', monospace;
       }
 
       a {
@@ -161,18 +170,6 @@ export const NavHeading: Container = ({ children }) => (
   </div>
 )
 
-const CODE_STYLES = {
-  fontFamily: `"andale mono", monospace`,
-  fontSize: "14px",
-  background: "#f9f9f9",
-  borderRadius: "4px",
-  lineHeight: "18px",
-}
+export const Code: Container = ({ children }) => <code>{children}</code>
 
-export const Code: Container = ({ children }) => (
-  <code style={{ ...CODE_STYLES, padding: "2px" }}>{children}</code>
-)
-
-export const Pre: Container = ({ children }) => (
-  <pre style={{ ...CODE_STYLES, padding: "10px" }}>{children}</pre>
-)
+export const Pre: Container = ({ children }) => <pre>{children}</pre>
