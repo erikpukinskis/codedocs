@@ -1,7 +1,83 @@
+import type { ReactNode } from "react"
 import React from "react"
 import { Link as _Link } from "react-router-dom"
+import type { SiteSection } from "./tree"
 
 type Container = React.FC<{ children: React.ReactNode }>
+
+export const GlobalStyles = () => (
+  <>
+    <link rel="preconnect" href="https://rsms.me/" />
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Recursive:wght,CRSV,MONO@360,0,1&display=swap"
+      rel="stylesheet"
+    ></link>
+
+    <style>{`
+      body {
+        margin: 0;
+      }
+
+      :root {
+        font-family: 'Inter', sans-serif;
+        font-size: 18px;
+      }
+
+      @supports (font-variation-settings: normal) {
+        :root {
+          font-family: 'Inter var', sans-serif; 
+        }
+      }
+
+      h1, h2, h3, h4 {
+        font-weight: normal;
+      }
+
+      pre {
+        background: #444;
+        color: white;
+        padding: 12px;
+        border-radius: 4px;
+        font-family: 'Recursive', monospace;
+        font-size: 16px;
+      }
+
+      a {
+        text-decoration: none;
+        color: teal;
+      }
+  `}</style>
+  </>
+)
+
+export type HeaderProps = {
+  logo: ReactNode
+  sections: SiteSection[]
+  currentSection: SiteSection
+}
+
+export const Header = ({ logo, sections, currentSection }: HeaderProps) => (
+  <div
+    style={{
+      borderBottom: "1px solid #DDD",
+      padding: 24,
+    }}
+  >
+    <a
+      href="/"
+      style={{
+        display: "block",
+        fontWeight: 600,
+        fontSize: "1.4em",
+        marginTop: "-0.2em",
+        marginBottom: "-0.2em",
+      }}
+    >
+      {logo}
+    </a>
+  </div>
+)
 
 export const NavLink = _Link
 
@@ -12,10 +88,7 @@ export const Columns: Container = ({ children }) => (
     style={{
       display: "flex",
       flexDirection: "row",
-      position: "absolute",
-      height: "100%",
-      top: 0,
-      left: 0,
+      minHeight: "100%",
     }}
   >
     {children}
