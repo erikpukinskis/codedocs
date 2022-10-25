@@ -17,17 +17,9 @@ export const GlobalStyles = () => (
     <style>{`
       body {
         margin: 0;
-      }
-
-      :root {
-        font-family: 'Inter', sans-serif;
         font-size: 18px;
-      }
-
-      @supports (font-variation-settings: normal) {
-        :root {
-          font-family: 'Inter var', sans-serif; 
-        }
+        font-family: sans-serif;
+        color: #222;
       }
 
       h1, h2, h3, h4 {
@@ -54,10 +46,10 @@ export const GlobalStyles = () => (
 export type HeaderProps = {
   logo: ReactNode
   sections: SiteSection[]
-  currentSectionName?: string
+  currentSection?: SiteSection
 }
 
-export const Header = ({ logo, sections, currentSectionName }: HeaderProps) => (
+export const Header = ({ logo, sections, currentSection }: HeaderProps) => (
   <div
     style={{
       borderBottom: "1px solid #DDD",
@@ -85,7 +77,7 @@ export const Header = ({ logo, sections, currentSectionName }: HeaderProps) => (
         <a
           key={name}
           href={`/${name}`}
-          style={currentSectionName === name ? { color: "black" } : {}}
+          style={currentSection?.name === name ? { color: "black" } : {}}
         >
           {addSpaces(name)}
         </a>
@@ -94,9 +86,11 @@ export const Header = ({ logo, sections, currentSectionName }: HeaderProps) => (
   </div>
 )
 
-export const NavLink = _Link
+export type LinkProps = Pick<Parameters<typeof Link>[0], "to" | "children">
 
 export const Link = _Link
+
+export const NavLink = _Link
 
 export const Columns: Container = ({ children }) => (
   <div
@@ -113,8 +107,8 @@ export const Columns: Container = ({ children }) => (
 export const LeftColumn: Container = ({ children }) => (
   <nav
     style={{
-      background: "#EEE",
-      width: "128px",
+      borderRight: "1px solid #EEE",
+      minWidth: "128px",
       flexShrink: 0,
       padding: "20px",
     }}
@@ -131,7 +125,7 @@ export const PageHeading: Container = ({ children }) => (
   <div
     role="heading"
     aria-level={1}
-    style={{ fontWeight: 600, paddingBottom: "10px" }}
+    style={{ fontSize: 36, paddingBottom: "10px" }}
   >
     {children}
   </div>
@@ -152,7 +146,9 @@ export const NavList: Container = ({ children }) => (
 )
 
 export const NavItem: Container = ({ children }) => (
-  <div role="listitem">{children}</div>
+  <div role="listitem" style={{ whiteSpace: "nowrap" }}>
+    {children}
+  </div>
 )
 
 export const NavHeading: Container = ({ children }) => (

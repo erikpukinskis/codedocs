@@ -1,63 +1,78 @@
+import { useComponents } from "./components"
 import type { Category, SubCategory, Page } from "./tree"
+import { isCategory, isSubCategory } from "./tree"
+import { addSpaces } from "./helpers"
+import React from "react"
 
 type SideNavProps = {
   categories: Category[]
-  currentCategory?: Category
   subCategories: SubCategory[]
-  currentSubCategory?: SubCategory
   pages: Page[]
+  currentCategory?: Category
+  currentSubCategory?: SubCategory
   currentPage: Page
 }
 
 export const SideNav = ({
   categories,
-  currentCategory,
   subCategories,
-  currentSubCategory,
   pages,
+  currentCategory,
+  currentSubCategory,
   currentPage,
 }: SideNavProps) => {
-  return "Nav"
-  // const links = (
-  //   <>
-  //     {categoriesInOrder(category.subcategories).map((subcategory) => (
-  //       <Components.NavItem key={subcategory.name}>
-  //         <Components.NavList>
-  //           <CategoryLinks category={subcategory} Components={Components} />
-  //         </Components.NavList>
-  //       </Components.NavItem>
-  //     ))}
-  //     {category.docs.map((doc) => (
-  //       <Components.NavItem key={doc.props.path}>
-  //         <DocLink doc={doc} Components={Components} />
-  //       </Components.NavItem>
-  //     ))}
-  //   </>
-  // )
+  const topLevelItems =
+    categories.length > 0
+      ? categories
+      : subCategories.length > 0
+      ? subCategories
+      : pages
 
-  // return (
-  //   <>
-  //     <Components.NavList>
-  //       {category.name ? (
-  //         <Components.NavHeading>{category.name}</Components.NavHeading>
-  //       ) : null}
-  //       {links}
-  //     </Components.NavList>
-  //   </>
-  // )
-}
-
-type DocLinkProps = {
-  doc: DocElement
-  Components: Components
-}
-
-const DocLink = ({ doc, Components }: DocLinkProps) => {
   return (
-    <Components.NavLink to={`/${doc.props.path}`}>
-      {last(doc.props.path.split("/"))}
-    </Components.NavLink>
+    <>
+      {topLevelItems.map((item) => (
+        <Nav key={item.name} item={item} />
+      ))}
+    </>
   )
 }
 
-const last = <T,>(array: T[]) => array[array.length - 1]
+type NavItemProps = {
+  item: Category | SubCategory | Page
+}
+
+const Nav = ({ item }: NavItemProps) => {
+  const Components = useComponents()
+
+  if (isCategory(item)) {
+    return (
+      <>
+        <Components.NavHeading>{addSpaces(item.name)}</Components.NavHeading>
+        <Components.NavList>
+          {item.children.map((subCategory) => (
+            <Nav key={subCategory.name} item={subCategory} />
+          ))}
+        </Components.NavList>
+      </>
+    )
+  } else if (isSubCategory(item)) {
+    return (
+      <>
+        <Components.NavItem>{addSpaces(item.name)}</Components.NavItem>
+        <Components.NavList>
+          {item.children.map((page) => (
+            <Nav key={page.name} item={page} />
+          ))}
+        </Components.NavList>
+      </>
+    )
+  } else {
+    return (
+      <Components.NavItem>
+        <Components.NavLink to={`/${item.doc.props.path}`}>
+          {addSpaces(item.name)}
+        </Components.NavLink>
+      </Components.NavItem>
+    )
+  }
+}

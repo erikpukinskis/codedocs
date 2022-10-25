@@ -1,11 +1,10 @@
 import type * as Defaults from "./Defaults"
 export * as Defaults from "./Defaults"
-import { type Link } from "react-router-dom"
 import type { ReactNode } from "react"
 import { useContext } from "react"
 import React, { createContext } from "react"
 
-type LinkComponent = React.FC<{ to: Parameters<typeof Link>[0]["to"] }>
+type LinkComponent = React.FC<Defaults.LinkProps>
 
 export type Container = React.FC<{ children: React.ReactNode }>
 

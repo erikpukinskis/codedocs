@@ -67,7 +67,7 @@ export type Category = {
   order?: number
 }
 
-export function isCategory(parent: PageParent): parent is Category {
+export function isCategory(parent: PageParent | Page): parent is Category {
   return parent.__typename === "Category"
 }
 
@@ -80,7 +80,9 @@ export type SubCategory = {
   order?: number
 }
 
-export function isSubCategory(parent: PageParent): parent is SubCategory {
+export function isSubCategory(
+  parent: PageParent | Page
+): parent is SubCategory {
   return parent.__typename === "SubCategory"
 }
 
