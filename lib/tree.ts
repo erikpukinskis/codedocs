@@ -1,29 +1,23 @@
-export type DocExport = Record<string, JSX.Element>
+type ProplessComponent = React.FC<Record<string, never>>
+
+export type DocExport = Record<string, ProplessComponent> & {
+  default: JSX.Element
+}
 
 export type DocElement = React.ReactElement<
   { path: string; order?: number },
   never
 >
 
-type ProplessComponent = React.FC<Record<string, never>>
-
 type DemoSet = Record<string, ProplessComponent>
 
 export type PageParent = Site | SiteSection | Category | SubCategory
 
-export type Page = {
-  __typename: "Page"
-  path: string
-  doc: DocElement
-  demos: DemoSet
-  parent: PageParent
-  order?: number
-}
-
 export type Site = {
   __typename: "Site"
-  path: "/"
-  sections: SiteSection[]
+  name: never
+  path: never
+  children: SiteSection[]
   parent: never
 }
 
@@ -31,9 +25,20 @@ export function isSite(parent: PageParent): parent is Site {
   return parent.__typename === "Site"
 }
 
+export type Page = {
+  __typename: "Page"
+  path: string
+  name: string
+  doc: DocElement
+  demos: DemoSet
+  parent: PageParent
+  order?: number
+}
+
 export type SiteSection = {
   __typename: "SiteSection"
   path: string
+  name: string
   children: (Page | Category)[]
   order?: number
   parent: Site
@@ -46,6 +51,7 @@ export function isSiteSection(parent: PageParent): parent is SiteSection {
 export type Category = {
   __typename: "Category"
   path: string
+  name: string
   children: (Page | SubCategory)[]
   parent: SiteSection
   order?: number
@@ -58,6 +64,7 @@ export function isCategory(parent: PageParent): parent is Category {
 export type SubCategory = {
   __typename: "SubCategory"
   path: string
+  name: string
   children: Page[]
   parent: Category
   order?: number
@@ -67,7 +74,7 @@ export function isSubCategory(parent: PageParent): parent is SubCategory {
   return parent.__typename === "SubCategory"
 }
 
-export function isParentWithChildren(
+export function isParentWithPageChildren(
   parent: PageParent
 ): parent is SiteSection | Category | SubCategory {
   return parent.__typename !== "Site"
@@ -127,50 +134,95 @@ export function getSubCategoryChildren(
 }
 
 export const buildTree = (docs: DocExport[]): Record<string, Page> => {
-  const sections: SiteSection[] = []
+  const pagesByPath: Record<string, Page> = {}
 
-  return {}
+  const site: Site = {
+    __typename: "Site",
+    path: undefined as never,
+    name: undefined as never,
+    children: [],
+    parent: undefined as never,
+  }
 
-  // const tree: Category = {
-  //   name: "",
-  //   subcategories: [],
-  //   pages: [],
-  // }
+  docs.map((docsAndDemos) => {
+    const doc = docsAndDemos.default as DocElement
+    const demos: DemoSet = { ...docsAndDemos }
+    delete demos.default
 
-  // const demosByPath: Record<string, DemoSet> = {}
-  // const docsByPath: Record<string, DocElement> = {}
+    const path = doc.props.path
+    const order = doc.props.order
+    const breadcrumbs = doc.props.path.split("/")
 
-  // docs.map((docsAndDemos) => {
-  //   const doc = docsAndDemos.default as DocElement
-  //   const demos = { ...docsAndDemos }
-  //   delete demos.default
+    if (breadcrumbs.length > 4) {
+      throw new Error(
+        `Doc path ${path} has too many segments, the maximum depth is [Site Section]/[Category]/[Subcategory]/[Page]`
+      )
+    }
 
-  //   demosByPath[doc.props.path] = demos
-  //   docsByPath[doc.props.path] = doc
-  //   const breadcrumbs = doc.props.path.split("/")
-  //   let parent = tree
+    if (breadcrumbs.length < 2) {
+      throw new Error(
+        `Doc path ${path} is missing a site section. Try path="Docs/${path}"`
+      )
+    }
 
-  //   while (breadcrumbs.length > 1) {
-  //     const categoryName = shift(breadcrumbs)
-  //     const existingCategory = parent.subcategories.find(
-  //       (category) => category.name === categoryName
-  //     )
-  //     if (existingCategory) {
-  //       parent = existingCategory
-  //     } else {
-  //       const category: Category = {
-  //         name: categoryName,
-  //         subcategories: [],
-  //         docs: [],
-  //       }
-  //       parent.subcategories.push(category)
-  //       parent = category
-  //     }
-  //   }
-  //   parent.docs.push(doc)
-  // })
+    let parent: PageParent = site
 
-  // return { tree, docsByPath, demosByPath }
+    while (breadcrumbs.length > 1) {
+      const breadcrumb = shift(breadcrumbs)
+
+      const nextParentDown: PageParent | undefined = (
+        parent.children as PageParent[]
+      ).find((child) => child.name === breadcrumb)
+
+      if (nextParentDown) {
+        parent = nextParentDown
+        continue
+      }
+
+      const newParentType = isSite(parent)
+        ? "SiteSection"
+        : breadcrumbs.length === 2
+        ? "Category"
+        : breadcrumbs.length === 1
+        ? "SubCategory"
+        : undefined
+
+      if (!newParentType) {
+        throw new Error("Cannot determine page parent type")
+      }
+
+      const newParent: SiteSection | Category | SubCategory = {
+        __typename: newParentType,
+        path: breadcrumbs.join("/"),
+        name: breadcrumb,
+        children: [],
+        parent,
+      }
+
+      parent.children.push(newParent)
+      parent = newParent
+    }
+
+    const page: Page = {
+      __typename: "Page",
+      path,
+      name: breadcrumbs[0],
+      doc,
+      demos,
+      parent,
+      order,
+    }
+
+    if (isSite(parent)) {
+      throw new Error(`Final parent of page ${path} was a Site?`)
+    }
+
+    parent.children.push(page)
+
+    pagesByPath[path] = page
+  })
+
+  return pagesByPath
 }
 
 function shift<T>(array: T[]) {

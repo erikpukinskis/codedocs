@@ -12,7 +12,7 @@ import {
   isCategory,
   type SubCategory,
   isSubCategory,
-  isParentWithChildren,
+  isParentWithPageChildren,
   getPageChildren,
   getSubCategoryChildren,
   getCategoryChildren,
@@ -107,7 +107,7 @@ const WildcardRoute = ({
 
   while (parent) {
     if (!pages) {
-      if (!isParentWithChildren(parent)) {
+      if (!isParentWithPageChildren(parent)) {
         throw new Error(
           `Parent ${parent.path} is the current page's parent but it has no children?`
         )
