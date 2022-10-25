@@ -51,7 +51,6 @@ export const DocsApp = ({
       <BrowserRouter>
         <ComponentContextProvider Components={Components}>
           <Routes>
-            <Route path="/" element={<>Welcome!</>} />
             <Route
               path="*"
               element={
@@ -81,13 +80,18 @@ const WildcardRoute = ({
   Components,
 }: WildcardRouteProps) => {
   const location = useLocation()
-  const path = location.pathname.slice(1)
-
-  if (!path) {
-    throw new Error("homepage?")
-  }
+  const path = location.pathname.slice(1) || "/"
 
   const currentPage = pagesByPath[path]
+
+  if (!currentPage) {
+    return (
+      <NotFound
+        {...{ path, Components }}
+        availablePaths={Object.keys(pagesByPath)}
+      />
+    )
+  }
 
   if (isHomePage(currentPage)) {
     const site: Site = {
@@ -103,17 +107,10 @@ const WildcardRoute = ({
     return (
       <>
         <Components.Header logo={logo} sections={sections} />
-        <HomePageContent page={currentPage} />
+        <Components.MainColumn>
+          <HomePageContent page={currentPage} />
+        </Components.MainColumn>
       </>
-    )
-  }
-
-  if (!currentPage) {
-    return (
-      <NotFound
-        {...{ path, Components }}
-        availablePaths={Object.keys(pagesByPath)}
-      />
     )
   }
 

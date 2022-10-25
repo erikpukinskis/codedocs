@@ -118,7 +118,7 @@ export const LeftColumn: Container = ({ children }) => (
 )
 
 export const MainColumn: Container = ({ children }) => (
-  <div style={{ padding: "20px" }}>{children}</div>
+  <div style={{ padding: "20px", maxWidth: "40em" }}>{children}</div>
 )
 
 export const PageHeading: Container = ({ children }) => (
