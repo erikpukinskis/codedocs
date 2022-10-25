@@ -2,7 +2,7 @@ import React from "react"
 import { Doc } from ".."
 
 export default (
-  <Doc path="Home">
+  <Doc path="/">
     <h1 id="document-code-in-code">
       Document code <em>in</em> code
     </h1>

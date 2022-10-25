@@ -35,6 +35,16 @@ export type Page = {
   order?: number
 }
 
+export type HomePage = {
+  __typename: "HomePage"
+  doc: DocElement
+  demos: DemoSet
+}
+
+export function isHomePage(page: Page | HomePage): page is HomePage {
+  return page.__typename === "HomePage"
+}
+
 export type SiteSection = {
   __typename: "SiteSection"
   path: string
@@ -109,7 +119,7 @@ export function getCategoryChildren({
   )
   if (nonCategory) {
     throw new Error(
-      `Expected ${__typename} to have all Page children, but ${nonCategory.path} is a ${nonCategory.__typename}`
+      `Expected ${__typename} to have all Category children, but ${nonCategory.path} is a ${nonCategory.__typename}`
     )
   }
   return children as Category[]
@@ -127,14 +137,16 @@ export function getSubCategoryChildren(
   )
   if (nonSubCategory) {
     throw new Error(
-      `Expected ${__typename} to have all Page children, but ${nonSubCategory.path} is a ${nonSubCategory.__typename}`
+      `Expected ${__typename} to have all SubCategory children, but ${nonSubCategory.path} is a ${nonSubCategory.__typename}`
     )
   }
   return children as SubCategory[]
 }
 
-export const buildTree = (docs: DocExport[]): Record<string, Page> => {
-  const pagesByPath: Record<string, Page> = {}
+export const buildTree = (
+  docs: DocExport[]
+): Record<string, Page | HomePage> => {
+  const pagesByPath: Record<string, Page | HomePage> = {}
 
   const site: Site = {
     __typename: "Site",
@@ -144,7 +156,7 @@ export const buildTree = (docs: DocExport[]): Record<string, Page> => {
     parent: undefined as never,
   }
 
-  docs.map((docsAndDemos) => {
+  for (const docsAndDemos of docs) {
     const doc = docsAndDemos.default as DocElement
     const demos: DemoSet = { ...docsAndDemos }
     delete demos.default
@@ -152,6 +164,15 @@ export const buildTree = (docs: DocExport[]): Record<string, Page> => {
     const path = doc.props.path
     const order = doc.props.order
     const breadcrumbs = doc.props.path.split("/")
+
+    if (path === "/") {
+      pagesByPath["/"] = {
+        __typename: "HomePage",
+        doc,
+        demos,
+      }
+      continue
+    }
 
     if (breadcrumbs.length > 4) {
       throw new Error(
@@ -161,7 +182,7 @@ export const buildTree = (docs: DocExport[]): Record<string, Page> => {
 
     if (breadcrumbs.length < 2) {
       throw new Error(
-        `Doc path ${path} is missing a site section. Try path="Docs/${path}"`
+        `Doc path ${path} is missing a site section. Try path="Docs/${path}" or path="/" for the home page`
       )
     }
 
@@ -179,27 +200,41 @@ export const buildTree = (docs: DocExport[]): Record<string, Page> => {
         continue
       }
 
-      const newParentType = isSite(parent)
-        ? "SiteSection"
-        : breadcrumbs.length === 2
-        ? "Category"
-        : breadcrumbs.length === 1
-        ? "SubCategory"
-        : undefined
-
-      if (!newParentType) {
-        throw new Error("Cannot determine page parent type")
-      }
-
-      const newParent: SiteSection | Category | SubCategory = {
-        __typename: newParentType,
+      const commonParentProperties = {
         path: breadcrumbs.join("/"),
         name: breadcrumb,
         children: [],
-        parent,
       }
 
-      parent.children.push(newParent)
+      let newParent: PageParent
+
+      if (isSite(parent)) {
+        newParent = {
+          __typename: "SiteSection",
+          ...commonParentProperties,
+          parent,
+        }
+        parent.children.push(newParent)
+      } else if (breadcrumbs.length === 2 && isSiteSection(parent)) {
+        newParent = {
+          __typename: "Category",
+          ...commonParentProperties,
+          parent,
+        }
+        parent.children.push(newParent)
+      } else if (breadcrumbs.length === 1 && isCategory(parent)) {
+        newParent = {
+          __typename: "SubCategory",
+          ...commonParentProperties,
+          parent,
+        }
+        parent.children.push(newParent)
+      } else {
+        throw new Error(
+          `Unable to determine parent type for ${breadcrumb} within ${path}`
+        )
+      }
+
       parent = newParent
     }
 
@@ -220,6 +255,10 @@ export const buildTree = (docs: DocExport[]): Record<string, Page> => {
     parent.children.push(page)
 
     pagesByPath[path] = page
+  }
+
+  console.log({
+    pagesByPath,
   })
 
   return pagesByPath

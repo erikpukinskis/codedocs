@@ -14,8 +14,8 @@ import {
   isSubCategory,
   isParentWithPageChildren,
   getPageChildren,
-  getSubCategoryChildren,
-  getCategoryChildren,
+  type HomePage,
+  isHomePage,
 } from "./tree"
 import {
   Defaults,
@@ -25,7 +25,7 @@ import {
 } from "./components"
 import { SideNav } from "./SideNav"
 import { NotFound } from "./NotFound"
-import { PageContent } from "./PageContent"
+import { PageContent, HomePageContent } from "./PageContent"
 
 type DocsAppProps = Partial<Components> & {
   docs: DocExport[]
@@ -71,7 +71,7 @@ export const DocsApp = ({
 
 type WildcardRouteProps = {
   logo: ReactNode
-  pagesByPath: Record<string, Page>
+  pagesByPath: Record<string, Page | HomePage>
   Components: Components
 }
 
@@ -88,6 +88,25 @@ const WildcardRoute = ({
   }
 
   const currentPage = pagesByPath[path]
+
+  if (isHomePage(currentPage)) {
+    const site: Site = {
+      __typename: "Site",
+      children: [],
+      name: undefined as never,
+      path: undefined as never,
+      parent: undefined as never,
+    }
+
+    const sections = getSiteSections(site, pagesByPath)
+
+    return (
+      <>
+        <Components.Header logo={logo} sections={sections} />
+        <HomePageContent page={currentPage} />
+      </>
+    )
+  }
 
   if (!currentPage) {
     return (
@@ -109,7 +128,9 @@ const WildcardRoute = ({
     if (!pages) {
       if (!isParentWithPageChildren(parent)) {
         throw new Error(
-          `Parent ${parent.path} is the current page's parent but it has no children?`
+          `Parent ${
+            parent.path as string
+          } is the current page's parent but it has no children?`
         )
       }
       pages = getPageChildren(parent)
@@ -127,6 +148,12 @@ const WildcardRoute = ({
     parent = parent.parent
   }
 
+  const allChildren = [
+    ...(currentSection?.children ?? []),
+    ...(currentCategory?.children ?? []),
+    ...(currentSubCategory?.children ?? []),
+  ]
+
   if (!site) {
     throw new Error(`No parent of ${path} is a Site`)
   }
@@ -139,22 +166,32 @@ const WildcardRoute = ({
     throw new Error(`No sibling pages created... Page ${path} had no parent?`)
   }
 
+  const categories = allChildren.filter(
+    ({ __typename }) => __typename === "Category"
+  ) as Category[]
+
+  const subCategories = allChildren.filter(
+    ({ __typename }) => __typename === "SubCategory"
+  ) as SubCategory[]
+
   return (
     <>
       <Components.Header
         logo={logo}
-        sections={site.sections}
+        sections={site.children}
         currentSection={currentSection}
       />
       <Components.Columns>
         <Components.LeftColumn>
           <SideNav
-            categories={getCategoryChildren(currentSection)}
-            currentCategory={currentCategory}
-            subCategories={getSubCategoryChildren(currentCategory)}
-            currentSubCategory={currentSubCategory}
-            pages={pages}
-            currentPage={currentPage}
+            {...{
+              categories,
+              currentCategory,
+              subCategories,
+              currentSubCategory,
+              pages,
+              currentPage,
+            }}
           />
         </Components.LeftColumn>
         <Components.MainColumn>
@@ -163,4 +200,28 @@ const WildcardRoute = ({
       </Components.Columns>
     </>
   )
+}
+
+const getSiteSections = (site: Site, pagesByPath: Record<string, unknown>) => {
+  const paths = Object.keys(pagesByPath)
+  const sectionNames = new Set<string>()
+
+  for (const path of paths) {
+    const breadcrumbs = path.split("/")
+    sectionNames.add(breadcrumbs[0])
+  }
+
+  const values = Array.from(sectionNames)
+
+  const result = values.map(
+    (name: string): SiteSection => ({
+      __typename: "SiteSection",
+      path: name,
+      name: name,
+      children: [],
+      parent: site,
+    })
+  )
+
+  return result
 }

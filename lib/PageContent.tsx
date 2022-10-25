@@ -1,7 +1,7 @@
 import React from "react"
-import { type Page } from "./tree"
+import { type Page, type HomePage } from "./tree"
 import { useComponents } from "./components"
-import { nameFromPath } from "./helpers"
+import { nameFromPath, addSpaces } from "./helpers"
 
 type PageContentProps = {
   page: Page
@@ -13,10 +13,10 @@ export const PageContent = ({ page }: PageContentProps) => {
   return (
     <>
       <Components.PageHeading>
-        {nameFromPath(doc.props.path)}
+        {nameFromPath(page.doc.props.path)}
       </Components.PageHeading>
-      {doc}
-      {Object.entries(demos).map(([name, demo]) => (
+      {page.doc}
+      {Object.entries(page.demos).map(([name, demo]) => (
         <React.Fragment key={name}>
           <Components.DemoHeading>{addSpaces(name)}</Components.DemoHeading>
           {demo}
@@ -26,7 +26,10 @@ export const PageContent = ({ page }: PageContentProps) => {
   )
 }
 
-const addSpaces = (name: string) => {
-  if (name.startsWith("_")) return name.replace("_", "")
-  else return name.replace(/(.)([A-Z])/g, "$1 $2")
+type HomePageContentProps = {
+  page: HomePage
+}
+
+export const HomePageContent = ({ page }: HomePageContentProps) => {
+  return page.doc
 }

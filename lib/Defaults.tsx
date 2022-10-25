@@ -2,7 +2,7 @@ import type { ReactNode } from "react"
 import React from "react"
 import { Link as _Link } from "react-router-dom"
 import type { SiteSection } from "./tree"
-
+import { addSpaces } from "./helpers"
 type Container = React.FC<{ children: React.ReactNode }>
 
 export const GlobalStyles = () => (
@@ -54,14 +54,18 @@ export const GlobalStyles = () => (
 export type HeaderProps = {
   logo: ReactNode
   sections: SiteSection[]
-  currentSection: SiteSection
+  currentSectionName?: string
 }
 
-export const Header = ({ logo, sections, currentSection }: HeaderProps) => (
+export const Header = ({ logo, sections, currentSectionName }: HeaderProps) => (
   <div
     style={{
       borderBottom: "1px solid #DDD",
       padding: 24,
+      display: "flex",
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
     }}
   >
     <a
@@ -76,6 +80,17 @@ export const Header = ({ logo, sections, currentSection }: HeaderProps) => (
     >
       {logo}
     </a>
+    <div style={{ display: "flex", flexDirection: "row", gap: 16 }}>
+      {sections.map(({ name }) => (
+        <a
+          key={name}
+          href={`/${name}`}
+          style={currentSectionName === name ? { color: "black" } : {}}
+        >
+          {addSpaces(name)}
+        </a>
+      ))}
+    </div>
   </div>
 )
 

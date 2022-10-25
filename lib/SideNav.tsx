@@ -17,33 +17,34 @@ export const SideNav = ({
   pages,
   currentPage,
 }: SideNavProps) => {
-  const links = (
-    <>
-      {categoriesInOrder(category.subcategories).map((subcategory) => (
-        <Components.NavItem key={subcategory.name}>
-          <Components.NavList>
-            <CategoryLinks category={subcategory} Components={Components} />
-          </Components.NavList>
-        </Components.NavItem>
-      ))}
-      {category.docs.map((doc) => (
-        <Components.NavItem key={doc.props.path}>
-          <DocLink doc={doc} Components={Components} />
-        </Components.NavItem>
-      ))}
-    </>
-  )
+  return "Nav"
+  // const links = (
+  //   <>
+  //     {categoriesInOrder(category.subcategories).map((subcategory) => (
+  //       <Components.NavItem key={subcategory.name}>
+  //         <Components.NavList>
+  //           <CategoryLinks category={subcategory} Components={Components} />
+  //         </Components.NavList>
+  //       </Components.NavItem>
+  //     ))}
+  //     {category.docs.map((doc) => (
+  //       <Components.NavItem key={doc.props.path}>
+  //         <DocLink doc={doc} Components={Components} />
+  //       </Components.NavItem>
+  //     ))}
+  //   </>
+  // )
 
-  return (
-    <>
-      <Components.NavList>
-        {category.name && (
-          <Components.NavHeading>{category.name}</Components.NavHeading>
-        )}
-        {links}
-      </Components.NavList>
-    </>
-  )
+  // return (
+  //   <>
+  //     <Components.NavList>
+  //       {category.name ? (
+  //         <Components.NavHeading>{category.name}</Components.NavHeading>
+  //       ) : null}
+  //       {links}
+  //     </Components.NavList>
+  //   </>
+  // )
 }
 
 type DocLinkProps = {
