@@ -1,9 +1,11 @@
 import React, { useMemo, type ReactNode } from "react"
 import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom"
+import type { PageParent } from "./tree"
 import {
   buildTree,
   type DocExport,
   type Page,
+  isPage,
   type Site,
   isSite,
   type SiteSection,
@@ -22,6 +24,7 @@ import {
   type Components,
   type Container,
   ComponentContextProvider,
+  useComponents,
 } from "./components"
 import { SideNav } from "./SideNav"
 import { NotFound } from "./NotFound"
@@ -53,13 +56,7 @@ export const DocsApp = ({
           <Routes>
             <Route
               path="*"
-              element={
-                <WildcardRoute
-                  logo={logo}
-                  pagesByPath={pagesByPath}
-                  Components={Components}
-                />
-              }
+              element={<WildcardRoute logo={logo} pagesByPath={pagesByPath} />}
             />
           </Routes>
         </ComponentContextProvider>
@@ -70,25 +67,21 @@ export const DocsApp = ({
 
 type WildcardRouteProps = {
   logo: ReactNode
-  pagesByPath: Record<string, Page | HomePage>
-  Components: Components
+  pagesByPath: Record<string, Page | HomePage | PageParent>
 }
 
-const WildcardRoute = ({
-  logo,
-  pagesByPath,
-  Components,
-}: WildcardRouteProps) => {
+const WildcardRoute = ({ logo, pagesByPath }: WildcardRouteProps) => {
+  const Components = useComponents()
   const location = useLocation()
   const path = location.pathname.slice(1) || "/"
 
-  const currentPage = pagesByPath[path]
+  const currentPageOrParent = pagesByPath[path]
 
-  if (!currentPage) {
+  if (!currentPageOrParent) {
     return <NotFound path={path} availablePaths={Object.keys(pagesByPath)} />
   }
 
-  if (isHomePage(currentPage)) {
+  if (isHomePage(currentPageOrParent)) {
     const site: Site = {
       __typename: "Site",
       children: [],
@@ -103,13 +96,47 @@ const WildcardRoute = ({
       <>
         <Components.Header logo={logo} sections={sections} />
         <Components.MainColumn>
-          <HomePageContent page={currentPage} />
+          <HomePageContent page={currentPageOrParent} />
         </Components.MainColumn>
       </>
     )
   }
 
-  let parent = currentPage.parent
+  if (isPage(currentPageOrParent)) {
+    return <PageComponent page={currentPageOrParent} />
+  }
+
+  const parent = currentPageOrParent
+
+  const currentPage = pagesByPath[getFirstPagePath(parent)] as Page
+
+  return <PageComponent page={currentPage} logo={logo} />
+}
+
+const getFirstPagePath = (parent: PageParent) => {
+  let path = parent.name
+
+  while (parent) {
+    const firstChild = parent.children[0]
+    path += `/${firstChild.name}`
+    if (isPage(firstChild)) {
+      break
+    }
+    parent = firstChild
+  }
+
+  return path
+}
+
+type PageComponentProps = {
+  page: Page
+  logo: ReactNode
+}
+
+const PageComponent = ({ page, logo }: PageComponentProps) => {
+  const Components = useComponents()
+
+  let parent = page.parent
   let pages: Page[] | undefined = undefined
   let currentSubCategory: SubCategory | undefined = undefined
   let currentCategory: Category | undefined = undefined
@@ -147,15 +174,17 @@ const WildcardRoute = ({
   ]
 
   if (!site) {
-    throw new Error(`No parent of ${path} is a Site`)
+    throw new Error(`No parent of ${page.path} is a Site`)
   }
 
   if (!currentSection) {
-    throw new Error(`No parent of ${path} is a SiteSection`)
+    throw new Error(`No parent of ${page.path} is a SiteSection`)
   }
 
   if (!pages) {
-    throw new Error(`No sibling pages created... Page ${path} had no parent?`)
+    throw new Error(
+      `No sibling pages created... Page ${page.path} had no parent?`
+    )
   }
 
   const categories = allChildren.filter(
@@ -182,12 +211,12 @@ const WildcardRoute = ({
               subCategories,
               currentSubCategory,
               pages,
-              currentPage,
+              currentPage: page,
             }}
           />
         </Components.LeftColumn>
         <Components.MainColumn>
-          <PageContent page={currentPage} />
+          <PageContent page={page} />
         </Components.MainColumn>
       </Components.Columns>
     </>

@@ -41,8 +41,14 @@ export type HomePage = {
   demos: DemoSet
 }
 
-export function isHomePage(page: Page | HomePage): page is HomePage {
+type PageOrParent = Page | HomePage | PageParent
+
+export function isHomePage(page: PageOrParent): page is HomePage {
   return page.__typename === "HomePage"
+}
+
+export function isPage(page: PageOrParent): page is Page {
+  return page.__typename === "Page"
 }
 
 export type SiteSection = {
@@ -54,7 +60,7 @@ export type SiteSection = {
   parent: Site
 }
 
-export function isSiteSection(parent: PageParent): parent is SiteSection {
+export function isSiteSection(parent: PageOrParent): parent is SiteSection {
   return parent.__typename === "SiteSection"
 }
 
@@ -67,7 +73,7 @@ export type Category = {
   order?: number
 }
 
-export function isCategory(parent: PageParent | Page): parent is Category {
+export function isCategory(parent: PageOrParent): parent is Category {
   return parent.__typename === "Category"
 }
 
@@ -80,9 +86,7 @@ export type SubCategory = {
   order?: number
 }
 
-export function isSubCategory(
-  parent: PageParent | Page
-): parent is SubCategory {
+export function isSubCategory(parent: PageOrParent): parent is SubCategory {
   return parent.__typename === "SubCategory"
 }
 
@@ -145,10 +149,8 @@ export function getSubCategoryChildren(
   return children as SubCategory[]
 }
 
-export const buildTree = (
-  docs: DocExport[]
-): Record<string, Page | HomePage> => {
-  const pagesByPath: Record<string, Page | HomePage> = {}
+export const buildTree = (docs: DocExport[]): Record<string, PageOrParent> => {
+  const pagesByPath: Record<string, PageOrParent> = {}
 
   const site: Site = {
     __typename: "Site",
@@ -203,7 +205,7 @@ export const buildTree = (
       }
 
       const commonParentProperties = {
-        path: breadcrumbs.join("/"),
+        path: getParentPath(breadcrumb, parent),
         name: breadcrumb,
         children: [],
       }
@@ -216,6 +218,7 @@ export const buildTree = (
           ...commonParentProperties,
           parent,
         }
+        pagesByPath[commonParentProperties.path] = newParent
         parent.children.push(newParent)
       } else if (breadcrumbs.length === 2 && isSiteSection(parent)) {
         newParent = {
@@ -223,6 +226,7 @@ export const buildTree = (
           ...commonParentProperties,
           parent,
         }
+        pagesByPath[commonParentProperties.path] = newParent
         parent.children.push(newParent)
       } else if (breadcrumbs.length === 1 && isCategory(parent)) {
         newParent = {
@@ -230,6 +234,7 @@ export const buildTree = (
           ...commonParentProperties,
           parent,
         }
+        pagesByPath[commonParentProperties.path] = newParent
         parent.children.push(newParent)
       } else {
         throw new Error(
@@ -272,4 +277,13 @@ function shift<T>(array: T[]) {
     throw new Error("Tried to shift value off of empty array")
   }
   return value
+}
+
+const getParentPath = (breadcrumb: string, parent: PageParent) => {
+  let path = breadcrumb
+  while (parent?.name) {
+    path = `${parent.name}/${path}`
+    parent = parent.parent
+  }
+  return path
 }
