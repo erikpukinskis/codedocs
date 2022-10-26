@@ -57,6 +57,9 @@
   },
   "dependencies": {
     "lodash": "^4.17.21",
-    "react": "^17.0.2"
+    "minisearch": "^5.0.0",
+    "react": "^17.0.2",
+    "react-innertext": "^1.1.5",
+    "react-laag": "^2.0.4"
   }
 }

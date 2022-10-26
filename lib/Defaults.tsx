@@ -1,10 +1,18 @@
-import type { ReactNode } from "react"
 import React from "react"
 import { Link as _Link } from "react-router-dom"
-import type { SiteSection } from "./tree"
 import { addSpaces } from "./helpers"
-type Container = React.FC<{ children: React.ReactNode }>
 import githubLogoUrl from "./github.png"
+import type {
+  LinkProps,
+  HeaderProps,
+  SearchBoxProps,
+  SocialProps,
+  PopoverProps,
+  Container,
+} from "./ComponentContext"
+import { useComponents } from "./ComponentContext"
+import { useSearchQuery, useSearchResults } from "./SearchContext"
+import { useLayer, useHover } from "react-laag"
 
 export const GlobalStyles = () => (
   <>
@@ -53,64 +61,116 @@ export const GlobalStyles = () => (
   </>
 )
 
-export type HeaderProps = {
-  logo: ReactNode
-  socialProps: SocialProps
-  sections: SiteSection[]
-  currentSection?: SiteSection
+export const Popover = ({ target, contents, isOpen }: PopoverProps) => {
+  const [, hoverProps] = useHover()
+
+  const { triggerProps, layerProps, renderLayer } = useLayer({
+    isOpen,
+    placement: "bottom-start",
+  })
+
+  return (
+    <>
+      <span {...triggerProps} {...hoverProps}>
+        {target}
+      </span>
+      {isOpen &&
+        renderLayer(
+          <div className="tooltip" {...layerProps}>
+            {contents}
+          </div>
+        )}
+    </>
+  )
 }
+
+export const Card: Container = ({ children }) => (
+  <div
+    style={{
+      borderRadius: 4,
+      padding: 16,
+      border: "1px solid #DDD",
+      background: "white",
+    }}
+  >
+    {children}
+  </div>
+)
+export const SearchBox = ({ value, onChange }: SearchBoxProps) => (
+  <input
+    type="text"
+    placeholder="Search..."
+    value={value}
+    onChange={(event) => onChange(event.target.value)}
+  />
+)
 
 export const Header = ({
   logo,
   socialProps,
   sections,
   currentSection,
-}: HeaderProps) => (
-  <div
-    style={{
-      borderBottom: "1px solid #DDD",
-      padding: 24,
-      display: "flex",
-      flexDirection: "row",
-      justifyContent: "space-between",
-      alignItems: "center",
-    }}
-  >
-    <a
-      href="/"
-      style={{
-        display: "block",
-        fontWeight: 600,
-        fontSize: "1.4em",
-        marginTop: "-0.2em",
-        marginBottom: "-0.2em",
-      }}
-    >
-      {logo}
-    </a>
+}: HeaderProps) => {
+  const Components = useComponents()
+  const [query, setQuery] = useSearchQuery()
+  const results = useSearchResults()
+
+  return (
     <div
       style={{
+        borderBottom: "1px solid #DDD",
+        padding: 24,
         display: "flex",
         flexDirection: "row",
-        gap: 24,
-        marginRight: 24,
+        justifyContent: "space-between",
+        alignItems: "center",
       }}
     >
-      {sections.map(({ name }) => (
-        <a
-          key={name}
-          href={`/${name}`}
-          style={currentSection?.name === name ? { color: "black" } : {}}
-        >
-          {addSpaces(name)}
-        </a>
-      ))}
-      <Social {...socialProps} />
+      <a
+        href="/"
+        style={{
+          display: "block",
+          fontWeight: 600,
+          fontSize: "1.4em",
+          marginTop: "-0.2em",
+          marginBottom: "-0.2em",
+        }}
+      >
+        {logo}
+      </a>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "row",
+          gap: 24,
+          marginRight: 24,
+        }}
+      >
+        <Components.Popover
+          isOpen={Boolean(results && results.length > 0)}
+          target={<Components.SearchBox value={query} onChange={setQuery} />}
+          contents={
+            <Card>
+              {results?.map((result) => (
+                <div key={result.path}>{result.title}</div>
+              ))}
+            </Card>
+          }
+        />
+        {sections.map(({ name }) => (
+          <a
+            key={name}
+            href={`/${name}`}
+            style={currentSection?.name === name ? { color: "black" } : {}}
+          >
+            {addSpaces(name)}
+          </a>
+        ))}
+        <Social {...socialProps} />
+      </div>
     </div>
-  </div>
-)
-
-export type LinkProps = Pick<Parameters<typeof Link>[0], "to" | "children">
+  )
+}
 
 export const Link = _Link
 
@@ -194,10 +254,6 @@ export const NavHeading: Container = ({ children }) => (
 export const Code: Container = ({ children }) => <code>{children}</code>
 
 export const Pre: Container = ({ children }) => <pre>{children}</pre>
-
-export type SocialProps = {
-  githubUrl?: string
-}
 
 export const Social = ({ githubUrl }: SocialProps) =>
   githubUrl ? (

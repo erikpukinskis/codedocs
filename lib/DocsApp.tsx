@@ -31,6 +31,7 @@ import { SideNav } from "./SideNav"
 import { NotFound } from "./NotFound"
 import { PageContent, HomePageContent } from "./PageContent"
 import omit from "lodash/omit"
+import { SearchContextProvider } from "./SearchContext"
 
 type DocsAppProps = Partial<Components> &
   Partial<SocialProps> & {
@@ -70,26 +71,27 @@ export const DocsApp = ({
   }
 
   return (
-    <DesignSystemProvider>
-      <Components.GlobalStyles />
-      <ComponentContextProvider Components={Components}>
-        <BrowserRouter>
-          <Routes>
-            <Route
-              path="*"
-              element={
-                <WildcardRoute
-                  Components={Components}
-                  logo={logo}
-                  socialProps={socialProps}
-                  pagesByPath={pagesByPath}
-                />
-              }
-            />
-          </Routes>
-        </BrowserRouter>
-      </ComponentContextProvider>
-    </DesignSystemProvider>
+    <SearchContextProvider pagesByPath={pagesByPath}>
+      <DesignSystemProvider>
+        <ComponentContextProvider Components={Components}>
+          <BrowserRouter>
+            <Routes>
+              <Route
+                path="*"
+                element={
+                  <WildcardRoute
+                    Components={Components}
+                    logo={logo}
+                    socialProps={socialProps}
+                    pagesByPath={pagesByPath}
+                  />
+                }
+              />
+            </Routes>
+          </BrowserRouter>
+        </ComponentContextProvider>
+      </DesignSystemProvider>
+    </SearchContextProvider>
   )
 }
 

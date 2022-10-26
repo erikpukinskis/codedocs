@@ -33,11 +33,12 @@ export type Page = {
 
 export type HomePage = {
   __typename: "HomePage"
+  path: "/"
   doc: DocElement
   demos: DemoSet
 }
 
-type PageOrParent = Page | HomePage | PageParent
+export type PageOrParent = Page | HomePage | PageParent
 
 export function isHomePage(page: PageOrParent): page is HomePage {
   return page.__typename === "HomePage"
@@ -168,6 +169,7 @@ export const buildTree = (docs: DocExport[]): Record<string, PageOrParent> => {
     if (path === "/") {
       pagesByPath["/"] = {
         __typename: "HomePage",
+        path: "/",
         doc,
         demos,
       }
