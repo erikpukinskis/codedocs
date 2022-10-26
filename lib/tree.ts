@@ -1,15 +1,11 @@
-type ProplessComponent = React.FC<Record<string, never>>
-
-export type DocExport = Record<string, ProplessComponent> & {
-  default: JSX.Element
-}
+export type DocExport = Record<string, JSX.Element>
 
 export type DocElement = React.ReactElement<
   { path: string; order?: number },
   never
 >
 
-type DemoSet = Record<string, ProplessComponent>
+type DemoSet = Record<string, JSX.Element>
 
 export type PageParent = Site | SiteSection | Category | SubCategory
 
