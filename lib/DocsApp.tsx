@@ -25,24 +25,44 @@ import {
   type Container,
   ComponentContextProvider,
   useComponents,
+  type SocialProps,
 } from "./components"
 import { SideNav } from "./SideNav"
 import { NotFound } from "./NotFound"
 import { PageContent, HomePageContent } from "./PageContent"
+import omit from "lodash/omit"
 
-type DocsAppProps = Partial<Components> & {
-  docs: DocExport[]
-  logo: string | ReactNode
-  DesignSystemProvider?: Container
-}
+type DocsAppProps = Partial<Components> &
+  Partial<SocialProps> & {
+    docs: DocExport[]
+    logo: string | ReactNode
+    githubUrl?: string
+    DesignSystemProvider?: Container
+  }
+
+type ComponentName = keyof typeof Defaults
+
+const COMPONENT_NAMES = Object.keys(Defaults) as ComponentName[]
 
 export const DocsApp = ({
   docs,
   DesignSystemProvider = ({ children }) => <>{children}</>,
   logo,
-  ...ComponentOverrides
+  ...rest
 }: DocsAppProps) => {
   const pagesByPath = useMemo(() => buildTree(docs), [docs])
+
+  const ComponentOverrides = Object.keys(Defaults).reduce((overrides, key) => {
+    const override = rest[key as ComponentName]
+    return override
+      ? {
+          ...overrides,
+          [key]: override,
+        }
+      : overrides
+  }, {} as Partial<Components>)
+
+  const socialProps = omit(rest, COMPONENT_NAMES) as SocialProps
 
   const Components = {
     ...Defaults,
@@ -51,27 +71,41 @@ export const DocsApp = ({
 
   return (
     <DesignSystemProvider>
-      <BrowserRouter>
-        <ComponentContextProvider Components={Components}>
+      <Components.GlobalStyles />
+      <ComponentContextProvider Components={Components}>
+        <BrowserRouter>
           <Routes>
             <Route
               path="*"
-              element={<WildcardRoute logo={logo} pagesByPath={pagesByPath} />}
+              element={
+                <WildcardRoute
+                  Components={Components}
+                  logo={logo}
+                  socialProps={socialProps}
+                  pagesByPath={pagesByPath}
+                />
+              }
             />
           </Routes>
-        </ComponentContextProvider>
-      </BrowserRouter>
+        </BrowserRouter>
+      </ComponentContextProvider>
     </DesignSystemProvider>
   )
 }
 
 type WildcardRouteProps = {
   logo: ReactNode
+  socialProps: SocialProps
   pagesByPath: Record<string, Page | HomePage | PageParent>
+  Components: Components
 }
 
-const WildcardRoute = ({ logo, pagesByPath }: WildcardRouteProps) => {
-  const Components = useComponents()
+const WildcardRoute = ({
+  logo,
+  socialProps,
+  pagesByPath,
+  Components,
+}: WildcardRouteProps) => {
   const location = useLocation()
   const path = location.pathname.slice(1) || "/"
 
@@ -94,7 +128,11 @@ const WildcardRoute = ({ logo, pagesByPath }: WildcardRouteProps) => {
 
     return (
       <>
-        <Components.Header logo={logo} sections={sections} />
+        <Components.Header
+          logo={logo}
+          socialProps={socialProps}
+          sections={sections}
+        />
         <Components.MainColumn>
           <HomePageContent page={currentPageOrParent} />
         </Components.MainColumn>
@@ -103,14 +141,22 @@ const WildcardRoute = ({ logo, pagesByPath }: WildcardRouteProps) => {
   }
 
   if (isPage(currentPageOrParent)) {
-    return <PageComponent page={currentPageOrParent} />
+    return (
+      <PageComponent
+        logo={logo}
+        socialProps={socialProps}
+        page={currentPageOrParent}
+      />
+    )
   }
 
   const parent = currentPageOrParent
 
   const currentPage = pagesByPath[getFirstPagePath(parent)] as Page
 
-  return <PageComponent page={currentPage} logo={logo} />
+  return (
+    <PageComponent page={currentPage} socialProps={socialProps} logo={logo} />
+  )
 }
 
 const getFirstPagePath = (parent: PageParent) => {
@@ -131,9 +177,10 @@ const getFirstPagePath = (parent: PageParent) => {
 type PageComponentProps = {
   page: Page
   logo: ReactNode
+  socialProps: SocialProps
 }
 
-const PageComponent = ({ page, logo }: PageComponentProps) => {
+const PageComponent = ({ page, logo, socialProps }: PageComponentProps) => {
   const Components = useComponents()
 
   let parent = page.parent
@@ -199,6 +246,7 @@ const PageComponent = ({ page, logo }: PageComponentProps) => {
     <>
       <Components.Header
         logo={logo}
+        socialProps={socialProps}
         sections={site.children}
         currentSection={currentSection}
       />

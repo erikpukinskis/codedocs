@@ -4,6 +4,7 @@ import { Link as _Link } from "react-router-dom"
 import type { SiteSection } from "./tree"
 import { addSpaces } from "./helpers"
 type Container = React.FC<{ children: React.ReactNode }>
+import githubLogoUrl from "./github.png"
 
 export const GlobalStyles = () => (
   <>
@@ -54,11 +55,17 @@ export const GlobalStyles = () => (
 
 export type HeaderProps = {
   logo: ReactNode
+  socialProps: SocialProps
   sections: SiteSection[]
   currentSection?: SiteSection
 }
 
-export const Header = ({ logo, sections, currentSection }: HeaderProps) => (
+export const Header = ({
+  logo,
+  socialProps,
+  sections,
+  currentSection,
+}: HeaderProps) => (
   <div
     style={{
       borderBottom: "1px solid #DDD",
@@ -91,6 +98,7 @@ export const Header = ({ logo, sections, currentSection }: HeaderProps) => (
           {addSpaces(name)}
         </a>
       ))}
+      <Social {...socialProps} />
     </div>
   </div>
 )
@@ -173,3 +181,14 @@ export const NavHeading: Container = ({ children }) => (
 export const Code: Container = ({ children }) => <code>{children}</code>
 
 export const Pre: Container = ({ children }) => <pre>{children}</pre>
+
+export type SocialProps = {
+  githubUrl?: string
+}
+
+export const Social = ({ githubUrl }: SocialProps) =>
+  githubUrl ? (
+    <a href={githubUrl}>
+      <img src={githubLogoUrl} width={24} height={24} />
+    </a>
+  ) : null

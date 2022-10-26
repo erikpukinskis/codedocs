@@ -1,5 +1,6 @@
 import type * as Defaults from "./Defaults"
 export * as Defaults from "./Defaults"
+export { type SocialProps } from "./Defaults"
 import type { ReactNode } from "react"
 import { useContext } from "react"
 import React, { createContext } from "react"
@@ -23,6 +24,7 @@ export type Components = {
   Link: LinkComponent
   Code: Container
   Pre: Container
+  Social: React.FC<Defaults.SocialProps>
 }
 
 type ComponentContextProviderProps = {
@@ -35,12 +37,14 @@ const ComponentContext = createContext<Components>({} as Components)
 export const ComponentContextProvider = ({
   Components,
   children,
-}: ComponentContextProviderProps) => (
-  <ComponentContext.Provider value={Components}>
-    <Components.GlobalStyles />
-    {children}
-  </ComponentContext.Provider>
-)
+}: ComponentContextProviderProps) => {
+  return (
+    <ComponentContext.Provider value={Components}>
+      {/* <Components.GlobalStyles /> */}
+      {children}
+    </ComponentContext.Provider>
+  )
+}
 
 export const useComponents = () => {
   const Components = useContext(ComponentContext)
