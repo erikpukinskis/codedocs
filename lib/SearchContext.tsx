@@ -100,7 +100,7 @@ export const SearchContextProvider = ({
   const [query, setQuery] = useState("")
 
   const results = useMemo(() => {
-    return miniSearch.search(query) as SearchIndexResult[]
+    return miniSearch.search(query, { prefix: true }) as SearchIndexResult[]
   }, [query, miniSearch])
 
   return (

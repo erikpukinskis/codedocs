@@ -61,11 +61,11 @@ export const GlobalStyles = () => (
   </>
 )
 
-export const Popover = ({ target, contents, isOpen }: PopoverProps) => {
+export const Popover = ({ target, contents }: PopoverProps) => {
   const [, hoverProps] = useHover()
 
   const { triggerProps, layerProps, renderLayer } = useLayer({
-    isOpen,
+    isOpen: Boolean(contents),
     placement: "bottom-start",
   })
 
@@ -74,7 +74,7 @@ export const Popover = ({ target, contents, isOpen }: PopoverProps) => {
       <span {...triggerProps} {...hoverProps}>
         {target}
       </span>
-      {isOpen &&
+      {contents &&
         renderLayer(
           <div className="tooltip" {...layerProps}>
             {contents}
@@ -112,8 +112,6 @@ export const Header = ({
   currentSection,
 }: HeaderProps) => {
   const Components = useComponents()
-  const [query, setQuery] = useSearchQuery()
-  const results = useSearchResults()
 
   return (
     <div
@@ -146,17 +144,7 @@ export const Header = ({
           marginRight: 24,
         }}
       >
-        <Components.Popover
-          isOpen={Boolean(results && results.length > 0)}
-          target={<Components.SearchBox value={query} onChange={setQuery} />}
-          contents={
-            <Card>
-              {results?.map((result) => (
-                <div key={result.path}>{result.title}</div>
-              ))}
-            </Card>
-          }
-        />
+        <Components.Search />
         {sections.map(({ name }) => (
           <a
             key={name}
@@ -172,6 +160,26 @@ export const Header = ({
   )
 }
 
+export const Search = () => {
+  const Components = useComponents()
+  const [query, setQuery] = useSearchQuery()
+  const results = useSearchResults()
+
+  return (
+    <Components.Popover
+      target={<Components.SearchBox value={query} onChange={setQuery} />}
+      contents={
+        results && results.length > 0 ? (
+          <Card>
+            {results?.map((result) => (
+              <div key={result.path}>{result.title}</div>
+            ))}
+          </Card>
+        ) : null
+      }
+    />
+  )
+}
 export const Link = _Link
 
 export const NavLink = ({ to, children }: LinkProps) => (

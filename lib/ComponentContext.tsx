@@ -28,12 +28,12 @@ export type Container = React.FC<{ children: React.ReactNode }>
 
 export type PopoverProps = {
   target: JSX.Element
-  contents: JSX.Element
-  isOpen: boolean
+  contents: JSX.Element | null
 }
 
 export type Components = {
   GlobalStyles: React.FC<Record<string, never>>
+  Search: React.FC<Record<string, never>>
   SearchBox: React.FC<SearchBoxProps>
   Header: React.FC<HeaderProps>
   Columns: Container
