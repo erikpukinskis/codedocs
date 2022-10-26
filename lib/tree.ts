@@ -82,7 +82,7 @@ export type SubCategory = {
   path: string
   name: string
   children: Page[]
-  parent: Category
+  parent: SiteSection | Category
   order?: number
 }
 
@@ -132,7 +132,7 @@ export function getCategoryChildren({
 }
 
 export function getSubCategoryChildren(
-  category: Category | undefined
+  category: SiteSection | Category | undefined
 ): SubCategory[] {
   if (!category) return []
 
@@ -228,14 +228,17 @@ export const buildTree = (docs: DocExport[]): Record<string, PageOrParent> => {
         }
         pagesByPath[commonParentProperties.path] = newParent
         parent.children.push(newParent)
-      } else if (breadcrumbs.length === 1 && isCategory(parent)) {
+      } else if (
+        breadcrumbs.length === 1 &&
+        (isCategory(parent) || isSiteSection(parent))
+      ) {
         newParent = {
           __typename: "SubCategory",
           ...commonParentProperties,
           parent,
         }
         pagesByPath[commonParentProperties.path] = newParent
-        parent.children.push(newParent)
+        ;(parent as Category).children.push(newParent)
       } else {
         throw new Error(
           `Unable to determine parent type for ${breadcrumb} within ${path}`

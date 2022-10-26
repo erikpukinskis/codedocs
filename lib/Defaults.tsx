@@ -88,7 +88,14 @@ export const Header = ({
     >
       {logo}
     </a>
-    <div style={{ display: "flex", flexDirection: "row", gap: 16 }}>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "row",
+        gap: 24,
+        marginRight: 24,
+      }}
+    >
       {sections.map(({ name }) => (
         <a
           key={name}
@@ -107,7 +114,11 @@ export type LinkProps = Pick<Parameters<typeof Link>[0], "to" | "children">
 
 export const Link = _Link
 
-export const NavLink = _Link
+export const NavLink = ({ to, children }: LinkProps) => (
+  <_Link to={to} style={{ color: "#444" }}>
+    {children}
+  </_Link>
+)
 
 export const Columns: Container = ({ children }) => (
   <div
@@ -159,11 +170,13 @@ export const DemoHeading: Container = ({ children }) => (
 )
 
 export const NavList: Container = ({ children }) => (
-  <div role="list">{children}</div>
+  <div role="list" style={{ marginTop: 12, marginLeft: 12, marginBottom: 12 }}>
+    {children}
+  </div>
 )
 
 export const NavItem: Container = ({ children }) => (
-  <div role="listitem" style={{ whiteSpace: "nowrap" }}>
+  <div role="listitem" style={{ whiteSpace: "nowrap", color: "#444" }}>
     {children}
   </div>
 )
