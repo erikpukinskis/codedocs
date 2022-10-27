@@ -42,12 +42,11 @@ export const BasicButton = (
     </p>
     <pre>
       {`import * as ButtonDocs from "./Button.docs"
-    import { DocsApp } from "codedocs"
-    import React from "react"
-    import { render } from "react-dom"
-    
-    render(<DocsApp docs={[ButtonDocs]} />, document.getElementById("root"))
-    `}
+import { DocsApp } from "codedocs"
+import React from "react"
+import { render } from "react-dom"
+
+render(<DocsApp docs={[ButtonDocs]} />, document.getElementById("root"))`}
     </pre>
   </Doc>
 )
