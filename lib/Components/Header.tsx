@@ -16,7 +16,6 @@ export const Header = ({
     <StyledHeader>
       <StyledLogo href="/">{logo}</StyledLogo>
       <StyledHeaderLinks>
-        <Components.Search />
         {sections.map(({ name }) => (
           <StyledHeaderLink
             key={name}
@@ -26,6 +25,7 @@ export const Header = ({
             {addSpaces(name)}
           </StyledHeaderLink>
         ))}
+        <Components.Search />
         <Components.Social {...socialProps} />
       </StyledHeaderLinks>
     </StyledHeader>
