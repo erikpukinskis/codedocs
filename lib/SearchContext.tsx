@@ -37,7 +37,7 @@ export const useSearchQuery = (): [string, (q: string) => void] => {
 
 export const useSearchResults = () => {
   const { results } = useContext(SearchContext)
-  console.log(results)
+  console.log("results", results)
   return results
 }
 
@@ -93,6 +93,7 @@ export const SearchContextProvider = ({
         }
       }
 
+      console.log("documents", documents)
       return documents
     },
     [pagesByPath]

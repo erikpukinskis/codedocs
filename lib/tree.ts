@@ -265,9 +265,7 @@ export const buildTree = (docs: DocExport[]): Record<string, PageOrParent> => {
     pagesByPath[path] = page
   }
 
-  console.log({
-    pagesByPath,
-  })
+  console.log("pagesByPath", pagesByPath)
 
   return pagesByPath
 }
