@@ -1,6 +1,5 @@
 import React, { useMemo, type ReactNode } from "react"
 import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom"
-import type { PageParent } from "./tree"
 import {
   buildTree,
   type DocExport,
@@ -14,24 +13,25 @@ import {
   isCategory,
   type SubCategory,
   isSubCategory,
+  type PageParent,
   isParentWithPageChildren,
   getPageChildren,
   type HomePage,
   isHomePage,
-} from "./tree"
+} from "@/tree"
 import {
-  Defaults,
   type Components,
   type Container,
   ComponentContextProvider,
   useComponents,
   type SocialProps,
-} from "./components"
-import { SideNav } from "./SideNav"
-import { NotFound } from "./NotFound"
-import { PageContent, HomePageContent } from "./PageContent"
+} from "@/ComponentContext"
+import * as Defaults from "@/Components"
+import { SideNav } from "@/SideNav"
+import { NotFound } from "@/NotFound"
+import { PageContent, HomePageContent } from "@/PageContent"
 import omit from "lodash/omit"
-import { SearchContextProvider } from "./SearchContext"
+import { SearchContextProvider } from "@/SearchContext"
 
 type DocsAppProps = Partial<Components> &
   Partial<SocialProps> & {

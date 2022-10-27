@@ -56,6 +56,7 @@
     "build:docs": "vite build --config vite.docs.config.js --mode development && mv site/docs/index.html site && rmdir site/docs"
   },
   "dependencies": {
+    "@stitches/react": "^1.2.8",
     "highlight-words": "^1.2.1",
     "lodash": "^4.17.21",
     "minisearch": "^5.0.0",

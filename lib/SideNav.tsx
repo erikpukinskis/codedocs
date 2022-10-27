@@ -1,7 +1,12 @@
-import { useComponents } from "./components"
-import type { Category, SubCategory, Page } from "./tree"
-import { isCategory, isSubCategory } from "./tree"
-import { addSpaces } from "./helpers"
+import { useComponents } from "@/ComponentContext"
+import {
+  isCategory,
+  isSubCategory,
+  type Category,
+  type SubCategory,
+  type Page,
+} from "@/tree"
+import { addSpaces } from "@/helpers"
 import React from "react"
 
 type SideNavProps = {

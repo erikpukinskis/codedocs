@@ -1,5 +1,5 @@
-import { addSpaces } from "./helpers"
-import { isHomePage, isPage, type PageOrParent } from "./tree"
+import { addSpaces } from "@/helpers"
+import { isHomePage, isPage, type PageOrParent } from "@/tree"
 import React, {
   useMemo,
   createContext,
@@ -13,7 +13,7 @@ import highlightWords, { type HighlightWords } from "highlight-words"
 import { onlyText } from "react-children-utilities"
 
 const STOP_WORDS = {
-  en: new Set(en as string[]),
+  en: new Set(en),
 }
 
 type SearchContextProperties = {

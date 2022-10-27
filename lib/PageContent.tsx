@@ -1,7 +1,7 @@
 import React from "react"
-import { type Page, type HomePage } from "./tree"
-import { useComponents } from "./components"
-import { addSpaces } from "./helpers"
+import { type Page, type HomePage } from "@/tree"
+import { useComponents } from "@/ComponentContext"
+import { addSpaces } from "@/helpers"
 
 type PageContentProps = {
   page: Page

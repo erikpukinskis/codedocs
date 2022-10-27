@@ -2,7 +2,7 @@ import type { ReactNode } from "react"
 import { useContext } from "react"
 import React from "react"
 import { createContext } from "react"
-import type { SiteSection } from "./tree"
+import type { SiteSection } from "@/tree"
 import { type Link } from "react-router-dom"
 
 export type LinkProps = Pick<Parameters<typeof Link>[0], "to" | "children">
@@ -35,7 +35,10 @@ export type PopoverProps = {
 export type Components = {
   GlobalStyles: React.FC<Record<string, never>>
   Search: React.FC<Record<string, never>>
-  SearchBox: React.FC<SearchBoxProps>
+  SearchBox: React.ForwardRefExoticComponent<
+    Pick<SearchBoxProps, "onChange" | "value"> &
+      React.RefAttributes<HTMLInputElement>
+  >
   Header: React.FC<HeaderProps>
   Columns: Container
   LeftColumn: Container
@@ -47,8 +50,6 @@ export type Components = {
   PageHeading: Container
   DemoHeading: Container
   Link: LinkComponent
-  Code: Container
-  Pre: Container
   Social: React.FC<SocialProps>
   Popover: React.FC<PopoverProps>
   Card: Container
