@@ -112,6 +112,7 @@ const WildcardRoute = ({
   const path = location.pathname.slice(1) || "/"
 
   const currentPageOrParent = pagesByPath[path]
+
   const site: Site = {
     __typename: "Site",
     children: [],

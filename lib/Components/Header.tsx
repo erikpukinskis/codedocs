@@ -43,6 +43,7 @@ const StyledHeader = styled("div", {
 
 const StyledLogo = styled("a", {
   display: "block",
+  whiteSpace: "nowrap",
   fontWeight: 600,
   fontSize: "1.4em",
   marginTop: "-0.2em",

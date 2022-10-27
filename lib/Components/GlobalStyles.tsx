@@ -42,7 +42,8 @@ export const GlobalStyles = () => (
 
       a {
         text-decoration: none;
-        color: teal;
+        color: #449f32;
+        line-height: 1em;
       }
   `}</style>
   </>
