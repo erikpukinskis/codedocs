@@ -1277,6 +1277,11 @@ has@^1.0.3:
   dependencies:
     function-bind "^1.1.1"
 
+highlight-words@^1.2.1:
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/highlight-words/-/highlight-words-1.2.1.tgz#6de4194bb28fc647431859af7c50531bb93af80e"
+  integrity sha512-FtF50tuaaYathtSPFk5FwGf0Zex5iqNsTx/OsVM6mdsB3xqs5nM+PAoPWs/gIUxGF3/Qqu2v86sAUenTh6oL3Q==
+
 history@^5.2.0:
   version "5.3.0"
   resolved "https://registry.yarnpkg.com/history/-/history-5.3.0.tgz#1548abaa245ba47992f063a0783db91ef201c73b"
@@ -1750,6 +1755,11 @@ queue-microtask@^1.2.2:
   resolved "https://registry.yarnpkg.com/queue-microtask/-/queue-microtask-1.2.3.tgz#4929228bbc724dfac43e0efb058caf7b6cfb6243"
   integrity sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==
 
+react-children-utilities@^2.8.0:
+  version "2.8.0"
+  resolved "https://registry.yarnpkg.com/react-children-utilities/-/react-children-utilities-2.8.0.tgz#ab6866249bcf1729fe463128de5e15074f43caaa"
+  integrity sha512-g42oRsZLrFJgCcIdK1lad1CWujNH4gh1Cp1lsMQpHWdDjWQ8gUlaBebgy2iXofyPEpfJ4T/xt4qWrvDkgVCCNg==
+
 react-dom@^17.0.2:
   version "17.0.2"
   resolved "https://registry.yarnpkg.com/react-dom/-/react-dom-17.0.2.tgz#ecffb6845e3ad8dbfcdc498f0d0a939736502c23"
@@ -1758,11 +1768,6 @@ react-dom@^17.0.2:
     loose-envify "^1.1.0"
     object-assign "^4.1.1"
     scheduler "^0.20.2"
-
-react-innertext@^1.1.5:
-  version "1.1.5"
-  resolved "https://registry.yarnpkg.com/react-innertext/-/react-innertext-1.1.5.tgz#8147ac54db3f7067d95f49e2d2c05a720d27d8d0"
-  integrity sha512-PWAqdqhxhHIv80dT9znP2KvS+hfkbRovFp4zFYHFFlOoQLRiawIic81gKb3U1wEyJZgMwgs3JoLtwryASRWP3Q==
 
 react-is@^16.13.1:
   version "16.13.1"
@@ -1953,6 +1958,11 @@ source-map@^0.5.0:
   version "0.5.7"
   resolved "https://registry.yarnpkg.com/source-map/-/source-map-0.5.7.tgz#8a039d2d1021d22d1ea14c80d8ea468ba2ef3fcc"
   integrity sha1-igOdLRAh0i0eoUyA2OpGi6LvP8w=
+
+stopwords-json@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/stopwords-json/-/stopwords-json-1.2.0.tgz#f0c033a4f72ddbfc6fe5da5f50b6208a0a9d7567"
+  integrity sha512-oXWgWb4BKcs5YBWPD4uSKzcJLw2dz+CrdRKbwrCogal6q44jp5WZpJx7QBX0dOl9bCb5dpNjKevZAPCr5gra4Q==
 
 string.prototype.matchall@^4.0.6:
   version "4.0.6"

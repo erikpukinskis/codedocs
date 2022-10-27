@@ -1,6 +1,5 @@
 import { addSpaces } from "./helpers"
 import { isHomePage, isPage, type PageOrParent } from "./tree"
-import getInnerText from "react-innertext"
 import React, {
   useMemo,
   createContext,
@@ -9,11 +8,18 @@ import React, {
   type ReactNode,
 } from "react"
 import MiniSearch, { type SearchResult } from "minisearch"
+import en from "stopwords-json/dist/en.json"
+import highlightWords, { type HighlightWords } from "highlight-words"
+import { onlyText } from "react-children-utilities"
+
+const STOP_WORDS = {
+  en: new Set(en as string[]),
+}
 
 type SearchContextProperties = {
   query: string
   setQuery: (q: string) => void
-  results: SearchIndexResult[] | undefined
+  results: Result[] | undefined
 }
 
 const SearchContext = createContext({} as SearchContextProperties)
@@ -42,9 +48,16 @@ type SearchIndexItem = {
   text: string
 }
 
-type SearchIndexResult = SearchResult & {
+type MiniSearchResult = SearchResult & {
   path: string
   title: string
+  text: string
+}
+
+type Result = {
+  path: string
+  title: JSX.Element
+  text: JSX.Element
 }
 
 type SearchContextProviderProps = {
@@ -67,7 +80,7 @@ export const SearchContextProvider = ({
             id: page.path,
             path: page.path,
             title: isHomePage(page) ? "Home Page" : addSpaces(page.name),
-            text: getInnerText(page.doc),
+            text: onlyText(page.doc),
           })
         } else {
           const parent = pageOrParent
@@ -86,10 +99,10 @@ export const SearchContextProvider = ({
   )
 
   const miniSearch = useMemo(() => {
-    console.log({ documents })
     const miniSearch = new MiniSearch({
       fields: ["title", "text"],
-      storeFields: ["path", "title"],
+      storeFields: ["path", "title", "text"],
+      processTerm: (term) => (STOP_WORDS.en.has(term) ? null : term),
     })
 
     miniSearch.addAll(documents)
@@ -100,7 +113,29 @@ export const SearchContextProvider = ({
   const [query, setQuery] = useState("")
 
   const results = useMemo(() => {
-    return miniSearch.search(query, { prefix: true }) as SearchIndexResult[]
+    const results = miniSearch.search(query, {
+      prefix: true,
+      boost: { title: 2 },
+    }) as MiniSearchResult[]
+
+    return results.map((result) => {
+      const terms = query.split(" ")
+
+      const pattern = terms.length === 1 ? terms[0] : `(${terms.join("|")})`
+
+      const titleChunks = highlightWords({ text: result.title, query: pattern })
+      const textChunks = highlightWords({
+        text: result.text,
+        query: pattern,
+        clipBy: 5,
+      })
+
+      return {
+        path: result.path,
+        title: chunksToJSX(titleChunks),
+        text: chunksToJSX(textChunks),
+      }
+    })
   }, [query, miniSearch])
 
   return (
@@ -109,3 +144,11 @@ export const SearchContextProvider = ({
     </SearchContext.Provider>
   )
 }
+
+const chunksToJSX = (chunks: HighlightWords.Chunk[]) => (
+  <>
+    {chunks
+      .slice(0, 4)
+      .map(({ text, match }) => (match ? <mark>{text}</mark> : text))}
+  </>
+)

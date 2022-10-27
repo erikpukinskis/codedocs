@@ -45,6 +45,12 @@ export const GlobalStyles = () => (
         font-size: 0.9em;
       }
 
+      mark {
+        background: none;
+        font-weight: bold;
+        color: #666;
+      }
+
       code {
         padding: 0.2em;
         font-size: 0.9em;
@@ -176,9 +182,22 @@ export const Search = () => {
       contents={
         results && results.length > 0 ? (
           <Card>
-            {results?.map((result) => (
-              <div key={result.path}>{result.title}</div>
-            ))}
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {results?.map((result) => {
+                return (
+                  <a
+                    style={{ display: "block", color: "inherit" }}
+                    href={`/${result.path}`}
+                    key={result.path}
+                  >
+                    <div style={{}}>{result.title}</div>
+                    <div style={{ fontSize: "0.8em", color: "#888" }}>
+                      {result.text}
+                    </div>
+                  </a>
+                )
+              })}
+            </div>
           </Card>
         ) : null
       }
