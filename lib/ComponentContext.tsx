@@ -8,6 +8,7 @@ import { type Link } from "react-router-dom"
 export type LinkProps = Pick<Parameters<typeof Link>[0], "to" | "children">
 
 export type SearchBoxProps = {
+  ref: React.MutableRefObject<HTMLInputElement | undefined>
   value: string
   onChange: (query: string) => void
 }

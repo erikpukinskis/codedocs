@@ -60,6 +60,7 @@
     "minisearch": "^5.0.0",
     "react": "^17.0.2",
     "react-innertext": "^1.1.5",
-    "react-laag": "^2.0.4"
+    "react-laag": "^2.0.4",
+    "use-keyboard-shortcut": "^1.1.6"
   }
 }

@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useRef, forwardRef } from "react"
 import { Link as _Link } from "react-router-dom"
 import { addSpaces } from "./helpers"
 import githubLogoUrl from "./github.png"
@@ -13,6 +13,7 @@ import type {
 import { useComponents } from "./ComponentContext"
 import { useSearchQuery, useSearchResults } from "./SearchContext"
 import { useLayer, useHover } from "react-laag"
+import useKeyboardShortcut from "use-keyboard-shortcut"
 
 export const GlobalStyles = () => (
   <>
@@ -96,14 +97,6 @@ export const Card: Container = ({ children }) => (
     {children}
   </div>
 )
-export const SearchBox = ({ value, onChange }: SearchBoxProps) => (
-  <input
-    type="text"
-    placeholder="Search..."
-    value={value}
-    onChange={(event) => onChange(event.target.value)}
-  />
-)
 
 export const Header = ({
   logo,
@@ -140,6 +133,7 @@ export const Header = ({
         style={{
           display: "flex",
           flexDirection: "row",
+          alignItems: "center",
           gap: 24,
           marginRight: 24,
         }}
@@ -164,10 +158,21 @@ export const Search = () => {
   const Components = useComponents()
   const [query, setQuery] = useSearchQuery()
   const results = useSearchResults()
+  const inputRef = useRef<HTMLInputElement>()
+
+  useKeyboardShortcut(["Meta", "Shift", "F"], () => {
+    inputRef.current?.focus()
+  })
 
   return (
     <Components.Popover
-      target={<Components.SearchBox value={query} onChange={setQuery} />}
+      target={
+        <Components.SearchBox
+          ref={inputRef}
+          value={query}
+          onChange={setQuery}
+        />
+      }
       contents={
         results && results.length > 0 ? (
           <Card>
@@ -180,6 +185,72 @@ export const Search = () => {
     />
   )
 }
+
+export const SearchBox = forwardRef<HTMLInputElement, SearchBoxProps>(
+  function SearchBox({ value, onChange }, inputRef) {
+    return (
+      <div style={{ position: "relative", width: "14em" }}>
+        <Keys>
+          <Key>command</Key>
+          <Key>shift</Key>
+          <Key>F</Key>
+        </Keys>
+        <input
+          ref={inputRef}
+          type="text"
+          style={{
+            fontSize: "0.8em",
+            padding: 8,
+            width: "100%",
+            boxSizing: "border-box",
+            borderRadius: 6,
+            border: "1px solid #CCC",
+          }}
+          placeholder="Search"
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+        />
+      </div>
+    )
+  }
+)
+
+const Keys: Container = ({ children }) => {
+  return (
+    <div
+      style={{
+        position: "absolute",
+        right: 0,
+        marginRight: "0.3em",
+        height: "100%",
+        display: "flex",
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 4,
+      }}
+    >
+      {children}
+    </div>
+  )
+}
+const Key: Container = ({ children }) => {
+  return (
+    <div
+      style={{
+        color: "#888",
+        borderRadius: 6,
+        fontSize: "0.6em",
+        padding: "0.5em",
+        minWidth: "1.5em",
+        textAlign: "center",
+        border: "1px solid #CCC",
+      }}
+    >
+      {children}
+    </div>
+  )
+}
+
 export const Link = _Link
 
 export const NavLink = ({ to, children }: LinkProps) => (
