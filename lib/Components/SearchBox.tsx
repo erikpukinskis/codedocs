@@ -51,4 +51,5 @@ const StyledKey = styled("div", {
   minWidth: "1.5em",
   textAlign: "center",
   border: "1px solid #CCC",
+  lineHeight: "1em",
 })

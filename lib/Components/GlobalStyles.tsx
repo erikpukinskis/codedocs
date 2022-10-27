@@ -15,6 +15,7 @@ export const GlobalStyles = () => (
         font-size: 18px;
         font-family: sans-serif;
         color: #222;
+        line-height: 1.3em;
       }
 
       h1, h2, h3, h4 {

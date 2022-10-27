@@ -112,22 +112,30 @@ const WildcardRoute = ({
   const path = location.pathname.slice(1) || "/"
 
   const currentPageOrParent = pagesByPath[path]
+  const site: Site = {
+    __typename: "Site",
+    children: [],
+    name: undefined as never,
+    path: undefined as never,
+    parent: undefined as never,
+  }
+
+  const sections = getSiteSections(site, pagesByPath)
 
   if (!currentPageOrParent) {
-    return <NotFound path={path} availablePaths={Object.keys(pagesByPath)} />
+    return (
+      <>
+        <Components.Header
+          logo={logo}
+          socialProps={socialProps}
+          sections={sections}
+        />
+        <NotFound path={path} availablePaths={Object.keys(pagesByPath)} />
+      </>
+    )
   }
 
   if (isHomePage(currentPageOrParent)) {
-    const site: Site = {
-      __typename: "Site",
-      children: [],
-      name: undefined as never,
-      path: undefined as never,
-      parent: undefined as never,
-    }
-
-    const sections = getSiteSections(site, pagesByPath)
-
     return (
       <>
         <Components.Header
