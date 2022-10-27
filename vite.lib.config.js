@@ -12,10 +12,11 @@ export default defineConfig({
   plugins: [react()],
 
   build: {
+    emptyOutDir: false,
     sourcemap: true,
     lib: {
       entry: path.resolve(__dirname, "lib/index.ts"),
-      name: "DesignDocs",
+      name: "Codedocs",
       fileName: (format) => `lib.${format}.js`,
     },
 

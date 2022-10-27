@@ -18,6 +18,7 @@
     "react-router-dom": "^6.0.0"
   },
   "devDependencies": {
+    "@types/node": "^18.11.0",
     "@types/react": "^17.0.38",
     "@types/react-dom": "^17.0.11",
     "@typescript-eslint/eslint-plugin": "^5.14.0",
@@ -31,7 +32,7 @@
     "react-router-dom": "^6.2.1",
     "tsc-alias": "^1.7.0",
     "typescript": "^4.5.5",
-    "vite": "^2.8.4"
+    "vite": "^3.1.8"
   },
   "repository": {
     "type": "git",
@@ -43,15 +44,15 @@
     "build": "rm -rf dist/* && yarn build:lib && yarn build:types",
     "build:types": "tsc --declaration --emitDeclarationOnly -p tsconfig.dist.json --skipLibCheck && tsc-alias -p tsconfig.json && mv dist/index.d.ts dist/lib.umd.d.ts",
     "check:types": "tsc --noEmit -p tsconfig.json; if [ $? -eq 0 ]; then echo 8J+OiSBUeXBlcyBhcmUgZ29vZCEKCg== | base64 -d; else exit 1; fi",
-    "confgen": "npx confgen@latest @lib @app --name Codedocs git yarn typescript react vite dist:lib eslint prettier",
+    "confgen": "npx confgen@latest @lib @docs --name Codedocs git yarn typescript codespaces react vite dist:lib eslint prettier",
     "check:lint": "eslint --ignore-path .gitignore --no-error-on-unmatched-pattern .; if [ $? -eq 0 ]; then echo 8J+OiSBObyBsaW50IGluIHRoaXMgY29kZSEKCg== | base64 -d; else exit 1; fi",
     "fix:lint": "eslint --ignore-path .gitignore --no-error-on-unmatched-pattern . --fix; if [ $? -eq 0 ]; then echo 8J+OiSBObyBsaW50IGluIHRoaXMgY29kZSEKCg== | base64 -d; else exit 1; fi",
     "fix:format": "prettier --write --ignore-path .gitignore .",
     "fix": "yarn fix:lint && yarn fix:format",
     "all": "yarn && yarn build && yarn fix && yarn check:types && echo `echo 8J+OiSBEaWQgYWxs | base64 -d`",
-    "start:app:dev": "vite serve app --config vite.app.config.js",
     "build:lib": "vite build --config vite.lib.config.js --mode development",
-    "build:app": "vite build --config vite.app.config.js --mode development"
+    "start:docs:dev": "vite serve docs --config vite.docs.config.js",
+    "build:docs": "vite build --config vite.docs.config.js --mode development && mv site/docs/index.html site && rmdir site/docs"
   },
   "dependencies": {
     "react": "^17.0.2"

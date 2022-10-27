@@ -1,0 +1,10 @@
+{
+  "extensions": [
+    "erikpukinskis.chrome-codespaces-keymap",
+    "stkb.rewrap",
+    "dbaeumer.vscode-eslint",
+    "rohit-gohri.format-code-action",
+    "esbenp.prettier-vscode"
+  ],
+  "postCreateCommand": "yarn"
+}
