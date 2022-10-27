@@ -53,7 +53,7 @@
     "all": "yarn && yarn build && yarn fix && yarn check:types && echo `echo 8J+OiSBEaWQgYWxs | base64 -d`",
     "build:lib": "vite build --config vite.lib.config.js --mode development",
     "start:docs:dev": "vite serve docs --config vite.docs.config.js",
-    "build:docs": "vite build --config vite.docs.config.js --mode development && mv site/docs/index.html site && rmdir site/docs"
+    "build:docs": "vite build --config vite.docs.config.js --mode development && mv site/docs/index.html site && rmdir site/docs && cp site/index.html site/404.html"
   },
   "dependencies": {
     "@stitches/react": "^1.2.8",

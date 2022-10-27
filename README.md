@@ -1,10 +1,14 @@
-Storybook is awesome. But it has three flaws:
+Codedocs is a Storybook replacement that fixes a few things:
 
-1. It doesn't use the same build system that your app uses to build components
-2. It's not designed to make nice public docs
-3. You can't document your Design System _in_ your Design System
+1. Storybook error handling is atrocious. Stories just silently won't load. It's annoying.
+2. MDX files don't have type checking, and TSX files can't do proper prose documentation. It's annoying.
+3. Storybook has its own special build environment that's different from your app's. Why can't you use the same build pipeline that builds your components to build your Storybook?
+4. The default Storybook layout is not very good for a public documentation site.
+5. Your documentation uses Storybook's design system, not YOUR design system. It's annoying.
+6. It's slow to start up and hot reloading is unreliable.
+7. Typing your stories is... optional. By default nothing enforces you setting them upcorrectly. And there's a lot of `any` in the types. It's annoying.
 
-**Code Docs** does all of those things.
+**Code Docs** was designed to fix these limitations.
 
 Say goodbye to fiddling with your Storybook config until it kind of works like your app. Build your
 documentation _on the same infrastructure as your app_.

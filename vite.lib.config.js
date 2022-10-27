@@ -23,12 +23,31 @@ export default defineConfig({
     rollupOptions: {
       // make sure to externalize deps that shouldn't be bundled
       // into your library
-      external: ["react", "react-router-dom"],
+      external: [
+        "@stitches/react",
+        "highlight-words",
+        "lodash",
+        "minisearch",
+        "react",
+        "react-children-utilities",
+        "react-laag",
+        "stopwords-json",
+        "use-keyboard-shortcut",
+        "react-router-dom",
+      ],
       output: {
         // Provide global variables to use in the UMD build
         // for externalized deps
         globals: {
+          "@stitches/react": "stitchesreact",
+          "highlight-words": "highlightwords",
+          "lodash": "lodash",
+          "minisearch": "minisearch",
           "react": "react",
+          "react-children-utilities": "reactchildrenutilities",
+          "react-laag": "reactlaag",
+          "stopwords-json": "stopwordsjson",
+          "use-keyboard-shortcut": "usekeyboardshortcut",
           "react-router-dom": "reactrouterdom",
         },
       },
