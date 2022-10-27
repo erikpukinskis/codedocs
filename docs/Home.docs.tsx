@@ -2,7 +2,7 @@ import React from "react"
 import { Doc } from ".."
 
 export default (
-  <Doc path="Home">
+  <Doc path="/">
     <h1 id="document-code-in-code">
       Document code <em>in</em> code
     </h1>
@@ -40,8 +40,7 @@ export default (
     </p>
     <h3 id="markdown">Markdown</h3>
     <pre>
-      <code>
-        {`---  
+      {`---  
 title: React  
 description: A JavaScript library for building user interfaces  
 hide_table_of_contents:  true  
@@ -50,12 +49,10 @@ hide_table_of_contents:  true
 # React
 
 A JavaScript library for building user interfaces`}
-      </code>
     </pre>
     <h3 id="codedocs">Codedocs</h3>
     <pre>
-      <code>
-        {`import { Doc, Title } from 'codedocs'
+      {`import { Doc, Title } from 'codedocs'
 
 export default (
 	<Doc path="Home">
@@ -63,7 +60,6 @@ export default (
 		<p>A JavaScript library for building user interfaces</p>
 	</Doc>
 )`}
-      </code>
     </pre>
     <h1 id="benefits">Benefits</h1>
     <ul>

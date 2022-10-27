@@ -1,50 +1,69 @@
-import React, { useMemo } from "react"
+import React, { useMemo, type ReactNode } from "react"
+import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom"
 import {
-  BrowserRouter,
-  type Link,
-  Route,
-  Routes,
-  useLocation,
-} from "react-router-dom"
-import * as Defaults from "./Defaults"
+  buildTree,
+  type DocExport,
+  type Page,
+  isPage,
+  type Site,
+  isSite,
+  type SiteSection,
+  isSiteSection,
+  type Category,
+  isCategory,
+  type SubCategory,
+  isSubCategory,
+  type PageParent,
+  isParentWithPageChildren,
+  getPageChildren,
+  type HomePage,
+  isHomePage,
+} from "@/tree"
+import {
+  type Components,
+  type Container,
+  ComponentContextProvider,
+  useComponents,
+  type SocialProps,
+} from "@/ComponentContext"
+import * as Defaults from "@/Components"
+import { SideNav } from "@/SideNav"
+import { NotFound } from "@/NotFound"
+import { PageContent, HomePageContent } from "@/PageContent"
+import omit from "lodash/omit"
+import { SearchContextProvider } from "@/SearchContext"
 
-type DocSet = Record<string, JSX.Element>
+type DocsAppProps = Partial<Components> &
+  Partial<SocialProps> & {
+    docs: DocExport[]
+    logo: string | ReactNode
+    githubUrl?: string
+    DesignSystemProvider?: Container
+  }
 
-type LinkComponent = React.FC<{ to: Parameters<typeof Link>[0]["to"] }>
+type ComponentName = keyof typeof Defaults
 
-type Components = {
-  Columns: Container
-  LeftColumn: Container
-  MainColumn: Container
-  NavLink: LinkComponent
-  NavList: Container
-  NavHeading: Container
-  NavItem: Container
-  PageHeading: Container
-  DemoHeading: Container
-  Link: LinkComponent
-  Code: Container
-  Pre: Container
-}
-
-type UseDocsAppOptions = Partial<Components> & {
-  docs: DocSet[]
-  DesignSystemProvider?: Container
-}
-
-type Container = React.FC<{ children: React.ReactNode }>
-
-const Passthrough: Container = ({ children }) => <>{children}</>
+const COMPONENT_NAMES = Object.keys(Defaults) as ComponentName[]
 
 export const DocsApp = ({
   docs,
-  DesignSystemProvider = Passthrough,
-  ...ComponentOverrides
-}: UseDocsAppOptions) => {
-  const { tree, docsByPath, demosByPath } = useMemo(
-    () => docsToTree(docs),
-    [docs]
-  )
+  DesignSystemProvider = ({ children }) => <>{children}</>,
+  logo,
+  ...rest
+}: DocsAppProps) => {
+  const pagesByPath = useMemo(() => buildTree(docs), [docs])
+
+  const ComponentOverrides = Object.keys(Defaults).reduce((overrides, key) => {
+    const override = rest[key as ComponentName]
+    return override
+      ? {
+          ...overrides,
+          [key]: override,
+        }
+      : overrides
+  }, {} as Partial<Components>)
+
+  const socialProps = omit(rest, COMPONENT_NAMES) as SocialProps
 
   const Components = {
     ...Defaults,
@@ -52,257 +71,237 @@ export const DocsApp = ({
   }
 
   return (
-    <DesignSystemProvider>
-      <BrowserRouter>
-        <Components.Columns>
-          <Components.LeftColumn>
-            <Components.NavList>
-              <Components.NavItem>
-                <Components.NavLink to="/">Introduction</Components.NavLink>
-              </Components.NavItem>
-              <CategoryLinks category={tree} Components={Components} />
-            </Components.NavList>
-          </Components.LeftColumn>
-          <Components.MainColumn>
+    <SearchContextProvider pagesByPath={pagesByPath}>
+      <DesignSystemProvider>
+        <ComponentContextProvider Components={Components}>
+          <BrowserRouter>
             <Routes>
-              <Route path="/" element={<>Welcome!</>} />
               <Route
                 path="*"
                 element={
                   <WildcardRoute
-                    docsByPath={docsByPath}
-                    demosByPath={demosByPath}
                     Components={Components}
+                    logo={logo}
+                    socialProps={socialProps}
+                    pagesByPath={pagesByPath}
                   />
                 }
               />
             </Routes>
-          </Components.MainColumn>
-        </Components.Columns>
-      </BrowserRouter>
-    </DesignSystemProvider>
+          </BrowserRouter>
+        </ComponentContextProvider>
+      </DesignSystemProvider>
+    </SearchContextProvider>
   )
 }
 
 type WildcardRouteProps = {
-  docsByPath: Record<string, DocElement>
-  demosByPath: Record<string, DemoSet>
+  logo: ReactNode
+  socialProps: SocialProps
+  pagesByPath: Record<string, Page | HomePage | PageParent>
   Components: Components
 }
 
 const WildcardRoute = ({
-  docsByPath,
-  demosByPath,
+  logo,
+  socialProps,
+  pagesByPath,
   Components,
 }: WildcardRouteProps) => {
   const location = useLocation()
-  const path = location.pathname.slice(1)
-  if (!path) return <>Welcome!</>
+  const path = location.pathname.slice(1) || "/"
 
-  const doc = docsByPath[path]
-  const demos = demosByPath[path]
+  const currentPageOrParent = pagesByPath[path]
 
-  if (doc) {
-    return <DocRoute doc={doc} demos={demos} Components={Components} />
-  } else {
+  const site: Site = {
+    __typename: "Site",
+    children: [],
+    name: undefined as never,
+    path: undefined as never,
+    parent: undefined as never,
+  }
+
+  const sections = getSiteSections(site, pagesByPath)
+
+  if (!currentPageOrParent) {
     return (
-      <NotFound
-        {...{ path, Components }}
-        availablePaths={Object.keys(docsByPath)}
+      <>
+        <Components.Header
+          logo={logo}
+          socialProps={socialProps}
+          sections={sections}
+        />
+        <NotFound path={path} availablePaths={Object.keys(pagesByPath)} />
+      </>
+    )
+  }
+
+  if (isHomePage(currentPageOrParent)) {
+    return (
+      <>
+        <Components.Header
+          logo={logo}
+          socialProps={socialProps}
+          sections={sections}
+        />
+        <Components.MainColumn>
+          <HomePageContent page={currentPageOrParent} />
+        </Components.MainColumn>
+      </>
+    )
+  }
+
+  if (isPage(currentPageOrParent)) {
+    return (
+      <PageComponent
+        logo={logo}
+        socialProps={socialProps}
+        page={currentPageOrParent}
       />
     )
   }
-}
 
-type NotFoundProps = {
-  path: string
-  availablePaths: string[]
-  Components: Components
-}
+  const parent = currentPageOrParent
 
-const nameFromPath = (path: string) => path.split("/").slice(-1)[0]
-
-const NotFound = ({ path, availablePaths, Components }: NotFoundProps) => {
-  const componentName = nameFromPath(path)
-  const { PageHeading, Code, Pre } = Components
+  const currentPage = pagesByPath[getFirstPagePath(parent)] as Page
 
   return (
-    <>
-      <PageHeading>404 - Not Found</PageHeading>
-
-      <p>
-        None of the docs you passed to <Code>&lt;DocsApp&gt;</Code> have the
-        path <Code>&quot;{path}&quot;</Code>
-      </p>
-
-      <p>Try:</p>
-
-      <Pre>{`// path/to/${componentName}.doc.tsx
-import { Doc, Demo } from "codedocs"
-import { ${componentName} } from "."
-
-export const default = (
-  <Doc path="${path}">
-    Intro text goes here
-  </Doc>
-)
-
-export const SomeDemoScenario = (
-  <Demo>
-    <${componentName} ... />
-  </Demo>
-)
-`}</Pre>
-
-      <p>Here are all the paths which were found:</p>
-      <ul>
-        {availablePaths.map((path) => (
-          <li key={path}>
-            <Code>&quot;{path}&quot;</Code>
-          </li>
-        ))}
-      </ul>
-    </>
+    <PageComponent page={currentPage} socialProps={socialProps} logo={logo} />
   )
 }
 
-type Category = {
-  name: string
-  subcategories: Record<string, Category>
-  docs: DocElement[]
-}
+const getFirstPagePath = (parent: PageParent) => {
+  let path = parent.name
 
-type DocElement = React.ReactElement<{ path: string; order?: number }, never>
-
-type DemoSet = Record<string, JSX.Element>
-
-const docsToTree = (docs: DocSet[]) => {
-  const tree: Category = {
-    name: "",
-    subcategories: {},
-    docs: [],
-  }
-
-  const demosByPath: Record<string, DemoSet> = {}
-  const docsByPath: Record<string, DocElement> = {}
-
-  docs.map((docsAndDemos) => {
-    const doc = docsAndDemos.default as DocElement
-
-    const demos = { ...docsAndDemos }
-    delete demos.default
-    demosByPath[doc.props.path] = demos
-    docsByPath[doc.props.path] = doc
-    const breadcrumbs = doc.props.path.split("/")
-    let parent = tree
-    while (breadcrumbs.length > 1) {
-      const categoryName = shift(breadcrumbs)
-      if (parent.subcategories[categoryName]) {
-        parent = parent.subcategories[categoryName]
-      } else {
-        const category: Category = {
-          name: categoryName,
-          subcategories: {},
-          docs: [],
-        }
-        parent.subcategories[categoryName] = category
-        parent = category
-      }
+  while (parent) {
+    const firstChild = parent.children[0]
+    path += `/${firstChild.name}`
+    if (isPage(firstChild)) {
+      break
     }
-    parent.docs.push(doc)
-  })
-
-  return { tree, docsByPath, demosByPath }
-}
-
-type DocRouteProps = {
-  doc: DocElement
-  demos: Record<string, JSX.Element>
-  Components: Components
-}
-
-const DocRoute = ({ doc, demos, Components }: DocRouteProps) => (
-  <>
-    <Components.PageHeading>
-      {nameFromPath(doc.props.path)}
-    </Components.PageHeading>
-    {doc}
-    {Object.entries(demos).map(([name, demo]) => (
-      <React.Fragment key={name}>
-        <Components.DemoHeading>{addSpaces(name)}</Components.DemoHeading>
-        {demo}
-      </React.Fragment>
-    ))}
-  </>
-)
-
-function shift<T>(array: T[]) {
-  const value = array.shift()
-  if (!value) {
-    throw new Error("Tried to shift value off of empty array")
+    parent = firstChild
   }
-  return value
+
+  return path
 }
 
-const addSpaces = (name: string) => {
-  if (name.startsWith("_")) return name.replace("_", "")
-  else return name.replace(/(.)([A-Z])/g, "$1 $2")
+type PageComponentProps = {
+  page: Page
+  logo: ReactNode
+  socialProps: SocialProps
 }
 
-type CategoryLinksProps = {
-  category: Category
-  Components: Components
-}
+const PageComponent = ({ page, logo, socialProps }: PageComponentProps) => {
+  const Components = useComponents()
 
-const CategoryLinks = ({ category, Components }: CategoryLinksProps) => {
-  const links = (
-    <>
-      {categoriesInOrder(category.subcategories).map((subcategory) => (
-        <Components.NavItem key={subcategory.name}>
-          <Components.NavList>
-            <CategoryLinks category={subcategory} Components={Components} />
-          </Components.NavList>
-        </Components.NavItem>
-      ))}
-      {category.docs.map((doc) => (
-        <Components.NavItem key={doc.props.path}>
-          <DocLink doc={doc} Components={Components} />
-        </Components.NavItem>
-      ))}
-    </>
-  )
+  let parent = page.parent
+  let pages: Page[] | undefined = undefined
+  let currentSubCategory: SubCategory | undefined = undefined
+  let currentCategory: Category | undefined = undefined
+  let currentSection: SiteSection | undefined = undefined
+  let site: Site | undefined = undefined
+
+  while (parent) {
+    if (!pages) {
+      if (!isParentWithPageChildren(parent)) {
+        throw new Error(
+          `Parent ${
+            parent.path as string
+          } is the current page's parent but it has no children?`
+        )
+      }
+      pages = getPageChildren(parent)
+    }
+
+    if (isSubCategory(parent)) {
+      currentSubCategory = parent
+    } else if (isCategory(parent)) {
+      currentCategory = parent
+    } else if (isSiteSection(parent)) {
+      currentSection = parent
+    } else if (isSite(parent)) {
+      site = parent
+    }
+    parent = parent.parent
+  }
+
+  const allChildren = [
+    ...(currentSection?.children ?? []),
+    ...(currentCategory?.children ?? []),
+    ...(currentSubCategory?.children ?? []),
+  ]
+
+  if (!site) {
+    throw new Error(`No parent of ${page.path} is a Site`)
+  }
+
+  if (!currentSection) {
+    throw new Error(`No parent of ${page.path} is a SiteSection`)
+  }
+
+  if (!pages) {
+    throw new Error(
+      `No sibling pages created... Page ${page.path} had no parent?`
+    )
+  }
+
+  const categories = allChildren.filter(
+    ({ __typename }) => __typename === "Category"
+  ) as Category[]
+
+  const subCategories = allChildren.filter(
+    ({ __typename }) => __typename === "SubCategory"
+  ) as SubCategory[]
 
   return (
     <>
-      {category.name && (
-        <Components.NavHeading>{category.name}</Components.NavHeading>
-      )}
-      {links}
+      <Components.Header
+        logo={logo}
+        socialProps={socialProps}
+        sections={site.children}
+        currentSection={currentSection}
+      />
+      <Components.Columns>
+        <Components.LeftColumn>
+          <SideNav
+            {...{
+              categories,
+              currentCategory,
+              subCategories,
+              currentSubCategory,
+              pages,
+              currentPage: page,
+            }}
+          />
+        </Components.LeftColumn>
+        <Components.MainColumn>
+          <PageContent page={page} />
+        </Components.MainColumn>
+      </Components.Columns>
     </>
   )
 }
 
-type DocLinkProps = {
-  doc: DocElement
-  Components: Components
-}
+const getSiteSections = (site: Site, pagesByPath: Record<string, unknown>) => {
+  const paths = Object.keys(pagesByPath)
+  const sectionNames = new Set<string>()
 
-const DocLink = ({ doc, Components }: DocLinkProps) => {
-  return (
-    <Components.NavLink to={`/${doc.props.path}`}>
-      {last(doc.props.path.split("/"))}
-    </Components.NavLink>
+  for (const path of paths) {
+    const breadcrumbs = path.split("/")
+    sectionNames.add(breadcrumbs[0])
+  }
+
+  const values = Array.from(sectionNames)
+
+  const result = values.map(
+    (name: string): SiteSection => ({
+      __typename: "SiteSection",
+      path: name,
+      name: name,
+      children: [],
+      parent: site,
+    })
   )
-}
 
-const last = <T,>(array: T[]) => array[array.length - 1]
-
-const categoriesInOrder = (categories: Record<string, Category>) => {
-  const list = Object.values(categories)
-  list.sort((a, b) => categoryOrder(a) - categoryOrder(b))
-  return list
-}
-
-const categoryOrder = (category: Category) => {
-  return Math.min(...category.docs.map((doc) => doc.props.order || Infinity))
+  return result
 }
