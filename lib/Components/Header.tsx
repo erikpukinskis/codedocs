@@ -40,6 +40,7 @@ const StyledHeader = styled("div", {
   flexDirection: "row",
   justifyContent: "space-between",
   alignItems: "center",
+  boxShadow: "0px 0px 3px 0px rgba(0,0,0,0.05)",
 })
 
 const StyledLogo = styled(Link, {
@@ -49,6 +50,8 @@ const StyledLogo = styled(Link, {
   fontSize: "1.4em",
   marginTop: "-0.2em",
   marginBottom: "-0.2em",
+  lineHeight: "16px",
+  padding: 8,
 })
 
 const StyledHeaderLinks = styled("div", {
@@ -60,6 +63,9 @@ const StyledHeaderLinks = styled("div", {
 })
 
 const StyledHeaderLink = styled(Link, {
+  lineHeight: "16px",
+  padding: 8,
+
   variants: {
     isCurrent: {
       true: { color: "black" },

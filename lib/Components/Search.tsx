@@ -7,12 +7,13 @@ import { useNavigate, Link } from "react-router-dom"
 import { useFocusGroup } from "@/useFocusGroup"
 
 export const Search = () => {
-  const { focusGroupProps, focus } = useFocusGroup({
+  const { focusGroupProps, focus, blur } = useFocusGroup({
     onBlur: () => {
       console.log("blur!")
       setHidden(true)
     },
     onFocus: () => {
+      setHidden(false)
       console.log("focus!")
     },
   })
@@ -21,7 +22,7 @@ export const Search = () => {
   const [query, setQuery] = useSearchQuery()
   const results = useSearchResults()
   const [isHidden, setHidden] = useState(false)
-  const [selectedIndex, setSelectedIndex] = useState<number>(-1)
+  const [selectedIndex, setSelectedIndex] = useState<number>(0)
   const navigate = useNavigate()
 
   useKeyboardShortcut(["Meta", "K"], () => {
@@ -32,21 +33,43 @@ export const Search = () => {
     focus("input")
   })
 
-  useEffect(() => {
+  const handleQueryChange = (newQuery: string) => {
+    setQuery(newQuery)
     setHidden(false)
-  }, [query])
+  }
+
+  useEffect(
+    function keepSelectionWithinResults() {
+      if (!results) {
+        setSelectedIndex(0)
+      } else if (results.length === 0) {
+        setSelectedIndex(0)
+      } else if (selectedIndex >= results.length) {
+        setSelectedIndex(results.length - 1)
+      }
+    },
+    [results]
+  )
 
   const handleKeys = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Escape") {
+      console.log("escape")
+      setHidden(true)
+      blur("input")
+      return
+    }
+
     if (!results || results.length < 1) return
 
     if (event.key === "Enter") {
       event.preventDefault()
       const selectedResult = results[selectedIndex]
       setHidden(true)
+      blur("input")
       navigate(selectedResult.path)
     } else if (event.key === "ArrowUp") {
       event.preventDefault()
-      if (selectedIndex < 0) return
+      if (selectedIndex < 1) return
       setSelectedIndex((index) => index - 1)
     } else if (event.key === "ArrowDown") {
       event.preventDefault()
@@ -55,13 +78,18 @@ export const Search = () => {
     }
   }
 
+  const handleResultClick = () => {
+    setHidden(true)
+    blur("input")
+  }
+
   return (
     <Components.Popover
       target={
         <Components.SearchBox
           {...focusGroupProps}
           value={query}
-          onChange={setQuery}
+          onChange={handleQueryChange}
           onKeyPress={handleKeys}
         />
       }
@@ -73,6 +101,7 @@ export const Search = () => {
                 <StyledSearchResult
                   {...focusGroupProps}
                   to={result.path}
+                  onClick={handleResultClick}
                   key={result.path}
                   isSelected={selectedIndex === index}
                 >

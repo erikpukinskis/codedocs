@@ -1,6 +1,7 @@
 import React, { forwardRef } from "react"
 import type { SearchBoxProps } from "@/ComponentTypes"
 import { styled } from "@stitches/react"
+import { isElement } from "@/helpers"
 
 export const SearchBox = forwardRef<HTMLInputElement, SearchBoxProps>(
   function SearchBox(
@@ -33,17 +34,31 @@ type ClearButtonProps = {
   setValue: (newValue: string) => void
 }
 
-const ClearButton = ({ setValue }: ClearButtonProps) => (
-  <StyledClearButton onClick={() => setValue("")}>
-    <ClearButtonTarget>&times;</ClearButtonTarget>
-  </StyledClearButton>
-)
+const ClearButton = ({ setValue }: ClearButtonProps) => {
+  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    setValue("")
+    if (isElement(event.target)) {
+      const input = event.target.parentElement?.querySelector("input")
+      console.log("focusing!", input)
+      input?.focus()
+    } else {
+      console.log("not element")
+    }
+  }
+
+  return (
+    <StyledClearButton onClick={handleClick}>
+      <ClearButtonTarget>&times;</ClearButtonTarget>
+    </StyledClearButton>
+  )
+}
 
 const ClearButtonTarget = styled("div", {
   "background": "#AAA",
   "width": 20,
   "height": 20,
   "lineHeight": "21px",
+  "overflow": "hidden",
   "textAlign": "center",
   "borderRadius": 9999,
   "color": "white",
@@ -61,7 +76,7 @@ const ClearButtonTarget = styled("div", {
 
 const StyledClearButton = styled("button", {
   position: "absolute",
-  padding: "none",
+  padding: 6,
   display: "flex",
   flexDirection: "row",
   alignItems: "center",

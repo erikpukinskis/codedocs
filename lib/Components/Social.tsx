@@ -13,4 +13,6 @@ export const Social = ({ githubUrl }: SocialProps) =>
 
 const StyledHeaderLink = styled(Link, {
   lineHeight: 0,
+  padding: 4,
+  boxSizing: "border-box",
 })

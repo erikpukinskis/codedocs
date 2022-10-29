@@ -6,6 +6,7 @@ export const Card = styled("div", {
   borderRadius: 4,
   border: "1px solid #DDD",
   background: "white",
+  boxShadow: "0px 2px 3px 0px rgba(0,0,0,0.05)",
 
   variants: {
     pad: {

@@ -67,7 +67,7 @@ const Nav = ({ item }: NavItemProps) => {
   } else {
     return (
       <Components.NavItem>
-        <Components.NavLink to={`/${item.doc.props.path}`}>
+        <Components.NavLink to={item.doc.props.path}>
           {addSpaces(item.name)}
         </Components.NavLink>
       </Components.NavItem>

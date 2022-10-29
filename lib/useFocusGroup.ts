@@ -1,5 +1,6 @@
 import { useRef, useMemo, useCallback } from "react"
 import { generate } from "short-uuid"
+import { isElement } from "@/helpers"
 
 /**
  * Note that there's a HOC-based version of this by @etheryte that seems pretty
@@ -19,14 +20,11 @@ type FocusGroupOptions = {
   onBlur?: () => void
 }
 
-const isElement = (target: EventTarget): target is HTMLElement => {
-  return target instanceof HTMLElement
-}
-
 export const useFocusGroup = ({ onFocus, onBlur }: FocusGroupOptions) => {
   const elementsByIdRef = useRef<Record<string, HTMLElement>>({})
   const focusedElementRef = useRef<HTMLElement | undefined>()
   const callbackTimeoutRef = useRef<NodeJS.Timeout | undefined>()
+  const lastReportedStateRef = useRef<"focused" | "blurred">("blurred")
   const cleanupTimeoutRef = useRef<NodeJS.Timeout | undefined>()
 
   const focusGroupProps = useMemo(
@@ -47,6 +45,11 @@ export const useFocusGroup = ({ onFocus, onBlur }: FocusGroupOptions) => {
           cleanupTimeoutRef.current = setTimeout(() => {
             for (const id in elementsByIdRef.current) {
               if (!elementsByIdRef.current[id].isConnected) {
+                if (focusedElementRef.current === elementsByIdRef.current[id]) {
+                  focusedElementRef.current = undefined
+                  onBlur?.()
+                  lastReportedStateRef.current = "blurred"
+                }
                 delete elementsByIdRef.current[id]
               }
             }
@@ -55,7 +58,6 @@ export const useFocusGroup = ({ onFocus, onBlur }: FocusGroupOptions) => {
         }
       },
       onFocus: function focusGroupHandleFocus(event: React.SyntheticEvent) {
-        const wasFocused = Boolean(focusedElementRef.current)
         if (!isElement(event.target)) {
           throw new Error(
             "useFocusGroup received a focus event from something other than an element"
@@ -63,28 +65,35 @@ export const useFocusGroup = ({ onFocus, onBlur }: FocusGroupOptions) => {
         }
         focusedElementRef.current = event.target
 
-        if (!wasFocused) {
+        console.log("focused", event.target.dataset.focusGroupMemberId)
+
+        if (lastReportedStateRef.current === "blurred") {
           if (callbackTimeoutRef.current) {
             clearTimeout(callbackTimeoutRef.current)
           }
           callbackTimeoutRef.current = setTimeout(() => {
             if (focusedElementRef.current) {
               onFocus?.()
+              lastReportedStateRef.current = "focused"
             }
           })
         }
       },
-      onBlur: function focusGroupHandleBlur() {
-        const wasFocused = Boolean(focusedElementRef.current)
+      onBlur: function focusGroupHandleBlur(event: React.SyntheticEvent) {
         focusedElementRef.current = undefined
 
-        if (wasFocused) {
+        if (isElement(event.target)) {
+          console.log("blurred", event.target.dataset.focusGroupMemberId)
+        }
+
+        if (lastReportedStateRef.current === "focused") {
           if (callbackTimeoutRef.current) {
             clearTimeout(callbackTimeoutRef.current)
           }
           callbackTimeoutRef.current = setTimeout(() => {
             if (!focusedElementRef.current) {
               onBlur?.()
+              lastReportedStateRef.current = "blurred"
             }
           })
         }
@@ -103,10 +112,21 @@ export const useFocusGroup = ({ onFocus, onBlur }: FocusGroupOptions) => {
     }
   }, [])
 
+  const blur = useCallback((selector: string) => {
+    for (const id in elementsByIdRef.current) {
+      const element = elementsByIdRef.current[id]
+      if (element.matches(selector)) {
+        element.blur()
+        return
+      }
+    }
+  }, [])
+
   return useMemo(
     () => ({
       focusGroupProps,
       focus,
+      blur,
     }),
     [focusGroupProps, focus]
   )
