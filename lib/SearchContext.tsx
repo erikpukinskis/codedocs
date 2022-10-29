@@ -48,7 +48,7 @@ type MiniSearchResult = SearchResult & {
   text: string
 }
 
-type Result = {
+export type Result = {
   path: string
   title: JSX.Element
   text: JSX.Element

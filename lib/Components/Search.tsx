@@ -1,4 +1,4 @@
-import { useSearchQuery, useSearchResults } from "@/SearchContext"
+import { useSearchQuery, useSearchResults, type Result } from "@/SearchContext"
 import useKeyboardShortcut from "use-keyboard-shortcut"
 import { styled } from "@stitches/react"
 import { useComponents } from "@/ComponentContext"
@@ -60,7 +60,19 @@ export const Search = () => {
 
     if (!results || results.length < 1) return
 
-    if (event.key === "Enter") {
+    if (
+      event.key === "PageUp" ||
+      (event.key === "ArrowLeft" && event.metaKey)
+    ) {
+      setSelectedIndex(0)
+      event.preventDefault()
+    } else if (
+      event.key === "PageDown" ||
+      (event.key === "ArrowRight" && event.metaKey)
+    ) {
+      setSelectedIndex(results.length - 1)
+      event.preventDefault()
+    } else if (event.key === "Enter") {
       event.preventDefault()
       const selectedResult = results[selectedIndex]
       setHidden(true)
@@ -82,18 +94,23 @@ export const Search = () => {
     blur("input")
   }
 
+  const isExpanded = (results: Result[] | undefined): results is Result[] => {
+    return Boolean(query) && Boolean(results) && !isHidden
+  }
+
   return (
     <Components.Popover
       target={
         <Components.SearchBox
           {...focusGroupProps}
+          isExpanded={isExpanded(results)}
           value={query}
           onChange={handleQueryChange}
           onKeyPress={handleKeys}
         />
       }
       contents={
-        query && results && !isHidden ? (
+        isExpanded(results) ? (
           <Components.Card pad="top-and-bottom">
             {results.length === 0 ? (
               <EmptyState>No results</EmptyState>

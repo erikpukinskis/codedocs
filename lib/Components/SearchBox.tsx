@@ -5,13 +5,24 @@ import { isElement } from "@/helpers"
 
 export const SearchBox = forwardRef<HTMLInputElement, SearchBoxProps>(
   function SearchBox(
-    { value, onChange, onFocus, onBlur, onKeyPress },
+    {
+      value,
+      onChange,
+      onFocus,
+      onBlur,
+      onKeyPress,
+      isExpanded,
+      activeDescendantId,
+    },
     inputRef
   ) {
     return (
       <StyledSearchBox>
         <StyledSearchInput
           ref={inputRef}
+          role="combobox"
+          aria-expanded={isExpanded}
+          aria-activedescendant={activeDescendantId}
           type="text"
           placeholder="Search"
           value={value}

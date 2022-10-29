@@ -10,6 +10,8 @@ export type SearchBoxProps = {
   onFocus: (event: React.SyntheticEvent) => void
   onBlur: (event: React.SyntheticEvent) => void
   onKeyPress: (event: React.KeyboardEvent<HTMLInputElement>) => void
+  isExpanded: boolean
+  activeDescendantId: string
 }
 
 export type SocialProps = {
