@@ -55,7 +55,6 @@ export const Search = () => {
     if (event.key === "Escape") {
       console.log("escape")
       setHidden(true)
-      blur("input")
       return
     }
 
@@ -94,22 +93,26 @@ export const Search = () => {
         />
       }
       contents={
-        results && results.length > 0 && !isHidden ? (
+        query && results && !isHidden ? (
           <Components.Card pad="top-and-bottom">
-            {results.map((result, index) => {
-              return (
-                <StyledSearchResult
-                  {...focusGroupProps}
-                  to={result.path}
-                  onClick={handleResultClick}
-                  key={result.path}
-                  isSelected={selectedIndex === index}
-                >
-                  <StyledResultTitle>{result.title}</StyledResultTitle>
-                  <StyledResultSnippet>{result.text}</StyledResultSnippet>
-                </StyledSearchResult>
-              )
-            })}
+            {results.length === 0 ? (
+              <EmptyState>No results</EmptyState>
+            ) : (
+              results.map((result, index) => {
+                return (
+                  <SearchResult
+                    {...focusGroupProps}
+                    to={result.path}
+                    onClick={handleResultClick}
+                    key={result.path}
+                    isSelected={selectedIndex === index}
+                  >
+                    <ResultTitle>{result.title}</ResultTitle>
+                    <ResultSnippet>{result.text}</ResultSnippet>
+                  </SearchResult>
+                )
+              })
+            )}
           </Components.Card>
         ) : null
       }
@@ -117,7 +120,17 @@ export const Search = () => {
   )
 }
 
-const StyledSearchResult = styled(Link, {
+const EmptyState = styled("div", {
+  width: "14em",
+  fontSize: "0.8em",
+  color: "#888",
+  paddingTop: 8,
+  paddingBottom: 8,
+  paddingLeft: 16,
+  paddingRight: 16,
+})
+
+const SearchResult = styled(Link, {
   width: "14em",
   display: "block",
   color: "inherit",
@@ -135,7 +148,7 @@ const StyledSearchResult = styled(Link, {
   },
 })
 
-const StyledResultSnippet = styled("div", {
+const ResultSnippet = styled("div", {
   "fontSize": "0.8em",
   "color": "#888",
   "maxHeight": "2.6em",
@@ -148,7 +161,7 @@ const StyledResultSnippet = styled("div", {
   },
 })
 
-const StyledResultTitle = styled("div", {
+const ResultTitle = styled("div", {
   // "fontSize": "0.8em",
   // "color": "#888",
 
