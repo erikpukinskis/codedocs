@@ -2,7 +2,7 @@ import { useSearchQuery, useSearchResults, type Result } from "@/SearchContext"
 import useKeyboardShortcut from "use-keyboard-shortcut"
 import { styled } from "@stitches/react"
 import { useComponents } from "@/ComponentContext"
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState, useMemo } from "react"
 import { useNavigate, Link } from "react-router-dom"
 import { useFocusGroup } from "@/useFocusGroup"
 
@@ -23,6 +23,7 @@ export const Search = () => {
   const results = useSearchResults()
   const [isHidden, setHidden] = useState(false)
   const [selectedIndex, setSelectedIndex] = useState<number>(0)
+
   const navigate = useNavigate()
 
   useKeyboardShortcut(["Meta", "K"], () => {
@@ -49,6 +50,17 @@ export const Search = () => {
       }
     },
     [results]
+  )
+
+  const activeDescendantId = useMemo(
+    function updateActiveDescendant() {
+      if (!results || results.length < 1) {
+        return undefined
+      } else {
+        return getResultId(results[selectedIndex])
+      }
+    },
+    [results, selectedIndex]
   )
 
   const handleKeys = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -107,6 +119,7 @@ export const Search = () => {
           value={query}
           onChange={handleQueryChange}
           onKeyPress={handleKeys}
+          activeDescendantId={activeDescendantId}
         />
       }
       contents={
@@ -123,6 +136,7 @@ export const Search = () => {
                     onClick={handleResultClick}
                     key={result.path}
                     isSelected={selectedIndex === index}
+                    id={getResultId(result)}
                   >
                     <ResultTitle>{result.title}</ResultTitle>
                     <ResultSnippet>{result.text}</ResultSnippet>
@@ -135,6 +149,14 @@ export const Search = () => {
       }
     />
   )
+}
+
+const getResultId = (result: Result) => {
+  return result.path
+    .replace(/[^\w]/g, " ")
+    .trim()
+    .toLowerCase()
+    .replace(/  */g, "-")
 }
 
 const EmptyState = styled("div", {

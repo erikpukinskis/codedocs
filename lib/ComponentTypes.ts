@@ -11,7 +11,7 @@ export type SearchBoxProps = {
   onBlur: (event: React.SyntheticEvent) => void
   onKeyPress: (event: React.KeyboardEvent<HTMLInputElement>) => void
   isExpanded: boolean
-  activeDescendantId: string
+  activeDescendantId: string | undefined
 }
 
 export type SocialProps = {
