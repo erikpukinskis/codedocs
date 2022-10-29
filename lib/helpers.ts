@@ -1,4 +1,11 @@
-export const nameFromPath = (path: string) => path.split("/").slice(-1)[0]
+export const getPathSegments = (path: string) => {
+  return path.split("/").filter((segment) => Boolean(segment))
+}
+
+export const nameFromPath = (path: string) => {
+  const segments = getPathSegments(path)
+  return segments[segments.length - 1]
+}
 
 export const addSpaces = (name: string) => {
   if (name.startsWith("_")) return name.replace("_", "")

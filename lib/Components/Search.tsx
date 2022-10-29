@@ -14,7 +14,11 @@ export const Search = () => {
   const [selectedIndex, setSelectedIndex] = useState<number>(-1)
   const navigate = useNavigate()
 
-  useKeyboardShortcut(["Meta", "Shift", "F"], () => {
+  useKeyboardShortcut(["Meta", "K"], () => {
+    inputRef.current?.focus()
+  })
+
+  useKeyboardShortcut(["Meta", "/"], () => {
     inputRef.current?.focus()
   })
 
@@ -25,6 +29,7 @@ export const Search = () => {
       event.preventDefault()
       const selectedResult = results[selectedIndex]
       setHidden(true)
+      console.log({ selectedResult })
       navigate(`/${selectedResult.path}`)
     } else if (event.key === "ArrowUp") {
       event.preventDefault()

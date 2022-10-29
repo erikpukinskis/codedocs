@@ -1,3 +1,5 @@
+import { getPathSegments } from "@/helpers"
+
 export type DocExport = Record<string, JSX.Element>
 
 export type DocElement = React.ReactElement<
@@ -177,7 +179,7 @@ export const buildTree = (docs: DocExport[]): Record<string, PageOrParent> => {
 
     const path = doc.props.path
     const order = doc.props.order
-    const breadcrumbs = doc.props.path.split("/")
+    const breadcrumbs = getPathSegments(doc.props.path)
 
     if (path === "/") {
       pagesByPath["/"] = {
@@ -198,7 +200,7 @@ export const buildTree = (docs: DocExport[]): Record<string, PageOrParent> => {
 
     if (breadcrumbs.length < 2) {
       throw new Error(
-        `Doc path ${path} is missing a site section. Try path="Docs/${path}" or path="/" for the home page`
+        `Doc path ${path} is missing a site section. Try path="/Docs/${path}" or path="/" for the home page`
       )
     }
 
@@ -291,7 +293,7 @@ function shift<T>(array: T[]) {
 }
 
 const getParentPath = (breadcrumb: string, parent: PageParent) => {
-  let path = breadcrumb
+  let path = `/${breadcrumb}`
   while (parent?.name) {
     path = `${parent.name}/${path}`
     parent = parent.parent

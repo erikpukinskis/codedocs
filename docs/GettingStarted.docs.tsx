@@ -2,7 +2,7 @@ import React from "react"
 import { Doc } from ".."
 
 export default (
-  <Doc path="Docs/GettingStarted">
+  <Doc path="/Docs/GettingStarted">
     <h2>Step 1: Set up an app</h2>
     We're assuming you've already done this, since you're an app developer.
     Another easy way to get an app set up is to use Confgen:
@@ -21,7 +21,7 @@ import { Button } from "./Button"
 CRSV wght
 
 export default (
-  <Doc path="Controls/Button">
+  <Doc path="/Controls/Button">
     The Button is meant to be used for everything that can be tapped, whether or
     not it has a background.
   </Doc>

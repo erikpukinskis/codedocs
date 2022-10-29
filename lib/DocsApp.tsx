@@ -1,4 +1,5 @@
 import React, { useMemo, type ReactNode } from "react"
+import type { Location } from "react-router-dom"
 import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom"
 import type { PageOrParent } from "@/tree"
 import {
@@ -91,10 +92,18 @@ type HeaderProps = {
   socialProps: SocialProps
 }
 
+const getPathFromLocation = (location: Location) => {
+  return location.pathname ? location.pathname : "/"
+}
+
 const Header = ({ pagesByPath, logo, socialProps }: HeaderProps) => {
   const location = useLocation()
-  const path = location.pathname.slice(1) || "/"
+  const path = getPathFromLocation(location)
   const pageOrParent = pagesByPath[path]
+
+  if (!pageOrParent) {
+    throw new Error(`No page with path ${JSON.stringify(path)}`)
+  }
   const Components = useComponents()
 
   return (
@@ -130,7 +139,7 @@ type WildcardRouteProps = {
 const WildcardRoute = ({ pagesByPath }: WildcardRouteProps) => {
   const Components = useComponents()
   const location = useLocation()
-  const path = location.pathname.slice(1) || "/"
+  const path = getPathFromLocation(location)
   const currentPageOrParent = pagesByPath[path]
 
   if (!currentPageOrParent) {
@@ -154,7 +163,7 @@ const WildcardRoute = ({ pagesByPath }: WildcardRouteProps) => {
 }
 
 const getFirstPagePath = (parent: PageParent) => {
-  let path = parent.name
+  let path = `/${parent.name}`
 
   while (parent) {
     const firstChild = parent.children[0]

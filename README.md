@@ -43,7 +43,7 @@ import { Doc, Demo } from "codedocs"
 import { Button } from "./Button"
 
 export default (
-  <Doc path="Controls/Button">
+  <Doc path="/Controls/Button">
     The Button is meant to be used for everything that can be tapped, whether or
     not it has a background.
   </Doc>

@@ -55,7 +55,7 @@ A JavaScript library for building user interfaces`}
       {`import { Doc, Title } from 'codedocs'
 
 export default (
-	<Doc path="Home">
+	<Doc path="/">
 		<Title>React</Title>
 		<p>A JavaScript library for building user interfaces</p>
 	</Doc>

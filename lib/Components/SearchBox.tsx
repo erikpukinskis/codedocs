@@ -21,8 +21,7 @@ export const SearchBox = forwardRef<HTMLInputElement, SearchBoxProps>(
         />
         <StyledKeys>
           <StyledKey>command</StyledKey>
-          <StyledKey>shift</StyledKey>
-          <StyledKey>F</StyledKey>
+          <StyledKey>K</StyledKey>
         </StyledKeys>
         {value ? <ClearButton setValue={onChange} /> : null}
       </StyledSearchBox>
