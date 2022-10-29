@@ -1,13 +1,14 @@
 import { styled } from "@stitches/react"
 import { type CardProps } from "@/ComponentTypes"
+import type React from "react"
 
-export const Card: React.FC<CardProps> = styled("div", {
+export const Card = styled("div", {
   borderRadius: 4,
   border: "1px solid #DDD",
   background: "white",
 
   variants: {
-    padding: {
+    pad: {
       "default": {
         padding: 16,
       },
@@ -19,6 +20,6 @@ export const Card: React.FC<CardProps> = styled("div", {
   },
 
   defaultVariants: {
-    padding: "default",
+    pad: "default",
   },
-})
+}) as React.FC<CardProps>

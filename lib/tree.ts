@@ -36,6 +36,14 @@ export type HomePage = {
   path: "/"
   doc: DocElement
   demos: DemoSet
+  // Making the HomePage a child of the Site is a little weird, because it's not
+  // one of the Site's "children" (those are SiteSections). But we made the Site
+  // the HomePage's parent so that every page has a parent and you can grab the
+  // Site by getting pagesByPath[path].parent.parent.parent...
+  //
+  // That said, it might be better to just have the HomePage be in the Site's
+  // children and when we need to get the SiteSections we'd just filter it out.
+  parent: Site
 }
 
 export type PageOrParent = Page | HomePage | PageParent
@@ -177,6 +185,7 @@ export const buildTree = (docs: DocExport[]): Record<string, PageOrParent> => {
         path: "/",
         doc,
         demos,
+        parent: site,
       }
       continue
     }

@@ -30,7 +30,7 @@ export type PopoverProps = {
 }
 
 export type CardProps = {
-  padding?: "default" | "top-and-bottom"
+  pad?: "default" | "top-and-bottom"
 }
 
 export type Components = {

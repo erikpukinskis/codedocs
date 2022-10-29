@@ -51,7 +51,7 @@ export const Search = () => {
       }
       contents={
         results && results.length > 0 && !isHidden ? (
-          <Components.Card padding="top-and-bottom">
+          <Components.Card pad="top-and-bottom">
             {results.map((result, index) => {
               return (
                 <StyledSearchResult
