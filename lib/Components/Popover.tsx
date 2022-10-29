@@ -1,5 +1,5 @@
 import React from "react"
-import type { PopoverProps } from "@/ComponentContext"
+import type { PopoverProps } from "@/ComponentTypes"
 import { useLayer, useHover } from "react-laag"
 
 export const Popover = ({ target, contents }: PopoverProps) => {
@@ -8,6 +8,7 @@ export const Popover = ({ target, contents }: PopoverProps) => {
   const { triggerProps, layerProps, renderLayer } = useLayer({
     isOpen: Boolean(contents),
     placement: "bottom-start",
+    triggerOffset: 4,
   })
 
   return (

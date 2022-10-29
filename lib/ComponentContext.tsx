@@ -2,58 +2,7 @@ import type { ReactNode } from "react"
 import { useContext } from "react"
 import React from "react"
 import { createContext } from "react"
-import type { SiteSection } from "@/tree"
-import { type Link } from "react-router-dom"
-
-export type LinkProps = Pick<Parameters<typeof Link>[0], "to" | "children">
-
-export type SearchBoxProps = {
-  ref: React.MutableRefObject<HTMLInputElement | undefined>
-  value: string
-  onChange: (query: string) => void
-}
-
-export type SocialProps = {
-  githubUrl?: string
-}
-export type HeaderProps = {
-  logo: ReactNode
-  socialProps: SocialProps
-  sections: SiteSection[]
-  currentSection?: SiteSection
-}
-
-type LinkComponent = React.FC<LinkProps>
-
-export type Container = React.FC<{ children: React.ReactNode }>
-
-export type PopoverProps = {
-  target: JSX.Element
-  contents: JSX.Element | null
-}
-
-export type Components = {
-  GlobalStyles: React.FC<Record<string, never>>
-  Search: React.FC<Record<string, never>>
-  SearchBox: React.ForwardRefExoticComponent<
-    Pick<SearchBoxProps, "onChange" | "value"> &
-      React.RefAttributes<HTMLInputElement>
-  >
-  Header: React.FC<HeaderProps>
-  Columns: Container
-  LeftColumn: Container
-  MainColumn: Container
-  NavLink: LinkComponent
-  NavList: Container
-  NavHeading: Container
-  NavItem: Container
-  PageHeading: Container
-  DemoHeading: Container
-  Link: LinkComponent
-  Social: React.FC<SocialProps>
-  Popover: React.FC<PopoverProps>
-  Card: Container
-}
+import type { Components } from "./ComponentTypes"
 
 type ComponentContextProviderProps = {
   Components: Components

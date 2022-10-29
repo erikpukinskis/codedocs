@@ -1,9 +1,12 @@
 import React, { forwardRef } from "react"
-import type { SearchBoxProps } from "@/ComponentContext"
+import type { SearchBoxProps } from "@/ComponentTypes"
 import { styled } from "@stitches/react"
 
 export const SearchBox = forwardRef<HTMLInputElement, SearchBoxProps>(
-  function SearchBox({ value, onChange }, inputRef) {
+  function SearchBox(
+    { value, onChange, onFocus, onBlur, onKeyPress },
+    inputRef
+  ) {
     return (
       <StyledSearchBox>
         <StyledSearchInput
@@ -13,6 +16,9 @@ export const SearchBox = forwardRef<HTMLInputElement, SearchBoxProps>(
           placeholder="Search"
           value={value}
           onChange={(event) => onChange(event.target.value)}
+          onFocus={onFocus}
+          onBlur={onBlur}
+          onKeyDown={onKeyPress}
         />
         <StyledKeys>
           <StyledKey>command</StyledKey>

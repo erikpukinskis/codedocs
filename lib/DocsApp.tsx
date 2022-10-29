@@ -19,13 +19,12 @@ import {
   type HomePage,
   isHomePage,
 } from "@/tree"
+import { ComponentContextProvider, useComponents } from "@/ComponentContext"
 import {
-  type Components,
   type Container,
-  ComponentContextProvider,
-  useComponents,
+  type Components,
   type SocialProps,
-} from "@/ComponentContext"
+} from "@/ComponentTypes"
 import * as Defaults from "@/Components"
 import { SideNav } from "@/SideNav"
 import { NotFound } from "@/NotFound"

@@ -32,7 +32,6 @@ export const useSearchQuery = (): [string, (q: string) => void] => {
 
 export const useSearchResults = () => {
   const { results } = useContext(SearchContext)
-  console.log("results", results)
   return results
 }
 
@@ -88,7 +87,6 @@ export const SearchContextProvider = ({
         }
       }
 
-      console.log("documents", documents)
       return documents
     },
     [pagesByPath]
@@ -144,9 +142,9 @@ export const SearchContextProvider = ({
 const chunksToJSX = (chunks: HighlightWords.Chunk[]) => {
   return (
     <>
-      {chunks.slice(0, 4).map(({ text, match }) => {
+      {chunks.slice(0, 4).map(({ text, match, key }) => {
         const sliced = text.slice(0, 150)
-        return match ? <mark>{sliced}</mark> : sliced
+        return match ? <mark key={key}>{sliced}</mark> : sliced
       })}
     </>
   )

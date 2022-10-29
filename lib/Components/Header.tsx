@@ -1,6 +1,6 @@
 import React from "react"
 import { addSpaces } from "@/helpers"
-import type { HeaderProps } from "@/ComponentContext"
+import type { HeaderProps } from "@/ComponentTypes"
 import { useComponents } from "@/ComponentContext"
 import { styled } from "@stitches/react"
 
