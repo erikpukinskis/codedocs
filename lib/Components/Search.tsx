@@ -18,8 +18,6 @@ export const Search = () => {
     inputRef.current?.focus()
   })
 
-  console.log({ isHidden })
-
   const handleKeys = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (!results || results.length < 1) return
 

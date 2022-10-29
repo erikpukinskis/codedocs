@@ -18,14 +18,7 @@ type SideNavProps = {
   currentPage: Page
 }
 
-export const SideNav = ({
-  categories,
-  subCategories,
-  pages,
-  currentCategory,
-  currentSubCategory,
-  currentPage,
-}: SideNavProps) => {
+export const SideNav = ({ categories, subCategories, pages }: SideNavProps) => {
   const topLevelItems =
     categories.length > 0
       ? categories

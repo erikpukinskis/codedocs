@@ -146,6 +146,11 @@ export function getSubCategoryChildren(
   return children as SubCategory[]
 }
 
+/**
+ * Takes all of the doc exports and builds a tree of nested
+ * site/section/category/subcategory/page objects with parents, children, and
+ * all the necessary metadata we need to render them.
+ */
 export const buildTree = (docs: DocExport[]): Record<string, PageOrParent> => {
   const pagesByPath: Record<string, PageOrParent> = {}
 
@@ -283,4 +288,79 @@ const getParentPath = (breadcrumb: string, parent: PageParent) => {
     parent = parent.parent
   }
   return path
+}
+
+/**
+ * Takes a page and returns arrays of sections, categories, etc such that we
+ * could render the page layout.
+ */
+export const getNav = (page: Page) => {
+  let parent = page.parent
+  let pages: Page[] | undefined = undefined
+  let currentSubCategory: SubCategory | undefined = undefined
+  let currentCategory: Category | undefined = undefined
+  let currentSection: SiteSection | undefined = undefined
+  let site: Site | undefined = undefined
+
+  while (parent) {
+    if (!pages) {
+      if (!isParentWithPageChildren(parent)) {
+        throw new Error(
+          `Parent ${
+            parent.path as string
+          } is the current page's parent but it has no children?`
+        )
+      }
+      pages = getPageChildren(parent)
+    }
+
+    if (isSubCategory(parent)) {
+      currentSubCategory = parent
+    } else if (isCategory(parent)) {
+      currentCategory = parent
+    } else if (isSiteSection(parent)) {
+      currentSection = parent
+    } else if (isSite(parent)) {
+      site = parent
+    }
+    parent = parent.parent
+  }
+
+  const allChildren = [
+    ...(currentSection?.children ?? []),
+    ...(currentCategory?.children ?? []),
+    ...(currentSubCategory?.children ?? []),
+  ]
+
+  if (!site) {
+    throw new Error(`No parent of ${page.path} is a Site`)
+  }
+
+  if (!currentSection) {
+    throw new Error(`No parent of ${page.path} is a SiteSection`)
+  }
+
+  if (!pages) {
+    throw new Error(
+      `No sibling pages created... Page ${page.path} had no parent?`
+    )
+  }
+
+  const categories = allChildren.filter(
+    ({ __typename }) => __typename === "Category"
+  ) as Category[]
+
+  const subCategories = allChildren.filter(
+    ({ __typename }) => __typename === "SubCategory"
+  ) as SubCategory[]
+
+  return {
+    site,
+    currentSection,
+    categories,
+    currentCategory,
+    subCategories,
+    currentSubCategory,
+    pages,
+  }
 }

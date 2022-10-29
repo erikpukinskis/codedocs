@@ -6,18 +6,11 @@ import {
   type Page,
   isPage,
   type Site,
-  isSite,
   type SiteSection,
-  isSiteSection,
-  type Category,
-  isCategory,
-  type SubCategory,
-  isSubCategory,
   type PageParent,
-  isParentWithPageChildren,
-  getPageChildren,
   type HomePage,
   isHomePage,
+  getNav,
 } from "@/tree"
 import { ComponentContextProvider, useComponents } from "@/ComponentContext"
 import {
@@ -193,64 +186,15 @@ type PageComponentProps = {
 const PageComponent = ({ page, logo, socialProps }: PageComponentProps) => {
   const Components = useComponents()
 
-  let parent = page.parent
-  let pages: Page[] | undefined = undefined
-  let currentSubCategory: SubCategory | undefined = undefined
-  let currentCategory: Category | undefined = undefined
-  let currentSection: SiteSection | undefined = undefined
-  let site: Site | undefined = undefined
-
-  while (parent) {
-    if (!pages) {
-      if (!isParentWithPageChildren(parent)) {
-        throw new Error(
-          `Parent ${
-            parent.path as string
-          } is the current page's parent but it has no children?`
-        )
-      }
-      pages = getPageChildren(parent)
-    }
-
-    if (isSubCategory(parent)) {
-      currentSubCategory = parent
-    } else if (isCategory(parent)) {
-      currentCategory = parent
-    } else if (isSiteSection(parent)) {
-      currentSection = parent
-    } else if (isSite(parent)) {
-      site = parent
-    }
-    parent = parent.parent
-  }
-
-  const allChildren = [
-    ...(currentSection?.children ?? []),
-    ...(currentCategory?.children ?? []),
-    ...(currentSubCategory?.children ?? []),
-  ]
-
-  if (!site) {
-    throw new Error(`No parent of ${page.path} is a Site`)
-  }
-
-  if (!currentSection) {
-    throw new Error(`No parent of ${page.path} is a SiteSection`)
-  }
-
-  if (!pages) {
-    throw new Error(
-      `No sibling pages created... Page ${page.path} had no parent?`
-    )
-  }
-
-  const categories = allChildren.filter(
-    ({ __typename }) => __typename === "Category"
-  ) as Category[]
-
-  const subCategories = allChildren.filter(
-    ({ __typename }) => __typename === "SubCategory"
-  ) as SubCategory[]
+  const {
+    site,
+    currentSection,
+    categories,
+    currentCategory,
+    subCategories,
+    currentSubCategory,
+    pages,
+  } = getNav(page)
 
   return (
     <>
