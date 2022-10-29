@@ -61,9 +61,7 @@
     "lodash": "^4.17.21",
     "minisearch": "^5.0.0",
     "react": "^17.0.2",
-    "react-children-utilities": "^2.8.0",
     "react-laag": "^2.0.4",
-    "stopwords-json": "^1.2.0",
     "use-keyboard-shortcut": "^1.1.6"
   }
 }

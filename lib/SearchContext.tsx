@@ -8,13 +8,8 @@ import React, {
   type ReactNode,
 } from "react"
 import MiniSearch, { type SearchResult } from "minisearch"
-import en from "stopwords-json/dist/en.json"
 import highlightWords, { type HighlightWords } from "highlight-words"
-import { onlyText } from "react-children-utilities"
-
-const STOP_WORDS = {
-  en: new Set(en),
-}
+import { reactNodeToText } from "./reactNodeToText"
 
 type SearchContextProperties = {
   query: string
@@ -80,7 +75,7 @@ export const SearchContextProvider = ({
             id: page.path,
             path: page.path,
             title: isHomePage(page) ? "Home Page" : addSpaces(page.name),
-            text: onlyText(page.doc),
+            text: reactNodeToText(page.doc),
           })
         } else {
           const parent = pageOrParent
@@ -103,7 +98,6 @@ export const SearchContextProvider = ({
     const miniSearch = new MiniSearch({
       fields: ["title", "text"],
       storeFields: ["path", "title", "text"],
-      processTerm: (term) => (STOP_WORDS.en.has(term) ? null : term),
     })
 
     miniSearch.addAll(documents)
@@ -120,15 +114,16 @@ export const SearchContextProvider = ({
     }) as MiniSearchResult[]
 
     return results.map((result) => {
-      const terms = query.split(" ")
+      const terms = query.split(" ").filter((term) => /[^\s]/.test(term))
 
-      const pattern = terms.length === 1 ? terms[0] : `(${terms.join("|")})`
+      const pattern = terms.length === 1 ? terms[0] : `/(${terms.join("|")})/gi`
 
       const titleChunks = highlightWords({ text: result.title, query: pattern })
+
       const textChunks = highlightWords({
         text: result.text,
         query: pattern,
-        clipBy: 5,
+        clipBy: 10,
       })
 
       return {
@@ -146,10 +141,13 @@ export const SearchContextProvider = ({
   )
 }
 
-const chunksToJSX = (chunks: HighlightWords.Chunk[]) => (
-  <>
-    {chunks
-      .slice(0, 4)
-      .map(({ text, match }) => (match ? <mark>{text}</mark> : text))}
-  </>
-)
+const chunksToJSX = (chunks: HighlightWords.Chunk[]) => {
+  return (
+    <>
+      {chunks.slice(0, 4).map(({ text, match }) => {
+        const sliced = text.slice(0, 150)
+        return match ? <mark>{sliced}</mark> : sliced
+      })}
+    </>
+  )
+}

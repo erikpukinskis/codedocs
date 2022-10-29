@@ -33,7 +33,7 @@ export const Search = () => {
                     href={`/${result.path}`}
                     key={result.path}
                   >
-                    <div>{result.title}</div>
+                    <StyledResultTitle>{result.title}</StyledResultTitle>
                     <StyledResultSnippet>{result.text}</StyledResultSnippet>
                   </StyledSearchResult>
                 )
@@ -47,8 +47,16 @@ export const Search = () => {
 }
 
 const StyledSearchResult = styled("a", {
-  "display": "block",
-  "color": "inherit",
+  display: "block",
+  color: "inherit",
+})
+
+const StyledResultSnippet = styled("div", {
+  "fontSize": "0.8em",
+  "color": "#888",
+  "maxHeight": "2.6em",
+  "overflow": "hidden",
+
   "& mark": {
     background: "none",
     fontWeight: "bold",
@@ -56,7 +64,12 @@ const StyledSearchResult = styled("a", {
   },
 })
 
-const StyledResultSnippet = styled("div", {
-  fontSize: "0.8em",
-  color: "#888",
+const StyledResultTitle = styled("div", {
+  // "fontSize": "0.8em",
+  // "color": "#888",
+
+  "& mark": {
+    background: "none",
+    fontWeight: "bold",
+  },
 })
