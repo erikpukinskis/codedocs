@@ -5,35 +5,33 @@ import { styled } from "@stitches/react"
 export const SearchBox = forwardRef<HTMLInputElement, SearchBoxProps>(
   function SearchBox({ value, onChange }, inputRef) {
     return (
-      <div style={{ position: "relative", width: "14em" }}>
-        <StyledKeys>
-          <StyledKey>command</StyledKey>
-          <StyledKey>shift</StyledKey>
-          <StyledKey>F</StyledKey>
-        </StyledKeys>
+      <StyledSearchBox>
         <StyledSearchInput
           ref={inputRef}
+          pattern="."
           type="text"
           placeholder="Search"
           value={value}
           onChange={(event) => onChange(event.target.value)}
         />
-      </div>
+        <StyledKeys>
+          <StyledKey>command</StyledKey>
+          <StyledKey>shift</StyledKey>
+          <StyledKey>F</StyledKey>
+        </StyledKeys>
+      </StyledSearchBox>
     )
   }
 )
 
-const StyledSearchInput = styled("input", {
-  fontSize: "0.8em",
-  padding: 8,
-  width: "100%",
-  boxSizing: "border-box",
-  borderRadius: 6,
-  border: "1px solid #CCC",
+const StyledSearchBox = styled("div", {
+  position: "relative",
+  width: "14em",
 })
 
 const StyledKeys = styled("div", {
   position: "absolute",
+  top: 0,
   right: 0,
   marginRight: "0.3em",
   height: "100%",
@@ -52,4 +50,21 @@ const StyledKey = styled("div", {
   textAlign: "center",
   border: "1px solid #CCC",
   lineHeight: "1em",
+})
+
+const StyledSearchInput = styled("input", {
+  fontSize: "0.8em",
+  padding: 8,
+  width: "100%",
+  boxSizing: "border-box",
+  borderRadius: 6,
+  border: "1px solid #CCC",
+
+  [`&:focus + ${StyledKeys.toString()}`]: {
+    display: "none",
+  },
+
+  [`&:not(:placeholder-shown) + ${StyledKeys.toString()}`]: {
+    display: "none",
+  },
 })
