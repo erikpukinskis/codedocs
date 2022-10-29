@@ -7,7 +7,7 @@ import { Link } from "react-router-dom"
 export const Social = ({ githubUrl }: SocialProps) =>
   githubUrl ? (
     <StyledHeaderLink to={githubUrl}>
-      <img src={githubLogoUrl} width={24} height={24} />
+      <img alt="github repository" src={githubLogoUrl} width={24} height={24} />
     </StyledHeaderLink>
   ) : null
 
