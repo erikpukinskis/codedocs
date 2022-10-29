@@ -13,4 +13,14 @@ export const LeftColumn = styled("nav", {
   padding: "20px",
 })
 
-export const MainColumn = styled("div", { padding: "20px", maxWidth: "40em" })
+export const MainColumn = styled("div", {
+  padding: "20px",
+  maxWidth: "40em",
+  minWidth: "10em",
+})
+
+export const CenterColumn = styled(MainColumn, {
+  maxWidth: "50em",
+  marginLeft: "auto",
+  marginRight: "auto",
+})

@@ -43,6 +43,7 @@ export type Components = {
   Columns: Container
   LeftColumn: Container
   MainColumn: Container
+  CenterColumn: Container
   NavLink: React.FC<LinkProps>
   NavList: Container
   NavHeading: Container

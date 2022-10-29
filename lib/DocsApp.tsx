@@ -137,9 +137,9 @@ const WildcardRoute = ({ pagesByPath }: WildcardRouteProps) => {
     return <NotFound path={path} availablePaths={Object.keys(pagesByPath)} />
   } else if (isHomePage(currentPageOrParent)) {
     return (
-      <Components.MainColumn>
+      <Components.CenterColumn>
         <HomePageContent page={currentPageOrParent} />
-      </Components.MainColumn>
+      </Components.CenterColumn>
     )
   } else if (isPage(currentPageOrParent)) {
     return <PageComponent page={currentPageOrParent} />

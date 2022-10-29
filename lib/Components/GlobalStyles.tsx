@@ -29,6 +29,7 @@ export const GlobalStyles = () => (
         border-radius: 4px;
         font-family: 'Recursive', monospace;
         font-size: 0.9em;
+        overflow-x: scroll;
       }
 
       code {

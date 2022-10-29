@@ -10,4 +10,10 @@ export const NavHeading = styled("span", { fontWeight: 600, padding: "10px 0" })
 
 export const NavLink = styled("a", { color: "#444" })
 
-export const NavItem = styled("li", { whiteSpace: "nowrap", color: "#444" })
+export const NavItem = styled("li", {
+  padding: "none",
+  margin: "none",
+  whiteSpace: "nowrap",
+  color: "#444",
+  listStyleType: "none",
+})

@@ -11,7 +11,6 @@ export const SearchBox = forwardRef<HTMLInputElement, SearchBoxProps>(
       <StyledSearchBox>
         <StyledSearchInput
           ref={inputRef}
-          pattern="."
           type="text"
           placeholder="Search"
           value={value}
@@ -25,10 +24,54 @@ export const SearchBox = forwardRef<HTMLInputElement, SearchBoxProps>(
           <StyledKey>shift</StyledKey>
           <StyledKey>F</StyledKey>
         </StyledKeys>
+        {value ? <ClearButton setValue={onChange} /> : null}
       </StyledSearchBox>
     )
   }
 )
+
+type ClearButtonProps = {
+  setValue: (newValue: string) => void
+}
+
+const ClearButton = ({ setValue }: ClearButtonProps) => (
+  <StyledClearButton onClick={() => setValue("")}>
+    <ClearButtonTarget>&times;</ClearButtonTarget>
+  </StyledClearButton>
+)
+
+const ClearButtonTarget = styled("div", {
+  "background": "#AAA",
+  "width": 20,
+  "height": 20,
+  "lineHeight": "21px",
+  "textAlign": "center",
+  "borderRadius": 9999,
+  "color": "white",
+  "fontSize": "1.2em",
+  "cursor": "pointer",
+
+  "&:hover": {
+    background: "#BBB",
+  },
+
+  "&:active": {
+    background: "#999",
+  },
+})
+
+const StyledClearButton = styled("button", {
+  position: "absolute",
+  padding: "none",
+  display: "flex",
+  flexDirection: "row",
+  alignItems: "center",
+  height: "100%",
+  right: 0,
+  top: 0,
+  border: "none",
+  background: "none",
+})
 
 const StyledSearchBox = styled("div", {
   position: "relative",
