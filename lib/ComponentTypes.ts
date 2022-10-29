@@ -7,8 +7,8 @@ type LinkProps = Pick<Parameters<typeof Link>[0], "to" | "children">
 export type SearchBoxProps = {
   value: string
   onChange: (query: string) => void
-  onFocus: () => void
-  onBlur: () => void
+  onFocus: (event: React.SyntheticEvent) => void
+  onBlur: (event: React.SyntheticEvent) => void
   onKeyPress: (event: React.KeyboardEvent<HTMLInputElement>) => void
 }
 

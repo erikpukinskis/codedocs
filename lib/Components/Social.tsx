@@ -2,14 +2,15 @@ import githubLogoUrl from "@/github.png"
 import type { SocialProps } from "@/ComponentTypes"
 import React from "react"
 import { styled } from "@stitches/react"
+import { Link } from "react-router-dom"
 
 export const Social = ({ githubUrl }: SocialProps) =>
   githubUrl ? (
-    <StyledHeaderLink href={githubUrl}>
+    <StyledHeaderLink to={githubUrl}>
       <img src={githubLogoUrl} width={24} height={24} />
     </StyledHeaderLink>
   ) : null
 
-const StyledHeaderLink = styled("a", {
+const StyledHeaderLink = styled(Link, {
   lineHeight: 0,
 })

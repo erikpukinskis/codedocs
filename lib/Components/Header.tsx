@@ -3,6 +3,7 @@ import { addSpaces } from "@/helpers"
 import type { HeaderProps } from "@/ComponentTypes"
 import { useComponents } from "@/ComponentContext"
 import { styled } from "@stitches/react"
+import { Link } from "react-router-dom"
 
 export const Header = ({
   logo,
@@ -14,12 +15,12 @@ export const Header = ({
 
   return (
     <StyledHeader>
-      <StyledLogo href="/">{logo}</StyledLogo>
+      <StyledLogo to="/">{logo}</StyledLogo>
       <StyledHeaderLinks>
         {sections.map(({ name }) => (
           <StyledHeaderLink
             key={name}
-            href={`/${name}`}
+            to={`/${name}`}
             isCurrent={currentSection?.name === name}
           >
             {addSpaces(name)}
@@ -41,7 +42,7 @@ const StyledHeader = styled("div", {
   alignItems: "center",
 })
 
-const StyledLogo = styled("a", {
+const StyledLogo = styled(Link, {
   display: "block",
   whiteSpace: "nowrap",
   fontWeight: 600,
@@ -58,7 +59,7 @@ const StyledHeaderLinks = styled("div", {
   marginRight: 24,
 })
 
-const StyledHeaderLink = styled("a", {
+const StyledHeaderLink = styled(Link, {
   variants: {
     isCurrent: {
       true: { color: "black" },

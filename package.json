@@ -62,6 +62,7 @@
     "minisearch": "^5.0.0",
     "react": "^17.0.2",
     "react-laag": "^2.0.4",
+    "short-uuid": "^4.2.2",
     "use-keyboard-shortcut": "^1.1.6"
   }
 }

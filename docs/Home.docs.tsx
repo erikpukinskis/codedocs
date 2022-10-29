@@ -33,12 +33,12 @@ export default (
         overriding styles...
       </li>
     </ul>
-    <h1 id="codedocs-is-different">Codedocs is different</h1>
+    <h2 id="codedocs-is-different">Codedocs is different</h2>
     <p>
       If you're maintaining a codebase, you know how to read code. Is it really
       so much worse?
     </p>
-    <h3 id="markdown">Markdown</h3>
+    <h3 id="markdown">In Markdown:</h3>
     <pre>
       {`---  
 title: React  
@@ -50,7 +50,7 @@ hide_table_of_contents:  true
 
 A JavaScript library for building user interfaces`}
     </pre>
-    <h3 id="codedocs">Codedocs</h3>
+    <h3 id="codedocs">In Codedocs:</h3>
     <pre>
       {`import { Doc, Title } from 'codedocs'
 
@@ -61,7 +61,7 @@ export default (
 	</Doc>
 )`}
     </pre>
-    <h1 id="benefits">Benefits</h1>
+    <h2 id="benefits">Benefits</h2>
     <ul>
       <li>Codedocs are fully type checked.</li>
       <li>

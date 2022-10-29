@@ -18,8 +18,6 @@ import React from "react"
 import { Doc, Demo } from "codedocs"
 import { Button } from "./Button"
 
-CRSV wght
-
 export default (
   <Doc path="/Controls/Button">
     The Button is meant to be used for everything that can be tapped, whether or

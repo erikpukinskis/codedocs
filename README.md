@@ -8,7 +8,7 @@ Codedocs is a Storybook replacement that fixes a few things:
 6. It's slow to start up and hot reloading is unreliable.
 7. Typing your stories is... optional. By default nothing enforces you setting them upcorrectly. And there's a lot of `any` in the types. It's annoying.
 
-**Code Docs** was designed to fix these limitations.
+**Codedocs** was designed to fix these limitations.
 
 Say goodbye to fiddling with your Storybook config until it kind of works like your app. Build your
 documentation _on the same infrastructure as your app_.
@@ -20,7 +20,7 @@ documentation _on the same infrastructure as your app_.
   do!
 - **Doesn't** provide interactive "knobs". Demos are just code samples.
 - **Doesn't** magically scan through your source tree and "analyze" it. Magic is great when it works, but
-  Code Docs are _just normal React_. If you want another page on your documentation site, you import it and pass it to
+  Codeocs are _just normal React_. If you want another page on your documentation site, you import it and pass it to
   `<DocsApp>` manually.
 - **Doesn't** set up dev or deploy scripts for you. You are a professional application developer. You've
   probably already set up lots of infrastructure for deploying apps using your Design System. You
@@ -125,7 +125,7 @@ An example is provided in [app/](https://github.com/ambic-js/codedocs/tree/main/
 
 ### Future
 
-The general philosophy of Code Docs is
+The general philosophy of Codedocs is
 
 1. It's OK to manually maintain docs, not everything has to be magic
 2. This is really about explanation not "documentation"

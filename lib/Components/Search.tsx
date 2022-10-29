@@ -2,25 +2,39 @@ import { useSearchQuery, useSearchResults } from "@/SearchContext"
 import useKeyboardShortcut from "use-keyboard-shortcut"
 import { styled } from "@stitches/react"
 import { useComponents } from "@/ComponentContext"
-import React, { useRef, useState } from "react"
-import { useNavigate } from "react-router-dom"
+import React, { useEffect, useState } from "react"
+import { useNavigate, Link } from "react-router-dom"
+import { useFocusGroup } from "@/useFocusGroup"
 
 export const Search = () => {
+  const { focusGroupProps, focus } = useFocusGroup({
+    onBlur: () => {
+      console.log("blur!")
+      setHidden(true)
+    },
+    onFocus: () => {
+      console.log("focus!")
+    },
+  })
+
   const Components = useComponents()
   const [query, setQuery] = useSearchQuery()
   const results = useSearchResults()
-  const inputRef = useRef<HTMLInputElement>(null)
   const [isHidden, setHidden] = useState(false)
   const [selectedIndex, setSelectedIndex] = useState<number>(-1)
   const navigate = useNavigate()
 
   useKeyboardShortcut(["Meta", "K"], () => {
-    inputRef.current?.focus()
+    focus("input")
   })
 
   useKeyboardShortcut(["Meta", "/"], () => {
-    inputRef.current?.focus()
+    focus("input")
   })
+
+  useEffect(() => {
+    setHidden(false)
+  }, [query])
 
   const handleKeys = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (!results || results.length < 1) return
@@ -29,8 +43,7 @@ export const Search = () => {
       event.preventDefault()
       const selectedResult = results[selectedIndex]
       setHidden(true)
-      console.log({ selectedResult })
-      navigate(`/${selectedResult.path}`)
+      navigate(selectedResult.path)
     } else if (event.key === "ArrowUp") {
       event.preventDefault()
       if (selectedIndex < 0) return
@@ -46,11 +59,9 @@ export const Search = () => {
     <Components.Popover
       target={
         <Components.SearchBox
-          ref={inputRef}
+          {...focusGroupProps}
           value={query}
           onChange={setQuery}
-          onFocus={() => setHidden(false)}
-          onBlur={() => setHidden(true)}
           onKeyPress={handleKeys}
         />
       }
@@ -60,7 +71,8 @@ export const Search = () => {
             {results.map((result, index) => {
               return (
                 <StyledSearchResult
-                  href={`/${result.path}`}
+                  {...focusGroupProps}
+                  to={result.path}
                   key={result.path}
                   isSelected={selectedIndex === index}
                 >
@@ -76,7 +88,7 @@ export const Search = () => {
   )
 }
 
-const StyledSearchResult = styled("a", {
+const StyledSearchResult = styled(Link, {
   width: "14em",
   display: "block",
   color: "inherit",

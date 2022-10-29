@@ -6,7 +6,7 @@ import { render } from "react-dom"
 
 render(
   <DocsApp
-    logo="Code Docs"
+    logo="Codedocs"
     docs={[HomeDocs, GettingStartedDocs]}
     githubUrl="https://github.com/ambic-js/codedocs"
   />,
