@@ -82,7 +82,9 @@ export const SearchContextProvider = ({
             id: parent.path,
             path: parent.path,
             title: addSpaces(parent.name),
-            text: "",
+            text: parent.children
+              .map((child) => addSpaces(child.name))
+              .join(" "),
           })
         }
       }
