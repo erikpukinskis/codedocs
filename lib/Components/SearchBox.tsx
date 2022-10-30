@@ -7,8 +7,14 @@ export const SearchBox = ({ inputProps, onClickClear }: SearchBoxProps) => {
     <StyledSearchBox>
       <StyledSearchInput {...inputProps} type="text" placeholder="Search" />
       <StyledKeys>
-        <StyledKey>command</StyledKey>
-        <StyledKey>K</StyledKey>
+        <StyledKey>
+          {/Mac/.test(window.navigator.platform) ? (
+            <>&#8984;</>
+          ) : (
+            <WindowsKey />
+          )}
+        </StyledKey>
+        +<StyledKey>K</StyledKey>
       </StyledKeys>
       {inputProps.value ? <ClearButton onClick={onClickClear} /> : null}
     </StyledSearchBox>
@@ -66,6 +72,22 @@ const StyledSearchBox = styled("div", {
   width: "14em",
 })
 
+const WindowsKey = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="17 17 60 60"
+    width="8"
+    height="8"
+    fill="currentColor"
+    overflow="visible"
+  >
+    <polyline points="0 12.5 35.7 7.6 35.7 42.1 0 42.1" />
+    <polyline points="40 6.9 87.3 0 87.3 41.8 40 41.8" />
+    <polyline points="0 45.74 35.7 45.74 35.7 80.34 0 75.34" />
+    <polyline points="40 46.2 87.3 46.2 87.3 87.6 40 80.9" />
+  </svg>
+)
+
 const StyledKeys = styled("div", {
   position: "absolute",
   top: 0,
@@ -76,12 +98,12 @@ const StyledKeys = styled("div", {
   flexDirection: "row",
   alignItems: "center",
   gap: 4,
+  color: "#888",
+  fontSize: "0.6em",
 })
 
 const StyledKey = styled("div", {
-  color: "#888",
   borderRadius: 6,
-  fontSize: "0.6em",
   padding: "0.5em",
   minWidth: "1.5em",
   textAlign: "center",
