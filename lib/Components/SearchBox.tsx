@@ -1,66 +1,27 @@
-import React, { forwardRef } from "react"
+import React from "react"
 import type { SearchBoxProps } from "@/ComponentTypes"
 import { styled } from "@stitches/react"
-import { isElement } from "@/helpers"
 
-export const SearchBox = forwardRef<HTMLInputElement, SearchBoxProps>(
-  function SearchBox(
-    {
-      value,
-      onChange,
-      onFocus,
-      onBlur,
-      onKeyPress,
-      isExpanded,
-      activeDescendantId,
-      label,
-    },
-    inputRef
-  ) {
-    return (
-      <StyledSearchBox>
-        <StyledSearchInput
-          ref={inputRef}
-          role="combobox"
-          aria-expanded={isExpanded}
-          aria-activedescendant={activeDescendantId}
-          aria-label={label}
-          type="text"
-          placeholder="Search"
-          value={value}
-          onChange={(event) => onChange(event.target.value)}
-          onFocus={onFocus}
-          onBlur={onBlur}
-          onKeyDown={onKeyPress}
-        />
-        <StyledKeys>
-          <StyledKey>command</StyledKey>
-          <StyledKey>K</StyledKey>
-        </StyledKeys>
-        {value ? <ClearButton setValue={onChange} /> : null}
-      </StyledSearchBox>
-    )
-  }
-)
-
-type ClearButtonProps = {
-  setValue: (newValue: string) => void
+export const SearchBox = ({ inputProps, onClickClear }: SearchBoxProps) => {
+  return (
+    <StyledSearchBox>
+      <StyledSearchInput {...inputProps} type="text" placeholder="Search" />
+      <StyledKeys>
+        <StyledKey>command</StyledKey>
+        <StyledKey>K</StyledKey>
+      </StyledKeys>
+      {inputProps.value ? <ClearButton onClick={onClickClear} /> : null}
+    </StyledSearchBox>
+  )
 }
 
-const ClearButton = ({ setValue }: ClearButtonProps) => {
-  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    setValue("")
-    if (isElement(event.target)) {
-      const input = event.target.parentElement?.querySelector("input")
-      console.log("focusing!", input)
-      input?.focus()
-    } else {
-      console.log("not element")
-    }
-  }
+type ClearButtonProps = {
+  onClick: () => void
+}
 
+const ClearButton = ({ onClick }: ClearButtonProps) => {
   return (
-    <StyledClearButton onClick={handleClick}>
+    <StyledClearButton onClick={onClick}>
       <ClearButtonTarget>&times;</ClearButtonTarget>
     </StyledClearButton>
   )

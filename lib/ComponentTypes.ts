@@ -5,14 +5,19 @@ import type { ReactNode } from "react"
 type LinkProps = Pick<Parameters<typeof Link>[0], "to" | "children">
 
 export type SearchBoxProps = {
-  value: string
-  onChange: (query: string) => void
-  onFocus: (event: React.SyntheticEvent) => void
-  onBlur: (event: React.SyntheticEvent) => void
-  onKeyPress: (event: React.KeyboardEvent<HTMLInputElement>) => void
-  isExpanded: boolean
-  activeDescendantId: string | undefined
-  label: string
+  inputProps: {
+    onChange: React.ChangeEventHandler<HTMLInputElement>
+    role: string
+    "aria-expanded": boolean
+    "aria-activedescendant": string | undefined
+    "aria-label": string
+    value: string
+    onKeyDown: (event: React.KeyboardEvent<HTMLInputElement>) => void
+    ref: (element: HTMLElement | null) => void
+    onFocus: (event: React.SyntheticEvent) => void
+    onBlur: (event: React.SyntheticEvent) => void
+  }
+  onClickClear: () => void
 }
 
 export type SocialProps = {
@@ -41,9 +46,7 @@ export type CardProps = {
 export type Components = {
   GlobalStyles: React.FC<Record<string, never>>
   Search: React.FC<Record<string, never>>
-  SearchBox: React.ForwardRefExoticComponent<
-    SearchBoxProps & React.RefAttributes<HTMLInputElement>
-  >
+  SearchBox: React.FC<SearchBoxProps>
   Header: React.FC<HeaderProps>
   Columns: Container
   LeftColumn: Container

@@ -1,6 +1,5 @@
 import { useRef, useMemo, useCallback } from "react"
 import { generate } from "short-uuid"
-import { isElement } from "@/helpers"
 
 /**
  * Note that there's a HOC-based version of this by @etheryte that seems pretty
@@ -58,7 +57,7 @@ export const useFocusGroup = ({ onFocus, onBlur }: FocusGroupOptions) => {
         }
       },
       onFocus: function focusGroupHandleFocus(event: React.SyntheticEvent) {
-        if (!isElement(event.target)) {
+        if (!(event.target instanceof HTMLElement)) {
           throw new Error(
             "useFocusGroup received a focus event from something other than an element"
           )
@@ -82,7 +81,7 @@ export const useFocusGroup = ({ onFocus, onBlur }: FocusGroupOptions) => {
       onBlur: function focusGroupHandleBlur(event: React.SyntheticEvent) {
         focusedElementRef.current = undefined
 
-        if (isElement(event.target)) {
+        if (event.target instanceof HTMLElement) {
           console.log("blurred", event.target.dataset.focusGroupMemberId)
         }
 
