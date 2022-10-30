@@ -17,14 +17,7 @@ export const useDropdown = <ItemType>(
   const [query, setQuery] = useState("")
 
   const { focusGroupProps, focus, blur } = useFocusGroup({
-    onBlur: () => {
-      console.log("blur!")
-      setHidden(true)
-    },
-    onFocus: () => {
-      setHidden(false)
-      console.log("focus!")
-    },
+    onBlur: () => setHidden(true),
   })
 
   useEffect(

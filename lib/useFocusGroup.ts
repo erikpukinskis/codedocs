@@ -14,6 +14,10 @@ import { generate } from "short-uuid"
  * approach.
  */
 
+const VERBOSE = false as const
+
+const log = (...args: unknown[]) => VERBOSE && console.info(...args)
+
 type FocusGroupOptions = {
   onFocus?: () => void
   onBlur?: () => void
@@ -29,13 +33,13 @@ export const useFocusGroup = ({ onFocus, onBlur }: FocusGroupOptions) => {
   const focusGroupProps = useMemo(
     () => ({
       ref: function focusGroupCallbackRef(element: HTMLElement | null) {
-        console.log("called back", element)
+        log("called back", element)
 
         if (element) {
           const id = generate()
           element.dataset.focusGroupMemberId = id
           elementsByIdRef.current[id] = element
-          console.log("added one:", Object.keys(elementsByIdRef.current))
+          log("added one:", Object.keys(elementsByIdRef.current))
         } else {
           if (cleanupTimeoutRef.current) {
             clearTimeout(cleanupTimeoutRef.current)
@@ -52,7 +56,7 @@ export const useFocusGroup = ({ onFocus, onBlur }: FocusGroupOptions) => {
                 delete elementsByIdRef.current[id]
               }
             }
-            console.log("deleted some?", Object.keys(elementsByIdRef.current))
+            log("deleted some?", Object.keys(elementsByIdRef.current))
           })
         }
       },
@@ -64,7 +68,7 @@ export const useFocusGroup = ({ onFocus, onBlur }: FocusGroupOptions) => {
         }
         focusedElementRef.current = event.target
 
-        console.log("focused", event.target.dataset.focusGroupMemberId)
+        log("focused", event.target.dataset.focusGroupMemberId)
 
         if (lastReportedStateRef.current === "blurred") {
           if (callbackTimeoutRef.current) {
@@ -82,7 +86,7 @@ export const useFocusGroup = ({ onFocus, onBlur }: FocusGroupOptions) => {
         focusedElementRef.current = undefined
 
         if (event.target instanceof HTMLElement) {
-          console.log("blurred", event.target.dataset.focusGroupMemberId)
+          log("blurred", event.target.dataset.focusGroupMemberId)
         }
 
         if (lastReportedStateRef.current === "focused") {
