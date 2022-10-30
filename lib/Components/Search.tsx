@@ -22,7 +22,7 @@ export const Search = () => {
   const [query, setQuery] = useSearchQuery()
   const results = useSearchResults()
   const [isHidden, setHidden] = useState(false)
-  const [selectedIndex, setSelectedIndex] = useState<number>(0)
+  const [selectedIndex, setSelectedIndex] = useState<number>(-1)
 
   const navigate = useNavigate()
 
@@ -41,24 +41,17 @@ export const Search = () => {
 
   useEffect(
     function keepSelectionWithinResults() {
-      if (!results) {
-        setSelectedIndex(0)
-      } else if (results.length === 0) {
-        setSelectedIndex(0)
-      } else if (selectedIndex >= results.length) {
-        setSelectedIndex(results.length - 1)
-      }
+      setSelectedIndex(-1)
     },
     [results]
   )
 
   const activeDescendantId = useMemo(
     function updateActiveDescendant() {
-      if (!results || results.length < 1) {
-        return undefined
-      } else {
-        return getResultId(results[selectedIndex])
-      }
+      if (selectedIndex === -1) return undefined
+      if (!results) return undefined
+      if (results.length < 1) return undefined
+      return getResultId(results[selectedIndex])
     },
     [results, selectedIndex]
   )
