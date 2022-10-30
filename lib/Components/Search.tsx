@@ -120,29 +120,34 @@ export const Search = () => {
           onChange={handleQueryChange}
           onKeyPress={handleKeys}
           activeDescendantId={activeDescendantId}
+          label="search docs"
         />
       }
       contents={
         isExpanded(results) ? (
-          <Components.Card pad="top-and-bottom">
+          <Components.Card
+            role="listbox"
+            aria-label="search docs"
+            pad="top-and-bottom"
+          >
             {results.length === 0 ? (
               <EmptyState>No results</EmptyState>
             ) : (
-              results.map((result, index) => {
-                return (
-                  <SearchResult
-                    {...focusGroupProps}
-                    to={result.path}
-                    onClick={handleResultClick}
-                    key={result.path}
-                    isSelected={selectedIndex === index}
-                    id={getResultId(result)}
-                  >
-                    <ResultTitle>{result.title}</ResultTitle>
-                    <ResultSnippet>{result.text}</ResultSnippet>
-                  </SearchResult>
-                )
-              })
+              results.map((result, index) => (
+                <SearchResult
+                  role="option"
+                  {...focusGroupProps}
+                  to={result.path}
+                  onClick={handleResultClick}
+                  key={result.path}
+                  isSelected={selectedIndex === index}
+                  aria-selected={selectedIndex === index}
+                  id={getResultId(result)}
+                >
+                  <ResultTitle>{result.title}</ResultTitle>
+                  <ResultSnippet>{result.text}</ResultSnippet>
+                </SearchResult>
+              ))
             )}
           </Components.Card>
         ) : null

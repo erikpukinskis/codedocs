@@ -12,6 +12,7 @@ export type SearchBoxProps = {
   onKeyPress: (event: React.KeyboardEvent<HTMLInputElement>) => void
   isExpanded: boolean
   activeDescendantId: string | undefined
+  label: string
 }
 
 export type SocialProps = {
@@ -33,6 +34,7 @@ export type PopoverProps = {
 
 export type CardProps = {
   pad?: "default" | "top-and-bottom"
+  role: React.HTMLAttributes<HTMLDivElement>["role"]
 }
 
 export type Components = {

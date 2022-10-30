@@ -13,6 +13,7 @@ export const SearchBox = forwardRef<HTMLInputElement, SearchBoxProps>(
       onKeyPress,
       isExpanded,
       activeDescendantId,
+      label,
     },
     inputRef
   ) {
@@ -23,6 +24,7 @@ export const SearchBox = forwardRef<HTMLInputElement, SearchBoxProps>(
           role="combobox"
           aria-expanded={isExpanded}
           aria-activedescendant={activeDescendantId}
+          aria-label={label}
           type="text"
           placeholder="Search"
           value={value}
