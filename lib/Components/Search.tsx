@@ -22,7 +22,7 @@ export const Search = () => {
   const [query, setQuery] = useSearchQuery()
   const results = useSearchResults()
   const [isHidden, setHidden] = useState(false)
-  const [selectedIndex, setSelectedIndex] = useState<number>(-1)
+  const [highlightedIndex, setHighlightedIndex] = useState<number>(-1)
 
   const navigate = useNavigate()
 
@@ -41,19 +41,19 @@ export const Search = () => {
 
   useEffect(
     function keepSelectionWithinResults() {
-      setSelectedIndex(-1)
+      setHighlightedIndex(-1)
     },
     [results]
   )
 
   const activeDescendantId = useMemo(
     function updateActiveDescendant() {
-      if (selectedIndex === -1) return undefined
+      if (highlightedIndex === -1) return undefined
       if (!results) return undefined
       if (results.length < 1) return undefined
-      return getResultId(results[selectedIndex])
+      return getResultId(results[highlightedIndex])
     },
-    [results, selectedIndex]
+    [results, highlightedIndex]
   )
 
   const handleKeys = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -69,28 +69,28 @@ export const Search = () => {
       event.key === "PageUp" ||
       (event.key === "ArrowLeft" && event.metaKey)
     ) {
-      setSelectedIndex(0)
+      setHighlightedIndex(0)
       event.preventDefault()
     } else if (
       event.key === "PageDown" ||
       (event.key === "ArrowRight" && event.metaKey)
     ) {
-      setSelectedIndex(results.length - 1)
+      setHighlightedIndex(results.length - 1)
       event.preventDefault()
     } else if (event.key === "Enter") {
       event.preventDefault()
-      const selectedResult = results[selectedIndex]
+      const selectedResult = results[highlightedIndex]
       setHidden(true)
       blur("input")
       navigate(selectedResult.path)
     } else if (event.key === "ArrowUp") {
       event.preventDefault()
-      if (selectedIndex < 1) return
-      setSelectedIndex((index) => index - 1)
+      if (highlightedIndex < 1) return
+      setHighlightedIndex((index) => index - 1)
     } else if (event.key === "ArrowDown") {
       event.preventDefault()
-      if (selectedIndex >= results.length - 1) return
-      setSelectedIndex((index) => index + 1)
+      if (highlightedIndex >= results.length - 1) return
+      setHighlightedIndex((index) => index + 1)
     }
   }
 
@@ -122,6 +122,7 @@ export const Search = () => {
             role="listbox"
             aria-label="search docs"
             pad="top-and-bottom"
+            onMouseOver={() => setHighlightedIndex(-1)}
           >
             {results.length === 0 ? (
               <EmptyState>No results</EmptyState>
@@ -133,8 +134,8 @@ export const Search = () => {
                   to={result.path}
                   onClick={handleResultClick}
                   key={result.path}
-                  isSelected={selectedIndex === index}
-                  aria-selected={selectedIndex === index}
+                  aria-selected={highlightedIndex === index}
+                  isSelected={highlightedIndex === index}
                   id={getResultId(result)}
                 >
                   <ResultTitle>{result.title}</ResultTitle>
@@ -168,15 +169,19 @@ const EmptyState = styled("div", {
 })
 
 const SearchResult = styled(Link, {
-  width: "14em",
-  display: "block",
-  color: "inherit",
-  paddingTop: 8,
-  paddingBottom: 8,
-  paddingLeft: 16,
-  paddingRight: 16,
+  "width": "14em",
+  "display": "block",
+  "color": "inherit",
+  "paddingTop": 8,
+  "paddingBottom": 8,
+  "paddingLeft": 16,
+  "paddingRight": 16,
 
-  variants: {
+  "&:hover": {
+    background: "#EEE",
+  },
+
+  "variants": {
     isSelected: {
       true: {
         background: "#EEE",

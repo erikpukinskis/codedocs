@@ -34,7 +34,8 @@ export type PopoverProps = {
 
 export type CardProps = {
   pad?: "default" | "top-and-bottom"
-  role: React.HTMLAttributes<HTMLDivElement>["role"]
+  role?: React.HTMLAttributes<HTMLDivElement>["role"]
+  onMouseOver?: () => void
 }
 
 export type Components = {
