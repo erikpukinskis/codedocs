@@ -134,3 +134,10 @@ export const useFocusGroup = ({ onFocus, onBlur }: FocusGroupOptions) => {
     [focusGroupProps, focus]
   )
 }
+
+/**
+ * Things to test:
+ *  - That it works
+ *  - Unmounting a subset of the items
+ *  - Unmounting and then remounting a subset of the items
+ */
