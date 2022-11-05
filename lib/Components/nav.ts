@@ -7,9 +7,16 @@ export const NavList = styled("ul", {
   marginBottom: 12,
 })
 
-export const NavHeading = styled("span", { fontWeight: 600, padding: "10px 0" })
+export const NavHeading = styled("span", { fontWeight: 600, padding: "16px 0" })
 
-export const NavLink = styled(Link, { color: "#444" })
+export const NavLink = styled(Link, {
+  color: "#444",
+  display: "block",
+  padding: "8px",
+  "&:hover": {
+    color: "#449f32",
+  },
+})
 
 export const NavItem = styled("li", {
   padding: "none",
