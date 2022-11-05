@@ -174,6 +174,11 @@ export const buildTree = (docs: DocExport[]): Record<string, PageOrParent> => {
 
   for (const docsAndDemos of docs) {
     const doc = docsAndDemos.default as DocElement
+    if (!/^\//.test(doc.props.path)) {
+      throw new Error(
+        `Doc paths must start with a /... try <Doc path="/${doc.props.path}">`
+      )
+    }
     const demos: DemoSet = { ...docsAndDemos }
     delete demos.default
 
