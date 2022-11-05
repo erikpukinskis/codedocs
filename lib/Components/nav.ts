@@ -10,9 +10,9 @@ export const NavList = styled("ul", {
 export const NavHeading = styled("span", { fontWeight: 600, padding: "16px 0" })
 
 export const NavLink = styled(Link, {
-  color: "#444",
-  display: "block",
-  padding: "8px",
+  "color": "#444",
+  "display": "block",
+  "padding": "8px",
   "&:hover": {
     color: "#449f32",
   },
