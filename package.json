@@ -25,6 +25,7 @@
     "@typescript-eslint/eslint-plugin": "^5.14.0",
     "@typescript-eslint/parser": "^5.12.1",
     "@vitejs/plugin-react": "^1.2.0",
+    "chokidar-cli": "^3.0.0",
     "eslint": "^8.9.0",
     "eslint-plugin-react": "7.28.0",
     "json": "^11.0.0",
@@ -43,6 +44,7 @@
   "scripts": {
     "example": "vite serve example --config vite.config.js",
     "build": "rm -rf dist/* && yarn build:lib && yarn build:types",
+    "build:watch": "chokidar \"lib/**/*\" \"docs/**/*\" -c \"yarn build\"",
     "build:types": "tsc --declaration --emitDeclarationOnly -p tsconfig.dist.json --skipLibCheck && tsc-alias -p tsconfig.json && mv dist/index.d.ts dist/lib.umd.d.ts",
     "check:types": "tsc --noEmit -p tsconfig.json; if [ $? -eq 0 ]; then echo 8J+OiSBUeXBlcyBhcmUgZ29vZCEKCg== | base64 -d; else exit 1; fi",
     "confgen": "npx confgen@latest @lib @docs --name Codedocs git yarn typescript codespaces react vite dist:lib eslint prettier",
