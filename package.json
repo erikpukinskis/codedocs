@@ -44,7 +44,6 @@
   "scripts": {
     "example": "vite serve example --config vite.config.js",
     "build": "rm -rf dist/* && yarn build:lib && yarn build:types",
-    "build:watch": "chokidar \"lib/**/*\" \"docs/**/*\" -c \"yarn build\"",
     "build:types": "tsc --declaration --emitDeclarationOnly -p tsconfig.dist.json --skipLibCheck && tsc-alias -p tsconfig.json && mv dist/index.d.ts dist/lib.umd.d.ts",
     "check:types": "tsc --noEmit -p tsconfig.json; if [ $? -eq 0 ]; then echo 8J+OiSBUeXBlcyBhcmUgZ29vZCEKCg== | base64 -d; else exit 1; fi",
     "confgen": "npx confgen@latest @lib @docs --name Codedocs git yarn typescript codespaces react vite dist:lib eslint prettier",
@@ -55,7 +54,8 @@
     "all": "yarn && yarn build && yarn fix && yarn check:types && echo `echo 8J+OiSBEaWQgYWxs | base64 -d`",
     "build:lib": "vite build --config vite.lib.config.js --mode development",
     "start:docs:dev": "vite serve docs --config vite.docs.config.js",
-    "build:docs": "vite build --config vite.docs.config.js --mode development && mv site/docs/index.html site && rmdir site/docs && cp site/index.html site/404.html"
+    "build:docs": "vite build --config vite.docs.config.js --mode development && mv site/docs/index.html site && rmdir site/docs && cp site/index.html site/404.html",
+    "watch:build": "chokidar \"lib/**/*\" \"docs/**/*\" -c \"yarn build\""
   },
   "dependencies": {
     "@stitches/react": "^1.2.8",

@@ -1,17 +1,25 @@
-import React, { type ReactNode } from "react"
+import React from "react"
 
 type HasChildren = {
-  children: ReactNode
+  children: React.ReactElement | React.ReactText | React.ReactPortal
 }
 
 type Renderable = {
   render: React.FC<unknown>
 }
 
-type DemoProps = HasChildren | Renderable
+type Generatable = {
+  generate: () => JSX.Element
+}
+
+type DemoProps = HasChildren | Renderable | Generatable
 
 function hasChildren(props: DemoProps): props is HasChildren {
   return Boolean((props as HasChildren).children)
+}
+
+function isRenderable(props: DemoProps): props is Renderable {
+  return Boolean((props as Renderable).render)
 }
 
 export const Demo = (props: DemoProps) => {
@@ -22,7 +30,9 @@ export const Demo = (props: DemoProps) => {
       )
     }
     return <>{props.children}</>
-  } else {
+  } else if (isRenderable(props)) {
     return <props.render />
+  } else {
+    return props.generate()
   }
 }

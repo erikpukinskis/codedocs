@@ -1,12 +1,12 @@
 import React from "react"
-console.log("ErrorBoundary!")
+
 export class ErrorBoundary extends React.Component {
   state: {
     hasError: boolean
     error?: Error
   }
-  constructor() {
-    super({})
+  constructor(props: Record<never, never>) {
+    super(props)
     this.state = { hasError: false }
   }
 
