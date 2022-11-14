@@ -150,3 +150,12 @@ Things that _might_ happen:
 - Visual tests
 - In-browser unit tests
 - "Live" code samples
+
+### Inspo
+
+- https://wattenberger.com/blog/react-and-d3
+- https://stitches.dev/docs/variants
+- https://eslint.org/docs/latest/user-guide/configuring/configuration-files
+- https://www.apollographql.com/docs/react/
+- https://evergreen.segment.com/components/table
+- https://docs.drone.io/runner/kubernetes/configuration/resources/
