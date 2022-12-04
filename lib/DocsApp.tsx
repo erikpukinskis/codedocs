@@ -1,8 +1,10 @@
 import { type IconName } from "@fortawesome/fontawesome-common-types"
 import omit from "lodash/omit"
 import React, { useMemo, type ReactNode } from "react"
+import { Helmet } from "react-helmet"
 import type { Location } from "react-router-dom"
 import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom"
+import favicon from "./favicon.svg"
 import { ComponentContextProvider, useComponents } from "~/ComponentContext"
 import * as Defaults from "~/Components"
 import {
@@ -68,6 +70,9 @@ export const DocsApp = ({
 
   return (
     <SearchContextProvider pagesByPath={pagesByPath}>
+      <Helmet>
+        <link rel="icon" href={favicon} type="image/svg+xml" />
+      </Helmet>
       <DesignSystemProvider>
         <ComponentContextProvider Components={Components}>
           <BrowserRouter>
