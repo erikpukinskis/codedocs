@@ -16,6 +16,10 @@
     ".": {
       "import": "./dist/lib.es.js",
       "require": "./dist/lib.umd.js"
+    },
+    "./macro": {
+      "import": "./dist/macro.js",
+      "require": "./dist/macro.js"
     }
   },
   "dependencies": {
@@ -25,6 +29,8 @@
     "@fortawesome/free-solid-svg-icons": "^6.2.1",
     "@fortawesome/react-fontawesome": "^0.2.0",
     "@stitches/react": "^1.2.8",
+    "ast-pretty-print": "^2.0.1",
+    "babel-plugin-macros": "^3.1.0",
     "draft-js": "^0.11.7",
     "draft-js-prism-plugin": "^0.1.3",
     "highlight-words": "^1.2.1",
@@ -67,7 +73,7 @@
   },
   "scripts": {
     "all": "yarn && yarn build && yarn fix && yarn check:types && echo `echo 8J+OiSBEaWQgYWxs | base64 -d`",
-    "build": "rm -rf dist/* && yarn build:lib && yarn build:types",
+    "build": "rm -rf dist/* && yarn build:lib && yarn build:types && cp macro.js dist",
     "build:docs": "vite build --config vite.docs.config.js --mode development && mv site/docs/index.html site && rmdir site/docs && cp site/index.html site/404.html",
     "build:lib": "vite build --config vite.lib.config.js --mode development",
     "build:types": "tsc --declaration --emitDeclarationOnly -p tsconfig.dist.json --skipLibCheck && tsc-alias -p tsconfig.json && mv dist/index.d.ts dist/lib.umd.d.ts",
