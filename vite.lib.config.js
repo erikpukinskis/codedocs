@@ -24,14 +24,14 @@ export default defineConfig({
       // make sure to externalize deps that shouldn't be bundled
       // into your library
       external: [
-        "@draft-js-plugins/editor",
+        // "draft-js",
+        // "draft-js-prism-plugin",
+        // "@draft-js-plugins/editor",
         "@fortawesome/fontawesome-free-solid",
         "@fortawesome/fontawesome-svg-core",
         "@fortawesome/free-solid-svg-icons",
         "@fortawesome/react-fontawesome",
         "@stitches/react",
-        "draft-js",
-        "draft-js-prism-plugin",
         "highlight-words",
         "lodash",
         "minisearch",

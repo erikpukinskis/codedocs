@@ -1,9 +1,10 @@
 import PluginEditor from "@draft-js-plugins/editor"
 import { EditorState, ContentState } from "draft-js"
-// import "draft-js/dist/Draft.css"
+import "draft-js/dist/Draft.css"
 import createPrismPlugin from "draft-js-prism-plugin"
+import prism from "prismjs"
 import React, { useState, useMemo } from "react"
-// import "prismjs/themes/prism.css"
+import "prismjs/themes/prism.css"
 
 // Creates an Instance. At this step, a configuration object can be passed in
 // as an argument.
@@ -20,11 +21,18 @@ type CodeEditorProps = {
 // a button which allows open emoji select popup.
 export const CodeEditor = ({ source }: CodeEditorProps) => {
   const [editorState, setEditorState] = useState(() => {
-    const contentState = ContentState.createFromText(source)
+    const contentState = ContentState.createFromText(source ?? "hello, world")
     return EditorState.createWithContent(contentState)
   })
 
-  const plugins = useMemo(() => [createPrismPlugin()], [])
+  const plugins = useMemo(
+    () => [
+      createPrismPlugin({
+        prism,
+      }),
+    ],
+    []
+  )
 
   return (
     <PluginEditor

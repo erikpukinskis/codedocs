@@ -56,7 +56,8 @@ const ClearButtonTarget = styled("div", {
 
 const StyledClearButton = styled("button", {
   position: "absolute",
-  padding: 6,
+  lineHeight: "16px",
+  padding: 8,
   display: "flex",
   flexDirection: "row",
   alignItems: "center",

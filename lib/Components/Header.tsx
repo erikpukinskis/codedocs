@@ -26,7 +26,7 @@ export const Header = ({
   return (
     <FixedTopHeader>
       <StyledLogo to="/">
-        {icon ? <LogoIcon icon={icon} /> : null}
+        {icon ? <LogoIcon color="black" icon={icon} /> : null}
         {logo}
       </StyledLogo>
       <HeaderLinks>
@@ -48,10 +48,11 @@ export const Header = ({
 
 const StyledLogo = styled(Link, {
   display: "flex",
+  padding: 8,
   flexDirection: "row",
   whiteSpace: "nowrap",
-  marginTop: "-0.2em",
-  marginBottom: "-0.2em",
+  marginLeft: -2,
+  marginRight: 32,
   lineHeight: "16px",
 })
 
@@ -64,6 +65,7 @@ const HeaderLinks = styled("div", {
 
 const HeaderLink = styled(Link, {
   lineHeight: "16px",
+  padding: 8,
 
   variants: {
     isCurrent: {

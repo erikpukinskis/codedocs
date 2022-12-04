@@ -27,7 +27,7 @@ export const LogoIcon = styled(FontAwesomeIcon, {
 
 export const FixedTopHeader = styled("div", {
   position: "fixed",
-  lineHeight: "var(--header-height)",
+  height: "var(--header-height)",
   background: "white",
   top: 0,
   left: 0,
@@ -57,6 +57,8 @@ export const MainColumn = styled("div", {
   marginTop: "var(--header-height)",
   padding: 20,
   marginBottom: 100,
+  width: "90%",
+  maxWidth: "40em",
 })
 
 export const CenterColumn = styled(MainColumn, {

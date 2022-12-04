@@ -19,7 +19,7 @@ export type Site = {
   parent: never
 }
 
-export function isSite(parent: PageParent): parent is Site {
+export function isSite(parent: PageOrParent): parent is Site {
   return parent.__typename === "Site"
 }
 

@@ -1,6 +1,6 @@
 {
   "workbench.startupEditor": "none",
-  "workbench.colorTheme": "Default Dark+",
+  "workbench.colorTheme": "GitHub Dark",
   "workbench.colorCustomizations": {
     "[GitHub Dark]": {
       "tab.inactiveBackground": "#121416",

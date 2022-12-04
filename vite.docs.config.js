@@ -5,6 +5,9 @@ import react from "@vitejs/plugin-react"
 const inCodespace = Boolean(process.env.GITHUB_CODESPACE_TOKEN)
 
 export default defineConfig({
+  define: {
+    global: {},
+  },
   ...(inCodespace
     ? {
         hmr: {

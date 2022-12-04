@@ -1,6 +1,5 @@
 import { type IconName } from "@fortawesome/fontawesome-common-types"
 import type { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import type { ReactNode } from "react"
 import type React from "react"
 import { type Link } from "react-router-dom"
 import type { SiteSection } from "~/tree"
@@ -28,7 +27,7 @@ export type SocialProps = {
 }
 
 export type HeaderProps = {
-  logo: ReactNode
+  logo: React.ReactNode
   icon: IconName
   socialProps: SocialProps
   sections: SiteSection[]

@@ -52,6 +52,7 @@
     "@typescript-eslint/parser": "^5.12.1",
     "@vitejs/plugin-react": "^1.2.0",
     "chokidar-cli": "^3.0.0",
+    "codedocs": "file:.",
     "eslint": "^8.9.0",
     "eslint-import-resolver-typescript": "^3.5.2",
     "eslint-plugin-import": "^2.26.0",
@@ -62,8 +63,7 @@
     "react-router-dom": "^6.2.1",
     "tsc-alias": "^1.7.0",
     "typescript": "^4.5.5",
-    "vite": "^3.1.8",
-    "codedocs": "file:."
+    "vite": "^3.1.8"
   },
   "scripts": {
     "all": "yarn && yarn build && yarn fix && yarn check:types && echo `echo 8J+OiSBEaWQgYWxs | base64 -d`",

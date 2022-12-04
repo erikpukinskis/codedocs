@@ -7,9 +7,10 @@ import {
   type Category,
   type SubCategory,
   type Page,
+  type Site,
+  type SiteSection,
   isSite,
   isSiteSection,
-  isPage,
 } from "~/tree"
 
 type SideNavProps = {
@@ -34,10 +35,6 @@ export const SideNav = ({
       ? subCategories
       : pages
 
-  if (isSite(currentPage.parent) || isSiteSection(currentPage.parent)) {
-    return null
-  }
-
   return (
     <>
       <Nav item={currentPage.parent} />
@@ -49,14 +46,15 @@ export const SideNav = ({
 }
 
 type NavItemProps = {
-  item: Category | SubCategory | Page
+  item: Category | SubCategory | Page | Site | SiteSection
 }
 
 const Nav = ({ item }: NavItemProps) => {
   const Components = useComponents()
 
-  if (isPage(item) && item.doc)
-    return <Components.NavHeading>{item.name}</Components.NavHeading>
+  if (isSite(item)) {
+    return null
+  }
 
   if (isCategory(item)) {
     return (
@@ -69,7 +67,9 @@ const Nav = ({ item }: NavItemProps) => {
         </Components.NavList>
       </>
     )
-  } else if (isSubCategory(item)) {
+  }
+
+  if (isSubCategory(item)) {
     return (
       <>
         <Components.NavItem>{addSpaces(item.name)}</Components.NavItem>
@@ -80,13 +80,17 @@ const Nav = ({ item }: NavItemProps) => {
         </Components.NavList>
       </>
     )
-  } else {
-    return (
-      <Components.NavItem>
-        <Components.NavLink to={item.doc.props.path}>
-          {addSpaces(item.name)}
-        </Components.NavLink>
-      </Components.NavItem>
-    )
   }
+
+  if (isSiteSection(item)) {
+    return <Components.NavHeading>{item.name}</Components.NavHeading>
+  }
+
+  return (
+    <Components.NavItem>
+      <Components.NavLink to={item.doc.props.path}>
+        {addSpaces(item.name)}
+      </Components.NavLink>
+    </Components.NavItem>
+  )
 }
