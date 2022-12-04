@@ -50,7 +50,13 @@ export type CardProps = {
 
 export type LogoIconProps = Parameters<typeof FontAwesomeIcon>[0]
 
+export type ButtonProps = {
+  onClick?(): void
+  children: React.ReactNode
+}
+
 export type Components = {
+  Button: React.FC<ButtonProps>
   GlobalStyles: React.FC<Record<string, never>>
   Footer: React.FC<{ copyright: string }>
   Search: React.FC<Record<string, never>>

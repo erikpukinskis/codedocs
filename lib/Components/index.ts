@@ -11,6 +11,7 @@ export * from "./nav"
 export * from "./Social"
 export * from "./layout"
 export * from "./Footer"
+export * from "./Button"
 
 export const Link = _Link
 

@@ -39,7 +39,6 @@ export const useDropdown = <ItemType>(
 
   const handleKeys = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Escape") {
-      console.log("escape")
       setHidden(true)
       return
     }
