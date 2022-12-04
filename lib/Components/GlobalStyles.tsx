@@ -1,5 +1,34 @@
 import React from "react"
 
+const COLORS = [
+  "#73A8B0",
+  "#9FC4C6",
+  "#B3E4E8",
+  "#C2E7DF",
+  "#C0D6C0",
+  "#F6A3A9",
+  "#FBB39D",
+  "#F7C6B8",
+  "#BCAA99",
+  "#A0907F",
+  "#BD9D96",
+  "#DCC2BF",
+  "#C4C4C4",
+  "#D6CCC4",
+  "#CBCFC5",
+  "#939592",
+]
+
+function randomInt(min: number, max: number) {
+  // min and max included
+  return Math.floor(Math.random() * (max - min + 1) + min)
+}
+
+const hoverColorIndex = randomInt(0, COLORS.length - 1)
+const hoverColor = COLORS[hoverColorIndex]
+
+console.log("hover", hoverColorIndex, "/", COLORS.length, hoverColor)
+
 export const GlobalStyles = () => (
   <>
     <link rel="preconnect" href="https://rsms.me/" />
@@ -71,7 +100,7 @@ export const GlobalStyles = () => (
       }
 
       a:hover {
-        color: #ff87ff;
+        color: ${hoverColor};
       }
   `}</style>
   </>
