@@ -1,6 +1,6 @@
 import React from "react"
-import type { PopoverProps } from "@/ComponentTypes"
 import { useLayer, useHover } from "react-laag"
+import type { PopoverProps } from "~/ComponentTypes"
 
 export const Popover = ({ target, contents }: PopoverProps) => {
   const [, hoverProps] = useHover()

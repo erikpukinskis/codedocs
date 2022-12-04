@@ -1,7 +1,19 @@
+import { type IconName } from "@fortawesome/fontawesome-common-types"
+import omit from "lodash/omit"
 import React, { useMemo, type ReactNode } from "react"
 import type { Location } from "react-router-dom"
 import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom"
-import type { PageOrParent } from "@/tree"
+import { ComponentContextProvider, useComponents } from "~/ComponentContext"
+import * as Defaults from "~/Components"
+import {
+  type Container,
+  type Components,
+  type SocialProps,
+} from "~/ComponentTypes"
+import { NotFound } from "~/NotFound"
+import { PageContent, HomePageContent } from "~/PageContent"
+import { SearchContextProvider } from "~/SearchContext"
+import { SideNav } from "~/SideNav"
 import {
   buildTree,
   isPage,
@@ -12,19 +24,8 @@ import {
   type PageParent,
   type HomePage,
   type SiteSection,
-} from "@/tree"
-import { ComponentContextProvider, useComponents } from "@/ComponentContext"
-import {
-  type Container,
-  type Components,
-  type SocialProps,
-} from "@/ComponentTypes"
-import * as Defaults from "@/Components"
-import { SideNav } from "@/SideNav"
-import { NotFound } from "@/NotFound"
-import { PageContent, HomePageContent } from "@/PageContent"
-import omit from "lodash/omit"
-import { SearchContextProvider } from "@/SearchContext"
+  type PageOrParent,
+} from "~/tree"
 
 type DocsAppProps = Partial<Components> &
   Partial<SocialProps> & {
@@ -32,7 +33,7 @@ type DocsAppProps = Partial<Components> &
     logo: string | ReactNode
     githubUrl?: string
     DesignSystemProvider?: Container
-    icon: string
+    icon: IconName
   }
 
 type ComponentName = keyof typeof Defaults
@@ -94,7 +95,7 @@ export const DocsApp = ({
 type HeaderProps = {
   pagesByPath: Record<string, PageOrParent>
   logo: ReactNode
-  icon: string
+  icon: IconName
   socialProps: SocialProps
 }
 

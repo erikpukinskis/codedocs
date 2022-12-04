@@ -1,5 +1,5 @@
-import { addSpaces } from "@/helpers"
-import { isHomePage, isPage, type PageOrParent } from "@/tree"
+import highlightWords, { type HighlightWords } from "highlight-words"
+import MiniSearch, { type SearchResult } from "minisearch"
 import React, {
   useMemo,
   createContext,
@@ -7,9 +7,9 @@ import React, {
   useState,
   type ReactNode,
 } from "react"
-import MiniSearch, { type SearchResult } from "minisearch"
-import highlightWords, { type HighlightWords } from "highlight-words"
 import { reactNodeToText } from "./reactNodeToText"
+import { addSpaces } from "~/helpers"
+import { isHomePage, isPage, type PageOrParent } from "~/tree"
 
 type SearchContextProperties = {
   query: string

@@ -1,6 +1,6 @@
 import React from "react"
-import { nameFromPath } from "@/helpers"
-import { useComponents } from "@/ComponentContext"
+import { useComponents } from "~/ComponentContext"
+import { nameFromPath } from "~/helpers"
 
 type NotFoundProps = {
   path: string

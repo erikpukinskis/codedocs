@@ -1,6 +1,5 @@
-import { styled } from "@stitches/react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { xor } from "lodash"
+import { styled } from "@stitches/react"
 
 export const LayoutContainer = styled("div", {
   "--header-height": "84px",

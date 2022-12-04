@@ -1,7 +1,7 @@
-import React from "react"
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
-import { Doc } from ".."
+import { Doc } from "confgen"
+import React from "react"
 
 export default (
   <Doc path="/Docs/GettingStarted">

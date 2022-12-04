@@ -1,7 +1,5 @@
 import type { ReactNode } from "react"
-import { useContext } from "react"
-import React from "react"
-import { createContext } from "react"
+import React, { useContext , createContext } from "react"
 import type { Components } from "./ComponentTypes"
 
 type ComponentContextProviderProps = {

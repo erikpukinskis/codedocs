@@ -1,5 +1,5 @@
-import React from "react"
 import { styled } from "@stitches/react"
+import React from "react"
 import { CodeEditor } from "./CodeEditor"
 
 type HasChildren = {

@@ -1,8 +1,8 @@
-import githubLogoUrl from "@/github.png"
-import type { SocialProps } from "@/ComponentTypes"
-import React from "react"
 import { styled } from "@stitches/react"
+import React from "react"
 import { Link } from "react-router-dom"
+import type { SocialProps } from "~/ComponentTypes"
+import githubLogoUrl from "~/github.png"
 
 export const Social = ({ githubUrl }: SocialProps) =>
   githubUrl ? (

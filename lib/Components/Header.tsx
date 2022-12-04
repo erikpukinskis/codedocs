@@ -1,13 +1,12 @@
-import React from "react"
-import { addSpaces } from "@/helpers"
-import type { HeaderProps } from "@/ComponentTypes"
-import { useComponents } from "@/ComponentContext"
-import { styled } from "@stitches/react"
-import { Link } from "react-router-dom"
-import { FixedTopHeader, LogoIcon } from "./layout"
-
 import { library, type IconDefinition } from "@fortawesome/fontawesome-svg-core"
 import * as Icons from "@fortawesome/free-solid-svg-icons"
+import { styled } from "@stitches/react"
+import React from "react"
+import { Link } from "react-router-dom"
+import { FixedTopHeader, LogoIcon } from "./layout"
+import { useComponents } from "~/ComponentContext"
+import type { HeaderProps } from "~/ComponentTypes"
+import { addSpaces } from "~/helpers"
 
 const icons = Object.keys(Icons)
   .filter((key) => key !== "fas" && key !== "prefix")

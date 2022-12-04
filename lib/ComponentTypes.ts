@@ -1,8 +1,9 @@
-import type { SiteSection } from "@/tree"
-import { type Link } from "react-router-dom"
-import type { ReactNode } from "react"
 import { type IconName } from "@fortawesome/fontawesome-common-types"
+import type { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import type { ReactNode } from "react"
 import type React from "react"
+import { type Link } from "react-router-dom"
+import type { SiteSection } from "~/tree"
 
 type LinkProps = Pick<Parameters<typeof Link>[0], "to" | "children">
 
@@ -28,7 +29,7 @@ export type SocialProps = {
 
 export type HeaderProps = {
   logo: ReactNode
-  icon?: IconName
+  icon: IconName
   socialProps: SocialProps
   sections: SiteSection[]
   currentSection?: SiteSection
@@ -48,12 +49,17 @@ export type CardProps = {
   children: React.ReactNode
 }
 
+export type LogoIconProps = Parameters<typeof FontAwesomeIcon>[0]
+
 export type Components = {
   GlobalStyles: React.FC<Record<string, never>>
   Search: React.FC<Record<string, never>>
   SearchBox: React.FC<SearchBoxProps>
   Header: React.FC<HeaderProps>
+  LayoutContainer: Container
+  LogoIcon: React.FC<LogoIconProps>
   Columns: Container
+  FixedTopHeader: Container
   LeftColumn: Container
   MainColumn: Container
   CenterColumn: Container

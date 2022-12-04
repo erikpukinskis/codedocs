@@ -1,4 +1,4 @@
-import { getPathSegments } from "@/helpers"
+import { getPathSegments } from "~/helpers"
 
 export type DocExport = Record<string, JSX.Element>
 

@@ -1,10 +1,10 @@
-import { useSearchQuery, useSearchResults, type Result } from "@/SearchContext"
-import useKeyboardShortcut from "use-keyboard-shortcut"
 import { styled } from "@stitches/react"
-import { useComponents } from "@/ComponentContext"
 import React from "react"
 import { useNavigate, Link } from "react-router-dom"
+import useKeyboardShortcut from "use-keyboard-shortcut"
 import { useDropdown } from "./useDropdown"
+import { useComponents } from "~/ComponentContext"
+import { useSearchQuery, useSearchResults, type Result } from "~/SearchContext"
 
 export const Search = () => {
   const Components = useComponents()

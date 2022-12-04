@@ -1,6 +1,6 @@
 import { styled } from "@stitches/react"
-import { type CardProps } from "@/ComponentTypes"
 import type React from "react"
+import { type CardProps } from "~/ComponentTypes"
 
 export const Card = styled("div", {
   borderRadius: 4,

@@ -1,8 +1,8 @@
 import React from "react"
-import { type Page, type HomePage } from "@/tree"
-import { useComponents } from "@/ComponentContext"
-import { addSpaces } from "@/helpers"
 import { ErrorBoundary } from "./ErrorBoundary"
+import { useComponents } from "~/ComponentContext"
+import { addSpaces } from "~/helpers"
+import { type Page, type HomePage } from "~/tree"
 
 type PageContentProps = {
   page: Page

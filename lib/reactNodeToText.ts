@@ -39,12 +39,7 @@ export function reactNodeToText(node: ReactNode) {
 }
 
 function _reactNodeToText(
-  node:
-    | SimpleNode
-    | ReactElement
-    | Record<string, never>
-    | Iterable<ReactNode>
-    | ReactPortal
+  node: SimpleNode | ReactElement | Iterable<ReactNode> | ReactPortal
 ): string {
   if (node == null) return ""
   if (typeof node === "boolean") return ""

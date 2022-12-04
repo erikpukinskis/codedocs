@@ -1,13 +1,16 @@
-import { useComponents } from "@/ComponentContext"
+import React from "react"
+import { useComponents } from "~/ComponentContext"
+import { addSpaces } from "~/helpers"
 import {
   isCategory,
   isSubCategory,
   type Category,
   type SubCategory,
   type Page,
-} from "@/tree"
-import { addSpaces } from "@/helpers"
-import React from "react"
+  isSite,
+  isSiteSection,
+  isPage,
+} from "~/tree"
 
 type SideNavProps = {
   categories: Category[]
@@ -31,9 +34,13 @@ export const SideNav = ({
       ? subCategories
       : pages
 
+  if (isSite(currentPage.parent) || isSiteSection(currentPage.parent)) {
+    return null
+  }
+
   return (
     <>
-      <Nav heading item={currentPage.parent} />
+      <Nav item={currentPage.parent} />
       {topLevelItems.map((item) => (
         <Nav key={item.name} item={item} />
       ))}
@@ -48,7 +55,7 @@ type NavItemProps = {
 const Nav = ({ item }: NavItemProps) => {
   const Components = useComponents()
 
-  if (!item.doc)
+  if (isPage(item) && item.doc)
     return <Components.NavHeading>{item.name}</Components.NavHeading>
 
   if (isCategory(item)) {

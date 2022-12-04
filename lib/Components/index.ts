@@ -1,5 +1,5 @@
-import { Link as _Link } from "react-router-dom"
 import { styled } from "@stitches/react"
+import { Link as _Link } from "react-router-dom"
 
 export * from "./Search"
 export * from "./GlobalStyles"
