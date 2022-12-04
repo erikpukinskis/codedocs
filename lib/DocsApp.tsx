@@ -25,7 +25,6 @@ import { NotFound } from "@/NotFound"
 import { PageContent, HomePageContent } from "@/PageContent"
 import omit from "lodash/omit"
 import { SearchContextProvider } from "@/SearchContext"
-import { LayoutContainer } from "./components/layout"
 
 type DocsAppProps = Partial<Components> &
   Partial<SocialProps> & {
@@ -33,7 +32,7 @@ type DocsAppProps = Partial<Components> &
     logo: string | ReactNode
     githubUrl?: string
     DesignSystemProvider?: Container
-    icon?: string
+    icon: string
   }
 
 type ComponentName = keyof typeof Defaults
@@ -71,7 +70,7 @@ export const DocsApp = ({
       <DesignSystemProvider>
         <ComponentContextProvider Components={Components}>
           <BrowserRouter>
-            <LayoutContainer>
+            <Defaults.LayoutContainer>
               <Routes>
                 <Route
                   path="*"
@@ -84,7 +83,7 @@ export const DocsApp = ({
                 icon={icon}
                 socialProps={socialProps}
               />
-            </LayoutContainer>
+            </Defaults.LayoutContainer>
           </BrowserRouter>
         </ComponentContextProvider>
       </DesignSystemProvider>

@@ -20,8 +20,8 @@ export class ErrorBoundary extends React.Component {
       // You can render any custom fallback UI
       return (
         <>
-          <h2>Something went wrong.</h2>
-          <p>Check the console for details.</p>
+          <h1>Something went wrong</h1>
+          <p>Check the console for details</p>
         </>
       )
     } else {

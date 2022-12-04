@@ -1,5 +1,6 @@
 import React from "react"
 import { styled } from "@stitches/react"
+import { CodeEditor } from "./CodeEditor"
 
 type HasChildren = {
   children: React.ReactElement | React.ReactText | React.ReactPortal
@@ -7,6 +8,7 @@ type HasChildren = {
 
 type Renderable = {
   render: React.FC<unknown>
+  source: string
 }
 
 type Generatable = {
@@ -36,15 +38,6 @@ const DemoContainer = styled("div", {
   flexGrow: 1,
 })
 
-const Code = styled("div", {
-  background: "black",
-  color: "#d48f8f",
-  padding: 16,
-  borderRadius: 3,
-  fontFamily: "monospace",
-  whiteSpace: "pre",
-})
-
 export const Demo = (props: DemoProps) => {
   if (hasChildren(props)) {
     if (typeof props.children === "function") {
@@ -59,7 +52,7 @@ export const Demo = (props: DemoProps) => {
         <DemoContainer>
           <props.render />
         </DemoContainer>
-        <Code>{formatCode(props.render)}</Code>
+        <CodeEditor source={props.source} />
       </DemoWithCode>
     )
   } else {

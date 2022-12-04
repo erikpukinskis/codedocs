@@ -6,12 +6,12 @@ import { styled } from "@stitches/react"
 import { Link } from "react-router-dom"
 import { FixedTopHeader, LogoIcon } from "./layout"
 
-import { library } from "@fortawesome/fontawesome-svg-core"
+import { library, type IconDefinition } from "@fortawesome/fontawesome-svg-core"
 import * as Icons from "@fortawesome/free-solid-svg-icons"
 
 const icons = Object.keys(Icons)
   .filter((key) => key !== "fas" && key !== "prefix")
-  .map((icon) => Icons[icon])
+  .map((icon) => (Icons as Record<string, unknown>)[icon] as IconDefinition)
 
 library.add(...icons)
 

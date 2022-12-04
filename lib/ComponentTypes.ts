@@ -2,6 +2,7 @@ import type { SiteSection } from "@/tree"
 import { type Link } from "react-router-dom"
 import type { ReactNode } from "react"
 import { type IconName } from "@fortawesome/fontawesome-common-types"
+import type React from "react"
 
 type LinkProps = Pick<Parameters<typeof Link>[0], "to" | "children">
 
@@ -44,6 +45,7 @@ export type CardProps = {
   pad?: "default" | "top-and-bottom"
   role?: React.HTMLAttributes<HTMLDivElement>["role"]
   onMouseOver?: () => void
+  children: React.ReactNode
 }
 
 export type Components = {
