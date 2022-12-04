@@ -8,7 +8,7 @@ export const Button = styled("button", {
   "fontSize": "1em",
 
   "&:hover": {
-    boxShadow: `-1px 2px 0px 1px #CCC`,
+    boxShadow: `0px 2px 0px 1px #CCC`,
     cursor: "pointer",
   },
 })

@@ -4,6 +4,7 @@ import { styled } from "@stitches/react"
 import React, { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import { useMeasure, useWindowSize } from "react-use"
+import useScrollLock from "react-use-scroll-lock"
 import { FixedTopHeader, LogoIcon } from "./layout"
 import { useComponents } from "~/ComponentContext"
 import type { HeaderProps } from "~/ComponentTypes"
@@ -27,7 +28,7 @@ export const Header = ({
   const [headerLinksRef, { width: headerLinksWidth }] =
     useMeasure<HTMLDivElement>()
   const [menuIsOpen, setMenuOpen] = useState(false)
-  const [onMobile, setOnMobile] = useState(false)
+  const [onMobile, setOnMobile] = useState(true)
 
   const { width: windowWidth } = useWindowSize()
 
@@ -35,23 +36,27 @@ export const Header = ({
     setMenuOpen(!menuIsOpen)
   }
 
+  useScrollLock(menuIsOpen)
+
   const closeMenu = () => {
     if (!onMobile) return
     setMenuOpen(false)
   }
 
+  const showMenu = (onMobile && menuIsOpen) || !onMobile
+
   useEffect(() => {
     if (!windowWidth) return
     if (!logoWidth) return
+    if (!headerLinksWidth) return
+    if (showMenu) return
 
     const widthRequested = logoWidth + headerLinksWidth + 32 + 32 + 32 + 8 /////// ✨
 
     setOnMobile(widthRequested > windowWidth)
-  }, [windowWidth, logoWidth, headerLinksWidth])
+  }, [windowWidth, logoWidth, headerLinksWidth, showMenu])
 
   const Components = useComponents()
-
-  const showMenu = (onMobile && menuIsOpen) || !onMobile
 
   return (
     <FixedTopHeader>
@@ -130,7 +135,7 @@ const HeaderLinksContainer = styled("div", {
         position: "absolute",
         top: "var(--header-height)",
         right: 0,
-        width: "100vh",
+        left: 0,
         height: "100vh",
         paddingTop: 24,
         paddingRight: 28,

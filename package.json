@@ -41,6 +41,7 @@
     "react-helmet": "^6.1.0",
     "react-laag": "^2.0.4",
     "react-use": "^17.4.0",
+    "react-use-scroll-lock": "^1.0.3",
     "short-uuid": "^4.2.2",
     "use-keyboard-shortcut": "^1.1.6"
   },

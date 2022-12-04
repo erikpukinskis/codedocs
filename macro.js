@@ -74,7 +74,7 @@ function dump(name, json) {
     (key, value) => {
       if (typeof value === "object" && value !== null) {
         // Duplicate reference found, discard key
-        if (cache.includes(value)) return "<<<"
+        if (cache.includes(value)) return "<circ>"
 
         // Store value in our collection
         cache.push(value)
