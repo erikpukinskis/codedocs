@@ -55,14 +55,18 @@ export const LeftColumn = styled("nav", {
 
 export const MainColumn = styled("div", {
   marginTop: "var(--header-height)",
-  padding: 20,
-  marginBottom: 100,
+  padding: 32,
+  paddingBottom: 128,
   width: "90%",
   maxWidth: "40em",
+  minHeight: "calc(100% - var(--header-height))",
+  position: "relative",
 })
 
 export const CenterColumn = styled(MainColumn, {
   marginTop: "var(--header-height)",
-  marginLeft: "auto",
-  marginRight: "auto",
+  marginLeft: 0,
+  paddingBottom: 256,
+  minHeight: "100vh",
+  position: "relative",
 })

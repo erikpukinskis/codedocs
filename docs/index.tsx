@@ -9,6 +9,7 @@ render(
   <DocsApp
     logo="Codedocs"
     icon="book"
+    copyright="Copyright © 2022 Outerframe, Inc"
     docs={[HomeDocs, GettingStartedDocs]}
     githubUrl="https://github.com/ambic-js/codedocs"
   />,

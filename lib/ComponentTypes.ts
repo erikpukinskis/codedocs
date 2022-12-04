@@ -52,6 +52,7 @@ export type LogoIconProps = Parameters<typeof FontAwesomeIcon>[0]
 
 export type Components = {
   GlobalStyles: React.FC<Record<string, never>>
+  Footer: React.FC<{ copyright: string }>
   Search: React.FC<Record<string, never>>
   SearchBox: React.FC<SearchBoxProps>
   Header: React.FC<HeaderProps>

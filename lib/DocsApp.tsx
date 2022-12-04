@@ -36,6 +36,7 @@ type DocsAppProps = Partial<Components> &
     githubUrl?: string
     DesignSystemProvider?: Container
     icon: IconName
+    copyright?: string
   }
 
 type ComponentName = keyof typeof Defaults
@@ -47,6 +48,7 @@ export const DocsApp = ({
   DesignSystemProvider = ({ children }) => <>{children}</>,
   logo,
   icon,
+  copyright = "",
   ...rest
 }: DocsAppProps) => {
   const pagesByPath = useMemo(() => buildTree(docs), [docs])
@@ -80,7 +82,12 @@ export const DocsApp = ({
               <Routes>
                 <Route
                   path="*"
-                  element={<WildcardRoute pagesByPath={pagesByPath} />}
+                  element={
+                    <WildcardRoute
+                      pagesByPath={pagesByPath}
+                      copyright={copyright}
+                    />
+                  }
                 />
               </Routes>
               <Header
@@ -147,9 +154,10 @@ const getSiteSections = (page: PageOrParent) => {
 
 type WildcardRouteProps = {
   pagesByPath: Record<string, Page | HomePage | PageParent>
+  copyright: string
 }
 
-const WildcardRoute = ({ pagesByPath }: WildcardRouteProps) => {
+const WildcardRoute = ({ pagesByPath, copyright }: WildcardRouteProps) => {
   const Components = useComponents()
   const location = useLocation()
   const path = getPathFromLocation(location)
@@ -162,18 +170,19 @@ const WildcardRoute = ({ pagesByPath }: WildcardRouteProps) => {
       <Components.Columns>
         <Components.CenterColumn>
           <HomePageContent page={currentPageOrParent} />
+          <Components.Footer copyright={copyright} />
         </Components.CenterColumn>
       </Components.Columns>
     )
   } else if (isPage(currentPageOrParent)) {
-    return <PageComponent page={currentPageOrParent} />
+    return <PageComponent page={currentPageOrParent} copyright={copyright} />
   } else {
     // On parent pages we serve up the first page in the category
     const parent = currentPageOrParent
 
     const currentPage = pagesByPath[getFirstPagePath(parent)] as Page
 
-    return <PageComponent page={currentPage} />
+    return <PageComponent page={currentPage} copyright={copyright} />
   }
 }
 
@@ -194,9 +203,10 @@ const getFirstPagePath = (parent: PageParent) => {
 
 type PageComponentProps = {
   page: Page
+  copyright: string
 }
 
-const PageComponent = ({ page }: PageComponentProps) => {
+const PageComponent = ({ page, copyright }: PageComponentProps) => {
   const Components = useComponents()
 
   const {
@@ -223,6 +233,7 @@ const PageComponent = ({ page }: PageComponentProps) => {
       </Components.LeftColumn>
       <Components.MainColumn>
         <PageContent page={page} />
+        <Components.Footer copyright={copyright} />
       </Components.MainColumn>
     </Components.Columns>
   )
