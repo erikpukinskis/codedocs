@@ -18,7 +18,12 @@ type SideNavProps = {
   currentPage: Page
 }
 
-export const SideNav = ({ categories, subCategories, pages }: SideNavProps) => {
+export const SideNav = ({
+  categories,
+  subCategories,
+  pages,
+  currentPage,
+}: SideNavProps) => {
   const topLevelItems =
     categories.length > 0
       ? categories
@@ -28,6 +33,7 @@ export const SideNav = ({ categories, subCategories, pages }: SideNavProps) => {
 
   return (
     <>
+      <Nav heading item={currentPage.parent} />
       {topLevelItems.map((item) => (
         <Nav key={item.name} item={item} />
       ))}
@@ -41,6 +47,9 @@ type NavItemProps = {
 
 const Nav = ({ item }: NavItemProps) => {
   const Components = useComponents()
+
+  if (!item.doc)
+    return <Components.NavHeading>{item.name}</Components.NavHeading>
 
   if (isCategory(item)) {
     return (

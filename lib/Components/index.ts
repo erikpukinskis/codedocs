@@ -13,10 +13,6 @@ export * from "./layout"
 
 export const Link = _Link
 
-export const PageHeading = styled("h1", { fontSize: 36, paddingBottom: "10px" })
+export const PageHeading = styled("h1")
 
-export const DemoHeading = styled("h2", {
-  fontWeight: 600,
-  paddingTop: "40px",
-  paddingBottom: "10px",
-})
+export const DemoHeading = styled("h2")

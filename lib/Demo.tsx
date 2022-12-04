@@ -1,4 +1,5 @@
 import React from "react"
+import { styled } from "@stitches/react"
 
 type HasChildren = {
   children: React.ReactElement | React.ReactText | React.ReactPortal
@@ -22,6 +23,28 @@ function isRenderable(props: DemoProps): props is Renderable {
   return Boolean((props as Renderable).render)
 }
 
+const DemoWithCode = styled("div", {
+  display: "flex",
+  flexDirection: "row",
+  gap: 16,
+})
+
+const DemoContainer = styled("div", {
+  display: "flex",
+  flexDirection: "row",
+  gap: 16,
+  flexGrow: 1,
+})
+
+const Code = styled("div", {
+  background: "black",
+  color: "#d48f8f",
+  padding: 16,
+  borderRadius: 3,
+  fontFamily: "monospace",
+  whiteSpace: "pre",
+})
+
 export const Demo = (props: DemoProps) => {
   if (hasChildren(props)) {
     if (typeof props.children === "function") {
@@ -31,8 +54,31 @@ export const Demo = (props: DemoProps) => {
     }
     return <>{props.children}</>
   } else if (isRenderable(props)) {
-    return <props.render />
+    return (
+      <DemoWithCode>
+        <DemoContainer>
+          <props.render />
+        </DemoContainer>
+        <Code>{formatCode(props.render)}</Code>
+      </DemoWithCode>
+    )
   } else {
     return props.generate()
   }
+}
+
+// eslint-disable-next-line @typescript-eslint/ban-types
+const formatCode = (func: Function) => {
+  const lines = func.toString().split("\n")
+  const withoutClosure = lines.slice(1, lines.length - 2)
+  const depth = Math.min(...withoutClosure.map(toDepth))
+  const withoutLeadingWhitespace = lines.map((line) => line.slice(depth))
+
+  return withoutLeadingWhitespace.join("\n")
+}
+
+const toDepth = (line: string) => {
+  const spaceMatch = line.match(/^( *)/)
+  if (!spaceMatch) return 0
+  return spaceMatch[1].length
 }

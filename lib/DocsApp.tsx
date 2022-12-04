@@ -25,6 +25,7 @@ import { NotFound } from "@/NotFound"
 import { PageContent, HomePageContent } from "@/PageContent"
 import omit from "lodash/omit"
 import { SearchContextProvider } from "@/SearchContext"
+import { LayoutContainer } from "./components/layout"
 
 type DocsAppProps = Partial<Components> &
   Partial<SocialProps> & {
@@ -32,6 +33,7 @@ type DocsAppProps = Partial<Components> &
     logo: string | ReactNode
     githubUrl?: string
     DesignSystemProvider?: Container
+    icon?: string
   }
 
 type ComponentName = keyof typeof Defaults
@@ -42,6 +44,7 @@ export const DocsApp = ({
   docs,
   DesignSystemProvider = ({ children }) => <>{children}</>,
   logo,
+  icon,
   ...rest
 }: DocsAppProps) => {
   const pagesByPath = useMemo(() => buildTree(docs), [docs])
@@ -68,17 +71,20 @@ export const DocsApp = ({
       <DesignSystemProvider>
         <ComponentContextProvider Components={Components}>
           <BrowserRouter>
-            <Header
-              pagesByPath={pagesByPath}
-              logo={logo}
-              socialProps={socialProps}
-            />
-            <Routes>
-              <Route
-                path="*"
-                element={<WildcardRoute pagesByPath={pagesByPath} />}
+            <LayoutContainer>
+              <Routes>
+                <Route
+                  path="*"
+                  element={<WildcardRoute pagesByPath={pagesByPath} />}
+                />
+              </Routes>
+              <Header
+                pagesByPath={pagesByPath}
+                logo={logo}
+                icon={icon}
+                socialProps={socialProps}
               />
-            </Routes>
+            </LayoutContainer>
           </BrowserRouter>
         </ComponentContextProvider>
       </DesignSystemProvider>
@@ -89,6 +95,7 @@ export const DocsApp = ({
 type HeaderProps = {
   pagesByPath: Record<string, PageOrParent>
   logo: ReactNode
+  icon: string
   socialProps: SocialProps
 }
 
@@ -96,7 +103,7 @@ const getPathFromLocation = (location: Location) => {
   return location.pathname ? location.pathname : "/"
 }
 
-const Header = ({ pagesByPath, logo, socialProps }: HeaderProps) => {
+const Header = ({ pagesByPath, logo, icon, socialProps }: HeaderProps) => {
   const location = useLocation()
   const path = getPathFromLocation(location)
   const pageOrParent = pagesByPath[path]
@@ -109,6 +116,7 @@ const Header = ({ pagesByPath, logo, socialProps }: HeaderProps) => {
   return (
     <Components.Header
       logo={logo}
+      icon={icon}
       socialProps={socialProps}
       sections={getSiteSections(pageOrParent)}
     />
@@ -146,9 +154,11 @@ const WildcardRoute = ({ pagesByPath }: WildcardRouteProps) => {
     return <NotFound path={path} availablePaths={Object.keys(pagesByPath)} />
   } else if (isHomePage(currentPageOrParent)) {
     return (
-      <Components.CenterColumn>
-        <HomePageContent page={currentPageOrParent} />
-      </Components.CenterColumn>
+      <Components.Columns>
+        <Components.CenterColumn>
+          <HomePageContent page={currentPageOrParent} />
+        </Components.CenterColumn>
+      </Components.Columns>
     )
   } else if (isPage(currentPageOrParent)) {
     return <PageComponent page={currentPageOrParent} />

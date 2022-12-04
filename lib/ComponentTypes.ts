@@ -1,6 +1,7 @@
 import type { SiteSection } from "@/tree"
 import { type Link } from "react-router-dom"
 import type { ReactNode } from "react"
+import { type IconName } from "@fortawesome/fontawesome-common-types"
 
 type LinkProps = Pick<Parameters<typeof Link>[0], "to" | "children">
 
@@ -23,8 +24,10 @@ export type SearchBoxProps = {
 export type SocialProps = {
   githubUrl?: string
 }
+
 export type HeaderProps = {
   logo: ReactNode
+  icon?: IconName
   socialProps: SocialProps
   sections: SiteSection[]
   currentSection?: SiteSection

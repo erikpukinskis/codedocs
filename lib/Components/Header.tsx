@@ -4,9 +4,20 @@ import type { HeaderProps } from "@/ComponentTypes"
 import { useComponents } from "@/ComponentContext"
 import { styled } from "@stitches/react"
 import { Link } from "react-router-dom"
+import { FixedTopHeader, LogoIcon } from "./layout"
+
+import { library } from "@fortawesome/fontawesome-svg-core"
+import * as Icons from "@fortawesome/free-solid-svg-icons"
+
+const icons = Object.keys(Icons)
+  .filter((key) => key !== "fas" && key !== "prefix")
+  .map((icon) => Icons[icon])
+
+library.add(...icons)
 
 export const Header = ({
   logo,
+  icon,
   socialProps,
   sections,
   currentSection,
@@ -14,57 +25,46 @@ export const Header = ({
   const Components = useComponents()
 
   return (
-    <StyledHeader>
-      <StyledLogo to="/">{logo}</StyledLogo>
-      <StyledHeaderLinks>
+    <FixedTopHeader>
+      <StyledLogo to="/">
+        {icon ? <LogoIcon icon={icon} /> : null}
+        {logo}
+      </StyledLogo>
+      <HeaderLinks>
         {sections.map(({ name }) => (
-          <StyledHeaderLink
+          <HeaderLink
             key={name}
             to={`/${name}`}
             isCurrent={currentSection?.name === name}
           >
             {addSpaces(name)}
-          </StyledHeaderLink>
+          </HeaderLink>
         ))}
         <Components.Search />
         <Components.Social {...socialProps} />
-      </StyledHeaderLinks>
-    </StyledHeader>
+      </HeaderLinks>
+    </FixedTopHeader>
   )
 }
 
-const StyledHeader = styled("div", {
-  borderBottom: "1px solid #DDD",
-  padding: 24,
+const StyledLogo = styled(Link, {
   display: "flex",
   flexDirection: "row",
-  justifyContent: "space-between",
-  alignItems: "center",
-  boxShadow: "0px 0px 3px 0px rgba(0,0,0,0.05)",
-})
-
-const StyledLogo = styled(Link, {
-  display: "block",
   whiteSpace: "nowrap",
-  fontWeight: 600,
-  fontSize: "1.4em",
   marginTop: "-0.2em",
   marginBottom: "-0.2em",
   lineHeight: "16px",
-  padding: 8,
 })
 
-const StyledHeaderLinks = styled("div", {
+const HeaderLinks = styled("div", {
   display: "flex",
   flexDirection: "row",
   alignItems: "center",
   gap: 24,
-  marginRight: 24,
 })
 
-const StyledHeaderLink = styled(Link, {
+const HeaderLink = styled(Link, {
   lineHeight: "16px",
-  padding: 8,
 
   variants: {
     isCurrent: {

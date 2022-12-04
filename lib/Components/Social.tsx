@@ -6,12 +6,12 @@ import { Link } from "react-router-dom"
 
 export const Social = ({ githubUrl }: SocialProps) =>
   githubUrl ? (
-    <StyledHeaderLink to={githubUrl}>
+    <SocialLink to={githubUrl}>
       <img alt="github repository" src={githubLogoUrl} width={24} height={24} />
-    </StyledHeaderLink>
+    </SocialLink>
   ) : null
 
-const StyledHeaderLink = styled(Link, {
+const SocialLink = styled(Link, {
   lineHeight: 0,
   padding: 4,
   boxSizing: "border-box",

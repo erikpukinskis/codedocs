@@ -139,17 +139,20 @@ Along those lines, I'll list things that definitely won't happen:
 
 Things that will probably happen:
 
-- Move the demos into the `<Doc>` block so you can lay out those pages explicitly
-- An `<API>` helper component for documenting component apis
-- Babel macro which can grab the code sample for your demos
-- Search
-- A contact sheet so you can visually scan for the control you're looking for
+- [x] Search
+- [ ] "Live" code samples
+- [ ] Port Ambic README to docs and publish
+- [ ] Port Confgen README to docs and publish
+- [ ] Server-side rendering
+- [ ] Move the demos into the `<Doc>` block so you can lay out those pages explicitly
+- [ ] An `<API>` helper component for documenting component apis
+- [ ] Babel macro which can grab the code sample for your demos
+- [ ] A contact sheet so you can visually scan for the control you're looking for
 
 Things that _might_ happen:
 
 - Visual tests
 - In-browser unit tests
-- "Live" code samples
 
 ### Inspo
 

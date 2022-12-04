@@ -91,7 +91,7 @@ const WindowsKey = () => (
 const StyledKeys = styled("div", {
   position: "absolute",
   top: 0,
-  right: 0,
+  right: 6,
   marginRight: "0.3em",
   height: "100%",
   display: "flex",
@@ -112,7 +112,6 @@ const StyledKey = styled("div", {
 })
 
 const StyledSearchInput = styled("input", {
-  fontSize: "0.8em",
   padding: 8,
   width: "100%",
   boxSizing: "border-box",

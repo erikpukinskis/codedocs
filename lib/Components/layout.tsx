@@ -1,26 +1,67 @@
 import { styled } from "@stitches/react"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { xor } from "lodash"
+
+export const LayoutContainer = styled("div", {
+  "--header-height": "84px",
+})
 
 export const Columns = styled("div", {
   display: "flex",
   flexDirection: "row",
-  minHeight: "100%",
+  minHeight: "100vh",
+  position: "absolute",
+  overflow: "scroll-y",
+  top: 0,
+  left: 0,
+  width: "100vw",
+  height: "100vh",
+})
+
+export const LogoIcon = styled(FontAwesomeIcon, {
+  border: "2px solid black",
+  borderRadius: 6,
+  padding: 4,
+  margin: -6,
+  marginRight: 8,
+})
+
+export const FixedTopHeader = styled("div", {
+  position: "fixed",
+  lineHeight: "var(--header-height)",
+  background: "white",
+  top: 0,
+  left: 0,
+  width: "100vw",
+  borderBottom: "1px solid #DDD",
+  boxSizing: "border-box",
+  paddingLeft: 32,
+  paddingRight: 32,
+  display: "flex",
+  flexDirection: "row",
+  justifyContent: "space-between",
+  alignItems: "center",
+  boxShadow: "0px 0px 3px 0px rgba(0,0,0,0.05)",
+  zIndex: 2,
 })
 
 export const LeftColumn = styled("nav", {
+  marginTop: "var(--header-height)",
   borderRight: "1px solid #EEE",
   minWidth: "128px",
-  flexShrink: 0,
-  padding: "20px",
+  paddingLeft: 32,
+  paddingTop: 32,
+  paddingRight: 8,
 })
 
 export const MainColumn = styled("div", {
-  padding: "20px",
-  maxWidth: "40em",
-  minWidth: "10em",
+  marginTop: "var(--header-height)",
+  padding: 20,
+  marginBottom: 100,
 })
 
 export const CenterColumn = styled(MainColumn, {
-  maxWidth: "50em",
+  marginTop: "var(--header-height)",
   marginLeft: "auto",
   marginRight: "auto",
 })
