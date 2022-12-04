@@ -2,6 +2,8 @@
 
 **Codedocs** is a Storybook replacement that's designed for the professional application developer. It presumes you've already set up a React application build pipeline, that you're happy with it, and you just want to document your components.
 
+If you're a beginner, you can still use Codedocs, but you may want to start with a scaffold like [Confgen](https://github.com/ambic-js/confgen). Confgen can generate a React app for you with Codedocs preconfigured.
+
 ### Table of contents
 
 - [Codedocs vs Storybook](#codedocs-vs-storybook)
@@ -17,15 +19,15 @@
 
 Design choices in Codedocs have been made to address some places where Storybook missed. Each of these issues has influenced Codedocs design:
 
-|     | Storybook                                                                                                               | Codedocs                                                                                                          |
-| --- | ----------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
-| 1   | Storybook error handling is atrocious. Stories just silently won't load                                                 | Codedocs uses your existing build pipeline                                                                        |
-| 2   | MDX files don't have type checking, and TSX files can't do proper prose documentation.                                  | Everything is in TSX files, fully typed. And you just drop your demos and API references into a prose (TSX) block |
-| 3   | Storybook has its own special build environment that's different from your app's. It adds a whole layer of debugging.   | It uses your existing build pipeline                                                                              |
-| 4   | The default Storybook layout is not very good for a public demonstration site.                                          | It's designed as public documentation site first                                                                  |
-| 5   | Your documentation uses Storybook's design system, not YOUR design system that you worked so hard to create.            | The UI is 100% swappable for your own                                                                             |
-| 6   | It's slow to start up and hot reloading is unreliable.                                                                  | Startup time is as fast as you can make your build pipeline go                                                    |
-| 6   | Adding types to your stories is... optional. Each new story is a new chance for someone to decide not to type anything. | Everything is in TSX files, fully typed                                                                           |
+|     | Storybook                                                                                                               | Codedocs                                                                                                           |
+| --- | ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| 1   | Storybook error handling is atrocious. Stories just silently won't load                                                 | Codedocs uses your existing build pipeline                                                                         |
+| 2   | MDX files don't have type checking, and TSX files can't do proper prose documentation.                                  | Everything is in TSX files, fully typed. And you just drop your demos and API references into your prose JSX block |
+| 3   | Storybook has its own special build environment that's different from your app's. It adds a whole layer of debugging.   | It uses your existing build pipeline                                                                               |
+| 4   | The default Storybook layout is not very good for a public demonstration site.                                          | It's designed as public documentation site first                                                                   |
+| 5   | Your documentation uses Storybook's design system, not YOUR design system that you worked so hard to create.            | The UI is 100% swappable for your own                                                                              |
+| 6   | It's slow to start up and hot reloading is unreliable.                                                                  | Startup time is as fast as you can make your build pipeline go                                                     |
+| 6   | Adding types to your stories is... optional. Each new story is a new chance for someone to decide not to type anything. | Everything is in TSX files, fully typed                                                                            |
 
 ### How it works
 
@@ -148,17 +150,11 @@ The general philosophy of Codedocs is
 3. Work within the existing build
 4. Give the best possible realtime feedback
 
-Along those lines, I'll list things that definitely won't happen:
-
-- Introspecting your props
-- In-browser editing of docs
-
 Things that will probably happen:
 
 - [x] Search
+- [ ] Code samples
 - [ ] "Live" code samples
-- [ ] Port Ambic README to docs and publish
-- [ ] Port Confgen README to docs and publish
 - [ ] Server-side rendering
 - [ ] Move the demos into the `<Doc>` block so you can lay out those pages explicitly
 - [ ] An `<API>` helper component for documenting component apis
@@ -169,6 +165,7 @@ Things that _might_ happen:
 
 - Visual tests
 - In-browser unit tests
+- Editing mode
 
 ### Inspiration
 
