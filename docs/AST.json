@@ -1,0 +1,182 @@
+{
+  "bindings": {
+    "TextInput": {
+      "identifier": "<circ>",
+      "scope": "<circ>",
+      "path": {
+        "contexts": [],
+        "opts": "<circ>",
+        "_traverseFlags": 0,
+        "skipKeys": null,
+        "parentPath": {
+          "contexts": [
+            {
+              "queue": [
+                "<circ>",
+                {
+                  "contexts": ["<circ>"],
+                  "opts": {
+                    "ImportDeclaration": {
+                      "enter": [null]
+                    },
+                    "VariableDeclaration": {
+                      "enter": [null]
+                    },
+                    "_exploded": true,
+                    "_verified": true
+                  },
+                  "_traverseFlags": 0,
+                  "skipKeys": null,
+                  "parentPath": "<circ>",
+                  "container": "<circ>",
+                  "listKey": "body",
+                  "key": 1,
+                  "node": "<circ>",
+                  "type": "ImportDeclaration",
+                  "parent": "<circ>",
+                  "hub": {
+                    "file": {
+                      "_map": {},
+                      "opts": {
+                        "assumptions": {},
+                        "filename": "/Users/erikpukinskis/x/outerframe/design-system/lib/controls/TextInput/TextInput.docs.tsx",
+                        "babelrc": false,
+                        "configFile": false,
+                        "sourceMaps": true,
+                        "targets": {},
+                        "cloneInputAst": true,
+                        "browserslistConfigFile": false,
+                        "passPerPreset": false,
+                        "envName": "development",
+                        "cwd": "/Users/erikpukinskis/x/outerframe/design-system",
+                        "root": "/Users/erikpukinskis/x/outerframe/design-system",
+                        "rootMode": "root",
+                        "plugins": [
+                          {
+                            "key": "syntax-jsx",
+                            "visitor": {
+                              "_exploded": true,
+                              "_verified": true
+                            },
+                            "options": {},
+                            "externalDependencies": []
+                          },
+                          {
+                            "key": "syntax-typescript",
+                            "visitor": {
+                              "_exploded": true,
+                              "_verified": true
+                            },
+                            "options": {
+                              "isTSX": true
+                            },
+                            "externalDependencies": []
+                          },
+                          {
+                            "key": "macros",
+                            "visitor": {
+                              "Program": {
+                                "enter": [null]
+                              },
+                              "_exploded": true,
+                              "_verified": true
+                            },
+                            "options": {},
+                            "externalDependencies": []
+                          }
+                        ],
+                        "presets": [],
+                        "parserOpts": {
+                          "sourceType": "module",
+                          "sourceFileName": "/Users/erikpukinskis/x/outerframe/design-system/lib/controls/TextInput/TextInput.docs.tsx",
+                          "plugins": [
+                            ["typescript", {}],
+                            "classProperties",
+                            "objectRestSpread",
+                            "jsx"
+                          ]
+                        },
+                        "generatorOpts": {
+                          "filename": "/Users/erikpukinskis/x/outerframe/design-system/lib/controls/TextInput/TextInput.docs.tsx",
+                          "comments": true,
+                          "compact": "auto",
+                          "sourceMaps": true,
+                          "sourceFileName": "TextInput.docs.tsx"
+                        }
+                      },
+                      "declarations": {},
+                      "path": "<circ>",
+                      "ast": {
+                        "type": "File",
+                        "start": 0,
+                        "end": 1709,
+                        "loc": {
+                          "start": "<circ>",
+                          "end": "<circ>"
+                        },
+                        "errors": [],
+                        "program": "<circ>",
+                        "comments": [
+                          "<circ>",
+                          "<circ>",
+                          "<circ>",
+                          "<circ>",
+                          "<circ>",
+                          "<circ>",
+                          "<circ>",
+                          "<circ>",
+                          "<circ>",
+                          "<circ>",
+                          "<circ>",
+                          "<circ>",
+                          "<circ>",
+                          "<circ>",
+                          "<circ>",
+                          "<circ>",
+                          "<circ>",
+                          "<circ>",
+                          "<circ>",
+                          "<circ>",
+                          "<circ>",
+                          "<circ>",
+                          "<circ>",
+                          "<circ>",
+                          "<circ>",
+                          "<circ>",
+                          "<circ>",
+                          "<circ>",
+                          "<circ>",
+                          "<circ>",
+                          "<circ>",
+                          "<circ>",
+                          "<circ>",
+                          "<circ>",
+                          "<circ>",
+                          "<circ>",
+                          "<circ>",
+                          "<circ>",
+                          "<circ>",
+                          "<circ>",
+                          "<circ>",
+                          "<circ>"
+                        ]
+                      },
+                      "scope": "<circ>",
+                      "metadata": {},
+                      "code": "import { TextInput, MultiTextInput } from \"@/controls\"\nimport { Doc } from \"codedocs\"\nimport React, { useState } from \"react\"\nimport { Demo } from \"codedocs/macro\"\nexport const MacroDemo = <Demo render={() => <>hi</>} />\n\nexport default (\n  <Doc path=\"/Controls/TextInput\">\n    <p>99.9% of the time, a Text Input is the right tool for entering text.</p>\n    <p>\n      In rare cases you might want a Rich Text Area but try to just use\n      structured lines of text if you can.\n    </p>\n  </Doc>\n)\n\n// export const Placeholders = (\n//   <Demo>\n//     <TextInput placeholder=\"Enter your email\" />\n//   </Demo>\n// )\n\n// export const TextPrefixes = (\n//   <Demo>\n//     <TextInput prefix=\"When\" value=\"things happen\" />\n//   </Demo>\n// )\n\n// export const EnteringText = (\n//   <Demo>\n//     <TextInput value=\"Where to even begin...\" isFocused={true} />\n//   </Demo>\n// )\n\n// export const InputList = (\n//   <Demo\n//     render={() => {\n//       const [textById, setTextById] = useState<Record<string, string>>({})\n//       const [order, setOrder] = useState<string[]>([])\n\n//       const addItem = (id: string, text: string, order: string[]) => {\n//         setTextById({ ...textById, [id]: text })\n//         setOrder(order)\n//       }\n\n//       const updateText = (id: string, text: string) => {\n//         setTextById({ ...textById, [id]: text })\n//       }\n\n//       const removeItem = (_: string, order: string[]) => {\n//         setOrder(order)\n//       }\n\n//       return (\n//         <MultiTextInput\n//           values={textById}\n//           order={order}\n//           onAdd={addItem}\n//           onChange={updateText}\n//           onRemove={removeItem}\n//         />\n//       )\n//     }}\n//   />\n// )\n",
+                      "inputMap": null,
+                      "hub": "<circ>"
+                    }
+                  },
+                  "data": null,
+                  "context": "<circ>",
+                  "scope": "<circ>"
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

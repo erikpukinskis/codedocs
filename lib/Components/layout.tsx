@@ -56,7 +56,7 @@ export const LeftColumn = styled("nav", {
 export const MainColumn = styled("div", {
   marginTop: "var(--header-height)",
   padding: 32,
-  paddingBottom: 128,
+  paddingBottom: 256,
   width: "90%",
   maxWidth: "40em",
   minHeight: "calc(100% - var(--header-height))",

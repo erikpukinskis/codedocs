@@ -1,6 +1,8 @@
 import { styled } from "@stitches/react"
+import React from "react"
+import type { ButtonProps } from "~/ComponentTypes"
 
-export const Button = styled("button", {
+const StyledButton = styled("button", {
   "background": "white",
   "padding": "8px 24px",
   "border": "1px solid black",
@@ -12,3 +14,7 @@ export const Button = styled("button", {
     cursor: "pointer",
   },
 })
+
+export const Button = ({ onClick, children }: ButtonProps) => (
+  <StyledButton onClick={onClick}>{children}</StyledButton>
+)

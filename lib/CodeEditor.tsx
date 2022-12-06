@@ -16,6 +16,7 @@ const EditorContainer = styled("div", {
   borderRadius: 6,
   background: "#282A36",
   padding: 6,
+  opacity: "90%",
 })
 
 // The Editor accepts an array of plugins. In this case, only the emojiPlugin is
@@ -30,22 +31,17 @@ export const CodeEditor = ({ source }: CodeEditorProps) => {
   return (
     <EditorContainer>
       <AceEditor
-        value={`const foo = <>
-    <a barf="foo">barb</a>
-</>
-
-function fee(bar: number): string {
-    return string
-}
-`}
+        value={source}
         mode="tsx"
         theme="dracula"
         onChange={() => {}}
         name={name}
-        fontSize={16}
+        fontSize={15}
         minLines={4}
         maxLines={20}
         editorProps={{ $blockScrolling: true }}
+        highlightActiveLine={false}
+        cursorStart={1}
       />
     </EditorContainer>
   )

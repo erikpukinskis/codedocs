@@ -1,69 +1,115 @@
 const { createMacro } = require("babel-plugin-macros")
-import traverse from "@babel/traverse"
+const { default: traverse } = require("@babel/traverse")
+const { rest } = require("lodash")
+const { faBaby } = require("@fortawesome/free-solid-svg-icons")
 
 // `createMacro` is simply a function that ensures your macro is only
 // called in the context of a babel transpilation and will throw an
 // error with a helpful message if someone does not have babel-plugin-macros
 // configured correctly
-module.exports = createMacro(Demo)
-
-function Demo({ references, state, babel }) {
-  console.log("demo flurbls!")
-
+module.exports = createMacro(function Demo({ references, state, babel }) {
   const { Demo = [] } = references
 
-  Demo.forEach(function processCodedocsDemo(nodePath) {
-    dump("NODE_PATH", nodePath)
+  const code = state.file.code
 
-    const fileCode =
-      state.references.parentPath.parentPath.parentPath.parentPath.contexts[0]
-        .scope.bindings.Doc.path.parentPath.contexts.queue[0].hub.file.code
+  // dump("STATE", state)
+
+  Demo.forEach(function processCodedocsDemo(nodePath) {
+    console.log("nodePath", nodePath.constructor.name, typeof nodePath)
 
     let source
 
-    traverse(ast, {
-      enter(path) {
-        renderFunctionNode = getRenderFunction(path)
-        if (!renderFunctionNode) return
-        source = fileCode.slice(
-          renderFunctionNode.start,
-          renderFunctionNode.end
-        )
-      },
-    })
+    traverse(
+      state.file.path.parent,
+      {
+        JSXExpressionContainer(path, state) {
+          if (!isDemoIdentifier(path.parentPath.parentPath)) {
+            return
+          }
 
-    if (renderFunctionNode) {
-      babel.setProperty(renderFunctionNode.parentPath.props, "source", source)
-    }
+          const demoIdentifier = path.parentPath.parentPath
+
+          if (!isRenderAttribute(path.parentPath)) {
+            return
+          }
+
+          // dumpPath("GRANDPA", path.parentPath.parentPath)
+          // dumpPath("PA", path.parentPath)
+          // dumpPath("ME", path)
+
+          const { start, end } = path.node.expression.body
+
+          const source = code.slice(start, end)
+
+          // console.log("SOURCE", source)
+
+          const newAttribute = babel.types.jsxAttribute(
+            babel.types.jsxIdentifier("source"),
+            babel.types.stringLiteral(source)
+          )
+
+          demoIdentifier.node.attributes.push(newAttribute)
+        },
+      },
+      nodePath.scope,
+      nodePath.parentPath
+    )
   })
+
+  const specifiers = [
+    babel.types.importSpecifier(
+      babel.types.identifier("Demo"),
+      babel.types.identifier("Demo")
+    ),
+  ]
+
+  const importSourceLiteral = babel.types.stringLiteral("codedocs")
+
+  const newImport = babel.types.importDeclaration(
+    specifiers,
+    importSourceLiteral
+  )
+
+  const { program } = state.file.path.container
+
+  program.body.unshift(newImport)
 
   // state is the second argument you're passed to a visitor in a
   // normal babel plugin. `babel` is the `babel-plugin-macros` module.
   // do whatever you like to the AST paths you find in `references`
   // read more below...
+})
+
+function isRenderAttribute(path) {
+  if (path.node.name.type !== "JSXIdentifier") {
+    // console.log("not a JSXIdentifier node")
+    return
+  }
+
+  if (path.node.name.name !== "render") {
+    // console.log("Not a render attribute")
+    return
+  }
+
+  return true
 }
 
-function getRenderFunction(path) {
-  // init.openingElement
-  //   .name
-  //     "type": "JSXIdentifier",
-  //     "name": "DemoMacro"
+function isDemoIdentifier(path) {
+  const { type, name, loc } = path.node.name
 
-  //   .attributes[0].name.name === "render"
-  //   .value
-  //     "type": "JSXExpressionContainer",
-  //     .expression.body
-  //       "type": "JSXFragment",
-  //       .start
-  //       .end
+  if (type !== "JSXIdentifier") {
+    // console.log("not a JSXIdentifier node")
+    return false
+  }
+  if (name !== "Demo") {
+    // console.log("no Demo")
+    return false
+  }
 
-  if (!path.isIdentifier({ name: "JSXExpressionContainer" })) return
+  const { line, column } = loc.start
 
-  const body = path.expression.body
-
-  if (!body.isIdentifier({ name: "JSXExpressionContainer" })) return
-
-  return body
+  // console.log("Grandpa is a <Demo>!", "line", line, "column", column)
+  return true
 }
 
 function dump(name, json) {
@@ -85,4 +131,21 @@ function dump(name, json) {
   )
   cache = null // Enable garbage collection
   console.log(name, str)
+}
+
+function dumpPath(name, path) {
+  const {
+    scope,
+    contexts,
+    context,
+    state: foo,
+    parentPath,
+    parent,
+    container,
+    opts,
+    hub,
+    ...rest
+  } = path
+
+  dump(name, rest)
 }
