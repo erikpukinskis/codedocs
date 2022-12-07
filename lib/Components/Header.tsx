@@ -24,39 +24,58 @@ export const Header = ({
   currentSection,
 }: HeaderProps) => {
   const [logoRef, { width: logoWidth }] = useMeasure<HTMLAnchorElement>()
-
   const [headerLinksRef, { width: headerLinksWidth }] =
     useMeasure<HTMLDivElement>()
   const [menuIsOpen, setMenuOpen] = useState(false)
-  const [onMobile, setOnMobile] = useState(true)
-
+  const [onMobile, setOnMobile] = useState(false)
+  const [desktopHeaderLinksWidth, setDesktopHeaderLinksWidth] = useState<
+    undefined | number
+  >()
   const { width: windowWidth } = useWindowSize()
+  useScrollLock(menuIsOpen)
+  const Components = useComponents()
+  const [mobileHeaderLinksWidth, setMobileHeaderLinksWidth] = useState<
+    number | undefined
+  >()
+
+  useEffect(() => {
+    if (!headerLinksWidth) return
+
+    // This is a bit complicated because we rely on the "header width" to
+    // determine whether we should switch to the mobile view, but that header
+    // width changes when we switch to mobile! So we need to separate out the
+    // measured desktop width from the mobile width, and not using one for the
+    // other. Ideally if onMobile=false, useMeasure would never return values
+    // from the render when onMobile was true. But in practice there is a race
+    // condition there, between when onMobile becomes false and when the menu
+    // changes style.
+    if (onMobile && headerLinksWidth !== desktopHeaderLinksWidth) {
+      setMobileHeaderLinksWidth(headerLinksWidth)
+    }
+
+    if (!onMobile && headerLinksWidth !== mobileHeaderLinksWidth) {
+      setDesktopHeaderLinksWidth(headerLinksWidth)
+    }
+  }, [onMobile, headerLinksWidth])
+
+  useEffect(() => {
+    if (!logoWidth) return
+    if (!desktopHeaderLinksWidth) return
+
+    const widthRequested =
+      logoWidth + desktopHeaderLinksWidth + 32 + 32 + 32 + 8 /////// ✨
+
+    setOnMobile(widthRequested > windowWidth)
+  }, [windowWidth, logoWidth, desktopHeaderLinksWidth])
 
   const toggleMenu = () => {
     setMenuOpen(!menuIsOpen)
   }
 
-  useScrollLock(menuIsOpen)
-
   const closeMenu = () => {
     if (!onMobile) return
     setMenuOpen(false)
   }
-
-  const showMenu = (onMobile && menuIsOpen) || !onMobile
-
-  useEffect(() => {
-    if (!windowWidth) return
-    if (!logoWidth) return
-    if (!headerLinksWidth) return
-    if (showMenu) return
-
-    const widthRequested = logoWidth + headerLinksWidth + 32 + 32 + 32 + 8 /////// ✨
-
-    setOnMobile(widthRequested > windowWidth)
-  }, [windowWidth, logoWidth, headerLinksWidth, showMenu])
-
-  const Components = useComponents()
 
   return (
     <FixedTopHeader>
@@ -67,22 +86,24 @@ export const Header = ({
       {onMobile ? (
         <Components.Button onClick={toggleMenu}>Menu</Components.Button>
       ) : null}
-      {showMenu ? (
-        <HeaderLinks ref={headerLinksRef} onMobile={onMobile}>
-          {sections.map(({ name }) => (
-            <HeaderLink
-              key={name}
-              to={`/${name}`}
-              isCurrent={currentSection?.name === name}
-              onClick={closeMenu}
-            >
-              {addSpaces(name)}
-            </HeaderLink>
-          ))}
-          <Components.Search />
-          <Components.Social {...socialProps} />
-        </HeaderLinks>
-      ) : null}
+      <HeaderLinks
+        ref={headerLinksRef}
+        onMobile={onMobile}
+        menuIsOpen={menuIsOpen}
+      >
+        {sections.map(({ name }) => (
+          <HeaderLink
+            key={name}
+            to={`/${name}`}
+            isCurrent={currentSection?.name === name}
+            onClick={closeMenu}
+          >
+            {addSpaces(name)}
+          </HeaderLink>
+        ))}
+        <Components.Search />
+        <Components.Social {...socialProps} />
+      </HeaderLinks>
     </FixedTopHeader>
   )
 }
@@ -99,11 +120,13 @@ const StyledLogo = styled(Link, {
 
 type HeaderLinksProps = {
   onMobile: boolean
+  menuIsOpen: boolean
   children: React.ReactNode
 }
 
 const HeaderLinks = React.forwardRef<HTMLDivElement, HeaderLinksProps>(
-  function HeaderLinks({ onMobile, children }, ref) {
+  function HeaderLinks({ onMobile, menuIsOpen, children }, ref) {
+    if (onMobile && !menuIsOpen) return null
     return (
       <HeaderLinksContainer onMobile={onMobile} ref={ref}>
         {children}
@@ -139,6 +162,7 @@ const HeaderLinksContainer = styled("div", {
         height: "100vh",
         paddingTop: 24,
         paddingRight: 28,
+        boxSizing: "border-box",
         flexDirection: "column",
         background: "white",
         alignItems: "flex-end",
