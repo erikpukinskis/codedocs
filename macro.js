@@ -8,7 +8,7 @@ const { faBaby } = require("@fortawesome/free-solid-svg-icons")
 // error with a helpful message if someone does not have babel-plugin-macros
 // configured correctly
 module.exports = createMacro(function Demo({ references, state, babel }) {
-  const { Demo = [] } = references
+  const { Demo = [], Doc = [], DocsApp = [] } = references
 
   const code = state.file.code
 
@@ -56,12 +56,24 @@ module.exports = createMacro(function Demo({ references, state, babel }) {
     )
   })
 
-  const specifiers = [
+  const specifierIdentifiers = []
+
+  if (Demo.length > 0) {
+    specifierIdentifiers.push("Demo")
+  }
+  if (Doc.length > 0) {
+    specifierIdentifiers.push("Doc")
+  }
+  if (DocsApp.length > 0) {
+    specifierIdentifiers.push("DocsApp")
+  }
+
+  const specifiers = specifierIdentifiers.map((identifier) =>
     babel.types.importSpecifier(
-      babel.types.identifier("Demo"),
-      babel.types.identifier("Demo")
-    ),
-  ]
+      babel.types.identifier(identifier),
+      babel.types.identifier(identifier)
+    )
+  )
 
   const importSourceLiteral = babel.types.stringLiteral("codedocs")
 
