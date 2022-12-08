@@ -12,8 +12,8 @@ module.exports = createMacro(function Demo({ references, state, babel }) {
     return state.file.code.slice(start, end)
   }
 
-  function buildSourceAttribute(source) {
-    return babel.types.jsxAttribute(
+  function setSourceAttribute(node, source) {
+    const newAttribute = babel.types.jsxAttribute(
       babel.types.jsxIdentifier("source"),
       babel.types.jsxExpressionContainer(
         babel.types.templateLiteral(
@@ -22,6 +22,16 @@ module.exports = createMacro(function Demo({ references, state, babel }) {
         )
       )
     )
+
+    const existingSourceAttributeIndex = node.attributes.findIndex(
+      (attribute) => attribute.name.name === "source"
+    )
+
+    if (existingSourceAttributeIndex >= 0) {
+      node.attributes[existingSourceAttributeIndex] = newAttribute
+    } else {
+      node.attributes.push(newAttribute)
+    }
   }
 
   Demo.forEach(function processCodedocsDemo(nodePath) {
@@ -40,9 +50,7 @@ module.exports = createMacro(function Demo({ references, state, babel }) {
 
           const source = jsxElement.children.map(getSource).join("")
 
-          jsxElement.openingElement.attributes.push(
-            buildSourceAttribute(source)
-          )
+          setSourceAttribute(jsxElement.openingElement, source)
         },
         JSXExpressionContainer(path, state) {
           if (!isDemoIdentifier(path.parentPath.parentPath)) return
@@ -54,7 +62,7 @@ module.exports = createMacro(function Demo({ references, state, babel }) {
           const bodySource = getSource(path.node.expression.body)
           const source = bodySource.slice(1, bodySource.length - 2)
 
-          demoIdentifier.node.attributes.push(buildSourceAttribute(source))
+          setSourceAttribute(demoIdentifier.node, source)
         },
       },
       nodePath.scope,
