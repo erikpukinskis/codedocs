@@ -1,6 +1,5 @@
 import React from "react"
-// eslint-disable-next-line no-restricted-imports
-import { Doc, Code } from "../"
+import { Doc, Code } from "~/index"
 
 export default (
   <Doc path="/">
@@ -41,11 +40,10 @@ export default (
     </p>
     <h3 id="markdown">In Markdown:</h3>
     <Code
-      language="markdown"
+      mode="markdown"
       source={`---
 title: React
 description: A JavaScript library for building user interfaces
-hide_table_of_contents:  true
 ---
 
 # React
@@ -54,11 +52,11 @@ A JavaScript library for building user interfaces`}
     />
     <h3 id="codedocs">In Codedocs:</h3>
     <Code
-      source={`import { Doc, Title } from 'codedocs'
+      mode="tsx"
+      source={`import { Doc } from 'codedocs'
 
 export default (
-	<Doc path="/">
-		<Title>React</Title>
+	<Doc path="/React">
 		<p>A JavaScript library for building user interfaces</p>
 	</Doc>
 )`}

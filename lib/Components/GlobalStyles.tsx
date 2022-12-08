@@ -74,12 +74,13 @@ export const GlobalStyles = () => (
         margin-left: 1em;
         margin-top: 1em;
         margin-bottom: 1em;
+        max-width: 40em;
       }
 
       p {
         margin-top: 1em;
         margin-bottom: 1em;
-        max-width: 30em;
+        max-width: 42em;
       },
 
       pre {
@@ -101,6 +102,14 @@ export const GlobalStyles = () => (
 
       a:hover {
         color: var(--hover-color);
+      }
+
+      .ace_editor .ace_marker-layer .ace_bracket {
+        display: none;
+      }
+
+      .ace_editor .ace_cursor-layer .ace_cursor {
+        display: none !important;
       }
   `}</style>
   </>

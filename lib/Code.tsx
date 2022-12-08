@@ -11,6 +11,7 @@ const CodeContainer = styled("div", {
   background: "#282A36",
   padding: 6,
   opacity: "90%",
+  maxWidth: "45em",
 })
 
 type CodeProps = EditorProps & {
@@ -36,15 +37,19 @@ const Editor = ({ source, mode }: EditorProps) => {
       value={source}
       mode={mode}
       theme="dracula"
-      onChange={() => {}}
       name={name}
       fontSize={15}
-      minLines={4}
+      minLines={1}
       maxLines={999}
       width="100%"
-      editorProps={{ $blockScrolling: true }}
-      highlightActiveLine={false}
-      cursorStart={1}
+      editorProps={{
+        $blockScrolling: true,
+      }}
+      setOptions={{
+        highlightActiveLine: false,
+        highlightGutterLine: false,
+        readOnly: true,
+      }}
     />
   )
 }

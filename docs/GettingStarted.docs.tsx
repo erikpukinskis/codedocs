@@ -1,6 +1,5 @@
 import React from "react"
-// eslint-disable-next-line no-restricted-imports
-import { Doc, Code } from "../"
+import { Doc, Code } from "~/index"
 
 export default (
   <Doc path="/Docs/GettingStarted">
@@ -9,15 +8,16 @@ export default (
       We're assuming you've already done this, since you're an app developer.
       Another easy way to get an app set up is to use Confgen:
     </p>
-    <pre>
-      {`npx confgen@latest @docs yarn git typescript react eslint prettier codedocs`}
-    </pre>
+    <Code
+      source={`npx confgen@latest @docs yarn git typescript react eslint prettier codedocs`}
+    />
     <h2>Step 2: Write some docs</h2>
     <p>
       Codedocs should live next to your code. They can import from your code
       directly for demos:
     </p>
     <Code
+      mode="tsx"
       source={`// Button.docs.tsx
 import React from "react"
 import { Doc, Demo } from "codedocs"
@@ -44,6 +44,7 @@ export const BasicButton = (
       deploying to Github Pages.
     </p>
     <Code
+      mode="tsx"
       source={`import * as ButtonDocs from "./Button.docs"
 import { DocsApp } from "codedocs"
 import React from "react"
