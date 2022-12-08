@@ -1,13 +1,21 @@
+import { type Demo, type DemoProps } from "./Demo"
+import { type Doc, type DocProps } from "./Doc"
 import { getPathSegments } from "~/helpers"
 
-export type DocExport = Record<string, JSX.Element>
+export type DocExport = {
+  default: DocElement
+} & DemoSet
 
-export type DocElement = React.ReactElement<
-  { path: string; order?: number },
-  never
->
+export type DocElement = React.ReactElement<DocProps, typeof Doc> &
+  ElementSource
 
-type DemoSet = Record<string, JSX.Element>
+type ElementSource = {
+  _source: { fileName: string; lineNumber: number; columnNumber: number }
+}
+
+type DemoElement = React.ReactElement<DemoProps, typeof Demo> & ElementSource
+
+type DemoSet = Record<string, DemoElement>
 
 export type PageParent = Site | SiteSection | Category | SubCategory
 
@@ -173,14 +181,14 @@ export const buildTree = (docs: DocExport[]): Record<string, PageOrParent> => {
   }
 
   for (const docsAndDemos of docs) {
-    const doc = docsAndDemos.default as DocElement
+    const { default: doc, ...demos } = docsAndDemos
+
     if (!/^\//.test(doc.props.path)) {
+      const { fileName, lineNumber, columnNumber } = doc._source
       throw new Error(
-        `Doc paths must start with a /... try <Doc path="/${doc.props.path}">`
+        `Doc paths must start with a /... try <Doc path="/${doc.props.path}"> at ${fileName}:${lineNumber}:${columnNumber}`
       )
     }
-    const demos: DemoSet = { ...docsAndDemos }
-    delete demos.default
 
     const path = doc.props.path
     const order = doc.props.order

@@ -31,7 +31,7 @@ export const Code = ({ className, source, mode }: CodeProps) => (
 
 type EditorProps = {
   source: string
-  mode: "tsx" | "markdown"
+  mode?: "tsx" | "markdown"
 }
 
 const Editor = ({ source, mode }: EditorProps) => {

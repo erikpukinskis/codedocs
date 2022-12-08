@@ -1,6 +1,6 @@
 import React from "react"
 
-type DocProps = {
+export type DocProps = {
   path: string
   order?: number
   children: React.ReactNode

@@ -1,5 +1,5 @@
 import React from "react"
-import { Doc, Code } from "~/index"
+import { Doc, Code, Demo } from "~/index"
 
 export default (
   <Doc path="/">
@@ -78,9 +78,3 @@ export default (
     </ul>
   </Doc>
 )
-
-// export const _Button = (
-//   <Demo>
-//     <Button>Save</Button>
-//   </Demo>
-// )

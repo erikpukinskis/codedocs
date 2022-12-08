@@ -12,41 +12,9 @@ type Renderable = {
   render: React.FC<unknown>
 }
 
-type DemoProps = (HasChildren | Renderable) & {
+export type DemoProps = (HasChildren | Renderable) & {
   source?: string
 }
-
-function hasChildren(props: DemoProps): props is HasChildren {
-  return Boolean((props as HasChildren).children)
-}
-
-function isRenderable(props: DemoProps): props is Renderable {
-  return Boolean((props as Renderable).render)
-}
-
-const DemoWithCode = styled("div", {
-  display: "flex",
-  flexDirection: "row",
-  gap: 16,
-})
-
-const DemoContainer = styled("div", {
-  display: "flex",
-  flexDirection: "row",
-  gap: 16,
-  flexBasis: "40%",
-  flexGrow: 1,
-})
-
-const CodeColumn = styled(Code, {
-  flexBasis: "60%",
-  flexGrow: 1,
-  overflowX: "scroll",
-})
-
-const NO_MACRO_ERROR = `// Source code unavailable
-// try installing babel-plugin-macros or vite-plugin-babel-macros and using:
-// import { Demo } from "codedocs/macro"`
 
 export const Demo = (props: DemoProps) => {
   const [formatted, setFormatted] = useState("")
@@ -83,6 +51,38 @@ export const Demo = (props: DemoProps) => {
     </DemoWithCode>
   )
 }
+
+function hasChildren(props: DemoProps): props is HasChildren {
+  return Boolean((props as HasChildren).children)
+}
+
+function isRenderable(props: DemoProps): props is Renderable {
+  return Boolean((props as Renderable).render)
+}
+
+const DemoWithCode = styled("div", {
+  display: "flex",
+  flexDirection: "row",
+  gap: 16,
+})
+
+const DemoContainer = styled("div", {
+  display: "flex",
+  flexDirection: "row",
+  gap: 16,
+  flexBasis: "40%",
+  flexGrow: 1,
+})
+
+const CodeColumn = styled(Code, {
+  flexBasis: "60%",
+  flexGrow: 1,
+  overflowX: "scroll",
+})
+
+const NO_MACRO_ERROR = `// Source code unavailable
+// try installing babel-plugin-macros or vite-plugin-babel-macros and using:
+// import { Demo } from "codedocs/macro"`
 
 function formatTypescript(source: string) {
   return prettier

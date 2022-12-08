@@ -1,5 +1,5 @@
 import React from "react"
-import { Doc, Code } from "~/index"
+import { Doc, Code, Demo } from "~/index"
 
 export default (
   <Doc path="/Docs/GettingStarted">
