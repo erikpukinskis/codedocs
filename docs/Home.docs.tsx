@@ -1,7 +1,6 @@
 import React from "react"
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-import { Doc } from ".."
+// eslint-disable-next-line no-restricted-imports
+import { Doc } from "../"
 
 export default (
   <Doc path="/">

@@ -420,13 +420,6 @@
   resolved "https://registry.yarnpkg.com/@stitches/react/-/react-1.2.8.tgz#954f8008be8d9c65c4e58efa0937f32388ce3a38"
   integrity sha512-9g9dWI4gsSVe8bNLlb+lMkBYsnIKCZTmvqvDG+Avnn69XfmHZKiaMrx7cgTaddq7aTPPmXiTsbFcUy0xgI4+wA==
 
-"@types/copy-text-to-clipboard@^2.0.1":
-  version "2.0.1"
-  resolved "https://registry.yarnpkg.com/@types/copy-text-to-clipboard/-/copy-text-to-clipboard-2.0.1.tgz#7847789f857fc88bfe4507f4ece6bcf99756befc"
-  integrity sha512-JpAP1JrqKp9IkSC1JP+PdUzxKoOjUVxP8KFcYIaocVrf2m1Qs7Vq/Ek+RuLxL/fG7Ws+q/4HI8fjY9dPdsH/Kw==
-  dependencies:
-    copy-text-to-clipboard "*"
-
 "@types/draft-js@^0.11.9":
   version "0.11.9"
   resolved "https://registry.yarnpkg.com/@types/draft-js/-/draft-js-0.11.9.tgz#b7535fb2511e8b8c8e33ffac2199a5f2988f4fd5"
@@ -853,30 +846,6 @@ cliui@^5.0.0:
     strip-ansi "^5.2.0"
     wrap-ansi "^5.1.0"
 
-"codedocs@file:.":
-  version "0.14.0"
-  dependencies:
-    "@fortawesome/fontawesome-free-solid" "^5.0.13"
-    "@fortawesome/fontawesome-svg-core" "^6.2.1"
-    "@fortawesome/free-solid-svg-icons" "^6.2.1"
-    "@fortawesome/react-fontawesome" "^0.2.0"
-    "@stitches/react" "^1.2.8"
-    ace-builds "^1.13.1"
-    ast-pretty-print "^2.0.1"
-    babel-plugin-macros "^3.1.0"
-    copy-text-to-clipboard "^3.0.1"
-    highlight-words "^1.2.1"
-    lodash "^4.17.21"
-    minisearch "^5.0.0"
-    react "^17.0.2"
-    react-ace "^10.1.0"
-    react-helmet "^6.1.0"
-    react-laag "^2.0.4"
-    react-use "^17.4.0"
-    react-use-scroll-lock "^1.0.3"
-    short-uuid "^4.2.2"
-    use-keyboard-shortcut "^1.1.6"
-
 color-convert@^1.9.0:
   version "1.9.3"
   resolved "https://registry.yarnpkg.com/color-convert/-/color-convert-1.9.3.tgz#bb71850690e1f136567de629d2d5471deda4c1e8"
@@ -916,7 +885,7 @@ convert-source-map@^1.7.0:
   resolved "https://registry.yarnpkg.com/convert-source-map/-/convert-source-map-1.9.0.tgz#7faae62353fb4213366d0ca98358d22e8368b05f"
   integrity sha512-ASFBup0Mz1uyiIjANan1jzLQami9z1PoYSZCiiYW2FczPbenXc45FZdBZLzOT+r6+iciuEModtmCti+hjaAk0A==
 
-copy-text-to-clipboard@*, copy-text-to-clipboard@^3.0.1:
+copy-text-to-clipboard@^3.0.1:
   version "3.0.1"
   resolved "https://registry.yarnpkg.com/copy-text-to-clipboard/-/copy-text-to-clipboard-3.0.1.tgz#8cbf8f90e0a47f12e4a24743736265d157bce69c"
   integrity sha512-rvVsHrpFcL4F2P8ihsoLdFHmd404+CMg71S756oRSeQgqk51U3kicGdnvfkrxva0xXH92SjGS62B0XIJsbh+9Q==
