@@ -51,10 +51,7 @@ function _reactNodeToText(
   }
 
   if (isReactElement(node)) {
-    console.info("this is a ReactElement without children?", node)
-    throw new Error(
-      "Found a react element without children. We should update reactNodeToText to extract the text from something like this!"
-    )
+    return "" // not sure if this is really correct
   }
 
   if (isReactPortal(node)) {

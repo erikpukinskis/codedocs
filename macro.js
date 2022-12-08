@@ -2,6 +2,7 @@ const { createMacro } = require("babel-plugin-macros")
 const { default: traverse } = require("@babel/traverse")
 const { rest } = require("lodash")
 const { faBaby } = require("@fortawesome/free-solid-svg-icons")
+const printAST = require("ast-pretty-print")
 
 // `createMacro` is simply a function that ensures your macro is only
 // called in the context of a babel transpilation and will throw an
@@ -10,18 +11,47 @@ const { faBaby } = require("@fortawesome/free-solid-svg-icons")
 module.exports = createMacro(function Demo({ references, state, babel }) {
   const { Demo = [], Doc = [], DocsApp = [] } = references
 
-  const code = state.file.code
-
   // dump("STATE", state)
 
-  Demo.forEach(function processCodedocsDemo(nodePath) {
-    console.log("nodePath", nodePath.constructor.name, typeof nodePath)
+  function getSource(node) {
+    const { start, end } = node
 
-    let source
+    return state.file.code.slice(start, end)
+  }
+
+  function buildSourceAttribute(source) {
+    return babel.types.jsxAttribute(
+      babel.types.jsxIdentifier("source"),
+      babel.types.jsxExpressionContainer(
+        babel.types.templateLiteral(
+          [babel.types.templateElement({ raw: source }, true)],
+          []
+        )
+      )
+    )
+  }
+
+  Demo.forEach(function processCodedocsDemo(nodePath) {
+    if (nodePath.parentPath.node.type !== "JSXOpeningElement") return
 
     traverse(
       state.file.path.parent,
       {
+        JSXIdentifier(path, state) {
+          if (path.node.name !== "Demo") return
+
+          if (path.parentPath.node.type !== "JSXOpeningElement") return
+
+          const jsxElement = path.parentPath.parentPath.node
+
+          if (jsxElement.type !== "JSXElement") return
+
+          const source = jsxElement.children.map(getSource).join("")
+
+          jsxElement.openingElement.attributes.push(
+            buildSourceAttribute(source)
+          )
+        },
         JSXExpressionContainer(path, state) {
           if (!isDemoIdentifier(path.parentPath.parentPath)) {
             return
@@ -30,25 +60,19 @@ module.exports = createMacro(function Demo({ references, state, babel }) {
           const demoIdentifier = path.parentPath.parentPath
 
           if (!isRenderAttribute(path.parentPath)) {
+            console.log("Demo identifier but not render attribute!")
             return
           }
 
           // dumpPath("GRANDPA", path.parentPath.parentPath)
           // dumpPath("PA", path.parentPath)
-          // dumpPath("ME", path)
 
-          const { start, end } = path.node.expression.body
-
-          const source = code.slice(start, end)
-
+          const source = path.node.expression.body.body
+            .map(getSource)
+            .join("\n")
           // console.log("SOURCE", source)
 
-          const newAttribute = babel.types.jsxAttribute(
-            babel.types.jsxIdentifier("source"),
-            babel.types.stringLiteral(source)
-          )
-
-          demoIdentifier.node.attributes.push(newAttribute)
+          demoIdentifier.node.attributes.push(buildSourceAttribute(source))
         },
       },
       nodePath.scope,

@@ -3,8 +3,8 @@ import React from "react"
 import { COLORS } from "./GlobalStyles"
 
 const FooterContainer = styled("div", {
+  paddingTop: 256,
   paddingBottom: 64,
-  position: "absolute",
   bottom: 0,
 })
 

@@ -9,15 +9,8 @@ import "ace-builds/src-noconflict/ext-language_tools"
 // as an argument.
 
 type CodeEditorProps = {
-  source: string
+  source?: string
 }
-
-const EditorContainer = styled("div", {
-  borderRadius: 6,
-  background: "#282A36",
-  padding: 6,
-  opacity: "90%",
-})
 
 // The Editor accepts an array of plugins. In this case, only the emojiPlugin is
 // passed in, although it is possible to pass in multiple plugins.
@@ -29,21 +22,22 @@ export const CodeEditor = ({ source }: CodeEditorProps) => {
   const [name] = useState(() => `CodeEditor-${randomNumber()}`)
 
   return (
-    <EditorContainer>
-      <AceEditor
-        value={source}
-        mode="tsx"
-        theme="dracula"
-        onChange={() => {}}
-        name={name}
-        fontSize={15}
-        minLines={4}
-        maxLines={20}
-        editorProps={{ $blockScrolling: true }}
-        highlightActiveLine={false}
-        cursorStart={1}
-      />
-    </EditorContainer>
+    <AceEditor
+      value={
+        source ??
+        '// import { Demo } from "codedocs/macro" to enable source code'
+      }
+      mode="tsx"
+      theme="dracula"
+      onChange={() => {}}
+      name={name}
+      fontSize={15}
+      minLines={4}
+      maxLines={20}
+      editorProps={{ $blockScrolling: true }}
+      highlightActiveLine={false}
+      cursorStart={1}
+    />
   )
 }
 

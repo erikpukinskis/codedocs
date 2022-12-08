@@ -8,14 +8,15 @@ type HasChildren = {
 
 type Renderable = {
   render: React.FC<unknown>
-  source: string
 }
 
 type Generatable = {
   generate: () => JSX.Element
 }
 
-type DemoProps = HasChildren | Renderable | Generatable
+type DemoProps = (HasChildren | Renderable | Generatable) & {
+  source?: string
+}
 
 function hasChildren(props: DemoProps): props is HasChildren {
   return Boolean((props as HasChildren).children)
@@ -35,29 +36,46 @@ const DemoContainer = styled("div", {
   display: "flex",
   flexDirection: "row",
   gap: 16,
+  flexBasis: 1,
   flexGrow: 1,
 })
 
+const EditorContainer = styled("div", {
+  borderRadius: 6,
+  background: "#282A36",
+  padding: 6,
+  opacity: "90%",
+  flexBasis: 1,
+  flexGrow: 1,
+  overflowX: "scroll",
+})
+
 export const Demo = (props: DemoProps) => {
+  console.log(props)
+
+  let demoArea: JSX.Element
+
   if (hasChildren(props)) {
     if (typeof props.children === "function") {
       throw new Error(
         `Don't pass function children to <Demo>, pass a render function like: <Demo render={() => ... } />`
       )
     }
-    return <>{props.children}</>
+    demoArea = <>{props.children}</>
   } else if (isRenderable(props)) {
-    return (
-      <DemoWithCode>
-        <DemoContainer>
-          <props.render />
-        </DemoContainer>
-        <CodeEditor source={props.source} />
-      </DemoWithCode>
-    )
+    demoArea = <props.render />
   } else {
-    return props.generate()
+    demoArea = props.generate()
   }
+
+  return (
+    <DemoWithCode>
+      <EditorContainer>
+        <CodeEditor source={props.source} />
+      </EditorContainer>
+      <DemoContainer>{demoArea}</DemoContainer>
+    </DemoWithCode>
+  )
 }
 
 // eslint-disable-next-line @typescript-eslint/ban-types
