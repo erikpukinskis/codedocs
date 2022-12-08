@@ -60,16 +60,14 @@ module.exports = createMacro(function Demo({ references, state, babel }) {
           const demoIdentifier = path.parentPath.parentPath
 
           if (!isRenderAttribute(path.parentPath)) {
-            console.log("Demo identifier but not render attribute!")
             return
           }
 
           // dumpPath("GRANDPA", path.parentPath.parentPath)
           // dumpPath("PA", path.parentPath)
 
-          const source = path.node.expression.body.body
-            .map(getSource)
-            .join("\n")
+          const bodySource = getSource(path.node.expression.body)
+          const source = bodySource.slice(1, bodySource.length - 2)
           // console.log("SOURCE", source)
 
           demoIdentifier.node.attributes.push(buildSourceAttribute(source))

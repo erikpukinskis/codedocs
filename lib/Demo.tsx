@@ -1,5 +1,7 @@
 import { styled } from "@stitches/react"
-import React from "react"
+import prettier from "prettier"
+import parserTypescript from "prettier/parser-typescript"
+import React, { useEffect, useState } from "react"
 import { CodeEditor } from "./CodeEditor"
 
 type HasChildren = {
@@ -10,11 +12,7 @@ type Renderable = {
   render: React.FC<unknown>
 }
 
-type Generatable = {
-  generate: () => JSX.Element
-}
-
-type DemoProps = (HasChildren | Renderable | Generatable) & {
+type DemoProps = (HasChildren | Renderable) & {
   source?: string
 }
 
@@ -36,7 +34,7 @@ const DemoContainer = styled("div", {
   display: "flex",
   flexDirection: "row",
   gap: 16,
-  flexBasis: 1,
+  flexBasis: "40%",
   flexGrow: 1,
 })
 
@@ -45,12 +43,24 @@ const EditorContainer = styled("div", {
   background: "#282A36",
   padding: 6,
   opacity: "90%",
-  flexBasis: 1,
+  flexBasis: "60%",
   flexGrow: 1,
   overflowX: "scroll",
 })
 
 export const Demo = (props: DemoProps) => {
+  const [formatted, setFormatted] = useState("")
+
+  useEffect(() => {
+    if (props.source) {
+      setFormatted(formatTypescript(props.source))
+    } else {
+      setFormatted(
+        '// import { Demo } from "codedocs/macro" to enable source code'
+      )
+    }
+  }, [props.source])
+
   console.log(props)
 
   let demoArea: JSX.Element
@@ -65,31 +75,27 @@ export const Demo = (props: DemoProps) => {
   } else if (isRenderable(props)) {
     demoArea = <props.render />
   } else {
-    demoArea = props.generate()
+    throw new Error("not sure what type fo demo this is")
   }
+
+  if (!formatted) return null
 
   return (
     <DemoWithCode>
       <EditorContainer>
-        <CodeEditor source={props.source} />
+        <CodeEditor source={formatted} />
       </EditorContainer>
       <DemoContainer>{demoArea}</DemoContainer>
     </DemoWithCode>
   )
 }
 
-// eslint-disable-next-line @typescript-eslint/ban-types
-const formatCode = (func: Function) => {
-  const lines = func.toString().split("\n")
-  const withoutClosure = lines.slice(1, lines.length - 2)
-  const depth = Math.min(...withoutClosure.map(toDepth))
-  const withoutLeadingWhitespace = lines.map((line) => line.slice(depth))
-
-  return withoutLeadingWhitespace.join("\n")
-}
-
-const toDepth = (line: string) => {
-  const spaceMatch = line.match(/^( *)/)
-  if (!spaceMatch) return 0
-  return spaceMatch[1].length
+function formatTypescript(source: string) {
+  return prettier
+    .format(source, {
+      parser: "typescript",
+      plugins: [parserTypescript],
+      printWidth: 60,
+    })
+    .replace(/[\r\n]+$/, "")
 }

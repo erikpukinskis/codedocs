@@ -79,7 +79,7 @@ export const GlobalStyles = () => (
       p {
         margin-top: 1em;
         margin-bottom: 1em;
-        max-width: 500;
+        max-width: 30em;
       },
 
       pre {
