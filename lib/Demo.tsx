@@ -1,11 +1,8 @@
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { styled } from "@stitches/react"
-import copyTextToClipboard from "copy-text-to-clipboard"
 import prettier from "prettier"
 import parserTypescript from "prettier/parser-typescript"
 import React, { useEffect, useState } from "react"
 import { Code } from "./Code"
-import { useComponents } from "./ComponentContext"
 
 type HasChildren = {
   children: React.ReactElement | React.ReactText | React.ReactPortal
@@ -45,7 +42,6 @@ const CodeColumn = styled(Code, {
   flexBasis: "60%",
   flexGrow: 1,
   overflowX: "scroll",
-  position: "relative",
 })
 
 const NO_MACRO_ERROR = `// Source code unavailable
@@ -83,7 +79,6 @@ export const Demo = (props: DemoProps) => {
   return (
     <DemoWithCode>
       <CodeColumn source={formatted} mode="tsx" />
-      {formatted === NO_MACRO_ERROR ? null : <CopyButton source={formatted} />}
       <DemoContainer>{demoArea}</DemoContainer>
     </DemoWithCode>
   )
@@ -94,40 +89,8 @@ function formatTypescript(source: string) {
     .format(source, {
       parser: "typescript",
       plugins: [parserTypescript],
-      printWidth: 60,
+      printWidth: 55,
+      semi: false,
     })
-    .replace(/[\r\n]+$/, "")
+    .replace(/^;/, "")
 }
-
-type CopyButtonProps = {
-  source: string
-}
-
-const CopyButton = ({ source }: CopyButtonProps) => {
-  const Components = useComponents()
-  const [buttonText, setButtonText] = useState("Copy")
-
-  const copy = (event: React.MouseEvent) => {
-    event.preventDefault()
-    copyTextToClipboard(source)
-    setButtonText("Copied!")
-    setTimeout(() => {
-      setButtonText("Copy")
-    }, 2000)
-  }
-
-  return (
-    <CopyButtonContainer>
-      <Components.Button onClick={copy}>
-        <FontAwesomeIcon icon="copy" /> {buttonText}
-      </Components.Button>
-    </CopyButtonContainer>
-  )
-}
-
-const CopyButtonContainer = styled("div", {
-  position: "absolute",
-  zIndex: 1,
-  right: 8,
-  bottom: 8,
-})

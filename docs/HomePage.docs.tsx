@@ -33,7 +33,7 @@ export default (
         overriding styles...
       </li>
     </ul>
-    <h2 id="codedocs-is-different">Codedocs is different</h2>
+    <h1 id="codedocs-is-different">Codedocs is different</h1>
     <p>
       If you're maintaining a codebase, you know how to read code. Is it really
       so much worse?
@@ -61,7 +61,7 @@ export default (
 	</Doc>
 )`}
     />
-    <h2 id="benefits">Benefits</h2>
+    <h1 id="benefits">Benefits</h1>
     <ul>
       <li>Codedocs are fully type checked.</li>
       <li>
