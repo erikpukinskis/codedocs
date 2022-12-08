@@ -31,6 +31,7 @@
     "ace-builds": "^1.13.1",
     "ast-pretty-print": "^2.0.1",
     "babel-plugin-macros": "^3.1.0",
+    "copy-text-to-clipboard": "^3.0.1",
     "highlight-words": "^1.2.1",
     "lodash": "^4.17.21",
     "minisearch": "^5.0.0",

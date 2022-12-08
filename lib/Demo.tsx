@@ -1,8 +1,11 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { styled } from "@stitches/react"
+import copyTextToClipboard from "copy-text-to-clipboard"
 import prettier from "prettier"
 import parserTypescript from "prettier/parser-typescript"
 import React, { useEffect, useState } from "react"
 import { CodeEditor } from "./CodeEditor"
+import { useComponents } from "./ComponentContext"
 
 type HasChildren = {
   children: React.ReactElement | React.ReactText | React.ReactPortal
@@ -46,7 +49,12 @@ const EditorContainer = styled("div", {
   flexBasis: "60%",
   flexGrow: 1,
   overflowX: "scroll",
+  position: "relative",
 })
+
+const NO_MACRO_ERROR = `// Source code unavailable
+// try installing babel-plugin-macros or vite-plugin-babel-macros and using:
+// import { Demo } from "codedocs/macro"`
 
 export const Demo = (props: DemoProps) => {
   const [formatted, setFormatted] = useState("")
@@ -55,13 +63,9 @@ export const Demo = (props: DemoProps) => {
     if (props.source) {
       setFormatted(formatTypescript(props.source))
     } else {
-      setFormatted(
-        '// import { Demo } from "codedocs/macro" to enable source code'
-      )
+      setFormatted(NO_MACRO_ERROR)
     }
   }, [props.source])
-
-  console.log(props)
 
   let demoArea: JSX.Element
 
@@ -84,6 +88,9 @@ export const Demo = (props: DemoProps) => {
     <DemoWithCode>
       <EditorContainer>
         <CodeEditor source={formatted} />
+        {formatted === NO_MACRO_ERROR ? null : (
+          <CopyButton source={formatted} />
+        )}
       </EditorContainer>
       <DemoContainer>{demoArea}</DemoContainer>
     </DemoWithCode>
@@ -99,3 +106,36 @@ function formatTypescript(source: string) {
     })
     .replace(/[\r\n]+$/, "")
 }
+
+type CopyButtonProps = {
+  source: string
+}
+
+const CopyButton = ({ source }: CopyButtonProps) => {
+  const Components = useComponents()
+  const [buttonText, setButtonText] = useState("Copy")
+
+  const copy = (event: React.MouseEvent) => {
+    event.preventDefault()
+    copyTextToClipboard(source)
+    setButtonText("Copied!")
+    setTimeout(() => {
+      setButtonText("Copy")
+    }, 2000)
+  }
+
+  return (
+    <CopyButtonContainer>
+      <Components.Button onClick={copy}>
+        <FontAwesomeIcon icon="copy" /> {buttonText}
+      </Components.Button>
+    </CopyButtonContainer>
+  )
+}
+
+const CopyButtonContainer = styled("div", {
+  position: "absolute",
+  zIndex: 1,
+  right: 8,
+  bottom: 8,
+})

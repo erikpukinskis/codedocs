@@ -1,13 +1,6 @@
 const { createMacro } = require("babel-plugin-macros")
 const { default: traverse } = require("@babel/traverse")
-const { rest } = require("lodash")
-const { faBaby } = require("@fortawesome/free-solid-svg-icons")
-const printAST = require("ast-pretty-print")
 
-// `createMacro` is simply a function that ensures your macro is only
-// called in the context of a babel transpilation and will throw an
-// error with a helpful message if someone does not have babel-plugin-macros
-// configured correctly
 module.exports = createMacro(function Demo({ references, state, babel }) {
   const { Demo = [], Doc = [], DocsApp = [] } = references
 
@@ -39,7 +32,6 @@ module.exports = createMacro(function Demo({ references, state, babel }) {
       {
         JSXIdentifier(path, state) {
           if (path.node.name !== "Demo") return
-
           if (path.parentPath.node.type !== "JSXOpeningElement") return
 
           const jsxElement = path.parentPath.parentPath.node
@@ -53,22 +45,14 @@ module.exports = createMacro(function Demo({ references, state, babel }) {
           )
         },
         JSXExpressionContainer(path, state) {
-          if (!isDemoIdentifier(path.parentPath.parentPath)) {
-            return
-          }
+          if (!isDemoIdentifier(path.parentPath.parentPath)) return
 
           const demoIdentifier = path.parentPath.parentPath
 
-          if (!isRenderAttribute(path.parentPath)) {
-            return
-          }
-
-          // dumpPath("GRANDPA", path.parentPath.parentPath)
-          // dumpPath("PA", path.parentPath)
+          if (!isRenderAttribute(path.parentPath)) return
 
           const bodySource = getSource(path.node.expression.body)
           const source = bodySource.slice(1, bodySource.length - 2)
-          // console.log("SOURCE", source)
 
           demoIdentifier.node.attributes.push(buildSourceAttribute(source))
         },
@@ -107,63 +91,38 @@ module.exports = createMacro(function Demo({ references, state, babel }) {
   const { program } = state.file.path.container
 
   program.body.unshift(newImport)
-
-  // state is the second argument you're passed to a visitor in a
-  // normal babel plugin. `babel` is the `babel-plugin-macros` module.
-  // do whatever you like to the AST paths you find in `references`
-  // read more below...
 })
 
 function isRenderAttribute(path) {
-  if (path.node.name.type !== "JSXIdentifier") {
-    // console.log("not a JSXIdentifier node")
-    return
-  }
-
-  if (path.node.name.name !== "render") {
-    // console.log("Not a render attribute")
-    return
-  }
+  if (path.node.name.type !== "JSXIdentifier") return false
+  if (path.node.name.name !== "render") return false
 
   return true
 }
 
 function isDemoIdentifier(path) {
-  const { type, name, loc } = path.node.name
+  const { type, name } = path.node.name
 
-  if (type !== "JSXIdentifier") {
-    // console.log("not a JSXIdentifier node")
-    return false
-  }
-  if (name !== "Demo") {
-    // console.log("no Demo")
-    return false
-  }
+  if (type !== "JSXIdentifier") return false
+  if (name !== "Demo") return false
 
-  const { line, column } = loc.start
-
-  // console.log("Grandpa is a <Demo>!", "line", line, "column", column)
   return true
 }
 
 function dump(name, json) {
-  // Note: cache should not be re-used by repeated calls to JSON.stringify.
   var cache = []
   const str = JSON.stringify(
     json,
-    (key, value) => {
+    (_, value) => {
       if (typeof value === "object" && value !== null) {
-        // Duplicate reference found, discard key
         if (cache.includes(value)) return "<circ>"
-
-        // Store value in our collection
         cache.push(value)
       }
       return value
     },
     4
   )
-  cache = null // Enable garbage collection
+  cache = null
   console.log(name, str)
 }
 
