@@ -3,7 +3,7 @@ import { render } from "react-dom"
 // eslint-disable-next-line no-restricted-imports
 import { DocsApp } from "../"
 import * as GettingStartedDocs from "./GettingStarted.docs"
-import * as HomeDocs from "./Home.docs"
+import * as HomeDocs from "./HomePage.docs"
 
 render(
   <DocsApp

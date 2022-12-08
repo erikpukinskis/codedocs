@@ -4,7 +4,7 @@ import copyTextToClipboard from "copy-text-to-clipboard"
 import prettier from "prettier"
 import parserTypescript from "prettier/parser-typescript"
 import React, { useEffect, useState } from "react"
-import { CodeEditor } from "./CodeEditor"
+import { Code } from "./Code"
 import { useComponents } from "./ComponentContext"
 
 type HasChildren = {
@@ -41,11 +41,7 @@ const DemoContainer = styled("div", {
   flexGrow: 1,
 })
 
-const EditorContainer = styled("div", {
-  borderRadius: 6,
-  background: "#282A36",
-  padding: 6,
-  opacity: "90%",
+const CodeColumn = styled(Code, {
   flexBasis: "60%",
   flexGrow: 1,
   overflowX: "scroll",
@@ -86,12 +82,8 @@ export const Demo = (props: DemoProps) => {
 
   return (
     <DemoWithCode>
-      <EditorContainer>
-        <CodeEditor source={formatted} />
-        {formatted === NO_MACRO_ERROR ? null : (
-          <CopyButton source={formatted} />
-        )}
-      </EditorContainer>
+      <CodeColumn source={formatted} mode="tsx" />
+      {formatted === NO_MACRO_ERROR ? null : <CopyButton source={formatted} />}
       <DemoContainer>{demoArea}</DemoContainer>
     </DemoWithCode>
   )

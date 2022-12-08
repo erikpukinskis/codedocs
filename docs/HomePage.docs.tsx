@@ -1,6 +1,6 @@
 import React from "react"
 // eslint-disable-next-line no-restricted-imports
-import { Doc } from "../"
+import { Doc, Code } from "../"
 
 export default (
   <Doc path="/">
@@ -40,20 +40,21 @@ export default (
       so much worse?
     </p>
     <h3 id="markdown">In Markdown:</h3>
-    <pre>
-      {`---  
-title: React  
-description: A JavaScript library for building user interfaces  
-hide_table_of_contents:  true  
----  
-  
+    <Code
+      language="markdown"
+      source={`---
+title: React
+description: A JavaScript library for building user interfaces
+hide_table_of_contents:  true
+---
+
 # React
 
 A JavaScript library for building user interfaces`}
-    </pre>
+    />
     <h3 id="codedocs">In Codedocs:</h3>
-    <pre>
-      {`import { Doc, Title } from 'codedocs'
+    <Code
+      source={`import { Doc, Title } from 'codedocs'
 
 export default (
 	<Doc path="/">
@@ -61,7 +62,7 @@ export default (
 		<p>A JavaScript library for building user interfaces</p>
 	</Doc>
 )`}
-    </pre>
+    />
     <h2 id="benefits">Benefits</h2>
     <ul>
       <li>Codedocs are fully type checked.</li>
