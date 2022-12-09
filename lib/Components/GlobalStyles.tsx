@@ -57,6 +57,7 @@ export const GlobalStyles = () => (
         font-weight: 500;
         margin-top: 1em;
         margin-bottom: 1em;
+        color: #333;
       }
 
       h1 {
@@ -69,12 +70,20 @@ export const GlobalStyles = () => (
         font-weight: 500;
         margin-top: 2em;
       }
+
       li {
         list-style-type: disc;
-        margin-left: 1em;
         margin-top: 1em;
         margin-bottom: 1em;
+        margin-left: 16px;
         max-width: 40em;
+        color: #333;
+        font-weight: 500;
+      }
+
+      ul {
+        padding: 0;
+        padding-left: 32px;
       }
 
       p {

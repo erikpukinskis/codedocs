@@ -58,7 +58,6 @@ export const MainColumn = styled("div", {
   padding: 32,
   paddingBottom: 256,
   width: "90%",
-  minHeight: "calc(100% - var(--header-height))",
   position: "relative",
 })
 

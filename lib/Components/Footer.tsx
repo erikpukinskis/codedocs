@@ -6,6 +6,7 @@ const FooterContainer = styled("div", {
   paddingTop: 256,
   paddingBottom: 64,
   bottom: 0,
+  opacity: 0.7,
 })
 
 const Swatches = styled("div", {
