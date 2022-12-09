@@ -3,6 +3,7 @@ import { styled } from "@stitches/react"
 import copyTextToClipboard from "copy-text-to-clipboard"
 import React, { useState } from "react"
 import AceEditor from "react-ace"
+import "ace-builds/src-noconflict/mode-sh"
 import "ace-builds/src-noconflict/mode-tsx"
 import "ace-builds/src-noconflict/mode-markdown"
 import "ace-builds/src-noconflict/theme-dracula"
@@ -40,7 +41,7 @@ const Editor = ({ source, mode }: EditorProps) => {
   return (
     <AceEditor
       value={source}
-      mode={mode}
+      mode={mode ?? "sh"}
       theme="dracula"
       name={name}
       fontSize={15}
