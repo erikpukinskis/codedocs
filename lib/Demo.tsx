@@ -1,6 +1,6 @@
 import { styled } from "@stitches/react"
+import prettier from "prettier"
 import parserTypescript from "prettier/parser-typescript"
-import prettier from "prettier/standalone"
 import React, { useEffect, useState } from "react"
 import { Code } from "./Code"
 
