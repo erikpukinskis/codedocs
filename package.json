@@ -1,7 +1,7 @@
 {
   "homepage": "https://github.com/ambic-js/codedocs",
   "name": "codedocs",
-  "version": "0.14.0",
+  "version": "0.15.0-beta.0",
   "license": "UNLICENSED",
   "repository": {
     "type": "git",
