@@ -1,7 +1,5 @@
 import React from "react"
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-import { Doc } from ".."
+import { Doc, Code } from "~/index"
 
 export default (
   <Doc path="/">
@@ -40,29 +38,29 @@ export default (
       If you're maintaining a codebase, you know how to read code. Is it really
       so much worse?
     </p>
-    <h3 id="markdown">In Markdown:</h3>
-    <pre>
-      {`---  
-title: React  
-description: A JavaScript library for building user interfaces  
-hide_table_of_contents:  true  
----  
-  
+    <h2 id="markdown">In Markdown:</h2>
+    <Code
+      mode="markdown"
+      source={`---
+title: React
+description: A JavaScript library for building user interfaces
+---
+
 # React
 
 A JavaScript library for building user interfaces`}
-    </pre>
-    <h3 id="codedocs">In Codedocs:</h3>
-    <pre>
-      {`import { Doc, Title } from 'codedocs'
+    />
+    <h2 id="codedocs">In Codedocs:</h2>
+    <Code
+      mode="tsx"
+      source={`import { Doc } from 'codedocs'
 
 export default (
-	<Doc path="/">
-		<Title>React</Title>
+	<Doc path="/React">
 		<p>A JavaScript library for building user interfaces</p>
 	</Doc>
 )`}
-    </pre>
+    />
     <h2 id="benefits">Benefits</h2>
     <ul>
       <li>Codedocs are fully type checked.</li>
@@ -80,9 +78,3 @@ export default (
     </ul>
   </Doc>
 )
-
-// export const _Button = (
-//   <Demo>
-//     <Button>Save</Button>
-//   </Demo>
-// )

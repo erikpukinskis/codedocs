@@ -1,0 +1,86 @@
+{
+  "type": "JSXAttribute",
+  "start": 129,
+  "end": 157,
+  "loc": {
+    "start": {
+      "line": 5,
+      "column": 20,
+      "index": 129
+    },
+    "end": {
+      "line": 5,
+      "column": 48,
+      "index": 157
+    }
+  },
+  "name": {
+    "type": "JSXIdentifier",
+    "start": 129,
+    "end": 133,
+    "loc": {
+      "start": "<circ>",
+      "end": {
+        "line": 5,
+        "column": 24,
+        "index": 133
+      }
+    },
+    "name": "path"
+  },
+  "value": {
+    "type": "JSXExpressionContainer",
+    "start": 134,
+    "end": 157,
+    "loc": {
+      "start": {
+        "line": 5,
+        "column": 25,
+        "index": 134
+      },
+      "end": "<circ>"
+    },
+    "expression": {
+      "type": "TemplateLiteral",
+      "start": 135,
+      "end": 156,
+      "loc": {
+        "start": {
+          "line": 5,
+          "column": 26,
+          "index": 135
+        },
+        "end": {
+          "line": 5,
+          "column": 47,
+          "index": 156
+        }
+      },
+      "expressions": [],
+      "quasis": [
+        {
+          "type": "TemplateElement",
+          "start": 136,
+          "end": 155,
+          "loc": {
+            "start": {
+              "line": 5,
+              "column": 27,
+              "index": 136
+            },
+            "end": {
+              "line": 5,
+              "column": 46,
+              "index": 155
+            }
+          },
+          "value": {
+            "raw": "/Controls/TextInput",
+            "cooked": "/Controls/TextInput"
+          },
+          "tail": true
+        }
+      ]
+    }
+  }
+}

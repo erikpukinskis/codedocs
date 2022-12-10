@@ -1,9 +1,14 @@
 import { type ReactNode, type ReactElement, type ReactPortal } from "react"
 
-type SimpleNode = boolean | string | number | null | undefined
+type SimpleNode = boolean | string | undefined | null | number
 
 function isSimpleNode(node: ReactNode): node is SimpleNode {
-  return node == null || typeof node === "boolean" || typeof node === "string"
+  return (
+    node == null ||
+    typeof node === "boolean" ||
+    typeof node === "string" ||
+    typeof node === "number"
+  )
 }
 
 function isReactElement(node: ReactNode): node is ReactElement {
@@ -38,9 +43,7 @@ export function reactNodeToText(node: ReactNode) {
   return cleaned
 }
 
-function _reactNodeToText(
-  node: SimpleNode | ReactElement | Iterable<ReactNode> | ReactPortal
-): string {
+function _reactNodeToText(node: ReactNode): string {
   if (node == null) return ""
   if (typeof node === "boolean") return ""
   if (typeof node === "string") return node
@@ -51,10 +54,7 @@ function _reactNodeToText(
   }
 
   if (isReactElement(node)) {
-    console.info("this is a ReactElement without children?", node)
-    throw new Error(
-      "Found a react element without children. We should update reactNodeToText to extract the text from something like this!"
-    )
+    return "" // not sure if this is really correct
   }
 
   if (isReactPortal(node)) {

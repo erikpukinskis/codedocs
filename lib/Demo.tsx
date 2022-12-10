@@ -1,6 +1,8 @@
 import { styled } from "@stitches/react"
-import React from "react"
-import { CodeEditor } from "./CodeEditor"
+import prettier from "prettier"
+import parserTypescript from "prettier/parser-typescript"
+import React, { useEffect, useState } from "react"
+import { Code } from "./Code"
 
 type HasChildren = {
   children: React.ReactElement | React.ReactText | React.ReactPortal
@@ -8,14 +10,47 @@ type HasChildren = {
 
 type Renderable = {
   render: React.FC<unknown>
-  source: string
 }
 
-type Generatable = {
-  generate: () => JSX.Element
+export type DemoProps = (HasChildren | Renderable) & {
+  source?: string
 }
 
-type DemoProps = HasChildren | Renderable | Generatable
+export const Demo = (props: DemoProps) => {
+  const [formatted, setFormatted] = useState("")
+
+  useEffect(() => {
+    if (props.source) {
+      setFormatted(formatTypescript(props.source))
+    } else {
+      setFormatted(NO_MACRO_ERROR)
+    }
+  }, [props.source])
+
+  let demoArea: JSX.Element
+
+  if (hasChildren(props)) {
+    if (typeof props.children === "function") {
+      throw new Error(
+        `Don't pass function children to <Demo>, pass a render function like: <Demo render={() => ... } />`
+      )
+    }
+    demoArea = <>{props.children}</>
+  } else if (isRenderable(props)) {
+    demoArea = <props.render />
+  } else {
+    throw new Error("not sure what type fo demo this is")
+  }
+
+  if (!formatted) return null
+
+  return (
+    <DemoWithCode>
+      <CodeColumn source={formatted} mode="tsx" />
+      <DemoContainer>{demoArea}</DemoContainer>
+    </DemoWithCode>
+  )
+}
 
 function hasChildren(props: DemoProps): props is HasChildren {
   return Boolean((props as HasChildren).children)
@@ -35,43 +70,27 @@ const DemoContainer = styled("div", {
   display: "flex",
   flexDirection: "row",
   gap: 16,
+  flexBasis: "40%",
   flexGrow: 1,
 })
 
-export const Demo = (props: DemoProps) => {
-  if (hasChildren(props)) {
-    if (typeof props.children === "function") {
-      throw new Error(
-        `Don't pass function children to <Demo>, pass a render function like: <Demo render={() => ... } />`
-      )
-    }
-    return <>{props.children}</>
-  } else if (isRenderable(props)) {
-    return (
-      <DemoWithCode>
-        <DemoContainer>
-          <props.render />
-        </DemoContainer>
-        <CodeEditor source={props.source} />
-      </DemoWithCode>
-    )
-  } else {
-    return props.generate()
-  }
-}
+const CodeColumn = styled(Code, {
+  flexBasis: "60%",
+  flexGrow: 1,
+  overflowX: "scroll",
+})
 
-// eslint-disable-next-line @typescript-eslint/ban-types
-const formatCode = (func: Function) => {
-  const lines = func.toString().split("\n")
-  const withoutClosure = lines.slice(1, lines.length - 2)
-  const depth = Math.min(...withoutClosure.map(toDepth))
-  const withoutLeadingWhitespace = lines.map((line) => line.slice(depth))
+const NO_MACRO_ERROR = `// Source code unavailable
+// try installing babel-plugin-macros or vite-plugin-babel-macros and using:
+// import { Demo } from "codedocs/macro"`
 
-  return withoutLeadingWhitespace.join("\n")
-}
-
-const toDepth = (line: string) => {
-  const spaceMatch = line.match(/^( *)/)
-  if (!spaceMatch) return 0
-  return spaceMatch[1].length
+function formatTypescript(source: string) {
+  return prettier
+    .format(source, {
+      parser: "typescript",
+      plugins: [parserTypescript],
+      printWidth: 55,
+      semi: false,
+    })
+    .replace(/^;/, "")
 }

@@ -1,9 +1,10 @@
 import { type IconName } from "@fortawesome/fontawesome-common-types"
 import omit from "lodash/omit"
-import React, { useMemo, type ReactNode } from "react"
+import React, { useEffect, useMemo, type ReactNode } from "react"
 import { Helmet } from "react-helmet"
 import type { Location } from "react-router-dom"
 import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom"
+import { ErrorBoundary } from "./ErrorBoundary"
 import favicon from "./favicon.svg"
 import { ComponentContextProvider, useComponents } from "~/ComponentContext"
 import * as Defaults from "~/Components"
@@ -43,7 +44,13 @@ type ComponentName = keyof typeof Defaults
 
 const COMPONENT_NAMES = Object.keys(Defaults) as ComponentName[]
 
-export const DocsApp = ({
+export const DocsApp = (props: DocsAppProps) => (
+  <ErrorBoundary>
+    <_DocsApp {...props}></_DocsApp>
+  </ErrorBoundary>
+)
+
+const _DocsApp = ({
   docs,
   DesignSystemProvider = ({ children }) => <>{children}</>,
   logo,
@@ -162,6 +169,10 @@ const WildcardRoute = ({ pagesByPath, copyright }: WildcardRouteProps) => {
   const location = useLocation()
   const path = getPathFromLocation(location)
   const currentPageOrParent = pagesByPath[path]
+
+  useEffect(() => {
+    window.scrollTo(0, 0)
+  }, [location])
 
   if (!currentPageOrParent) {
     return <NotFound path={path} availablePaths={Object.keys(pagesByPath)} />

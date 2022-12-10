@@ -1,0 +1,74 @@
+{
+  "type": "ImportDeclaration",
+  "start": 55,
+  "end": 85,
+  "loc": {
+    "start": {
+      "line": 2,
+      "column": 0,
+      "index": 55
+    },
+    "end": {
+      "line": 2,
+      "column": 30,
+      "index": 85
+    }
+  },
+  "importKind": "value",
+  "specifiers": [
+    {
+      "type": "ImportSpecifier",
+      "start": 64,
+      "end": 67,
+      "loc": {
+        "start": {
+          "line": 2,
+          "column": 9,
+          "index": 64
+        },
+        "end": {
+          "line": 2,
+          "column": 12,
+          "index": 67
+        }
+      },
+      "imported": {
+        "type": "Identifier",
+        "start": 64,
+        "end": 67,
+        "loc": {
+          "start": "<circ>",
+          "end": "<circ>",
+          "identifierName": "Doc"
+        },
+        "name": "Doc"
+      },
+      "importKind": "value",
+      "local": {
+        "type": "Identifier",
+        "start": 64,
+        "end": 67,
+        "loc": "<circ>",
+        "name": "Doc"
+      }
+    }
+  ],
+  "source": {
+    "type": "StringLiteral",
+    "start": 75,
+    "end": 85,
+    "loc": {
+      "start": {
+        "line": 2,
+        "column": 20,
+        "index": 75
+      },
+      "end": "<circ>"
+    },
+    "extra": {
+      "rawValue": "codedocs",
+      "raw": "\"codedocs\""
+    },
+    "value": "codedocs"
+  }
+}

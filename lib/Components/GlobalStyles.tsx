@@ -57,6 +57,7 @@ export const GlobalStyles = () => (
         font-weight: 500;
         margin-top: 1em;
         margin-bottom: 1em;
+        color: #333;
       }
 
       h1 {
@@ -69,17 +70,26 @@ export const GlobalStyles = () => (
         font-weight: 500;
         margin-top: 2em;
       }
+
       li {
         list-style-type: disc;
-        margin-left: 1em;
         margin-top: 1em;
         margin-bottom: 1em;
+        margin-left: 16px;
+        max-width: 40em;
+        color: #333;
+        font-weight: 500;
+      }
+
+      ul {
+        padding: 0;
+        padding-left: 32px;
       }
 
       p {
         margin-top: 1em;
         margin-bottom: 1em;
-        max-width: 500;
+        max-width: 42em;
       },
 
       pre {
@@ -101,6 +111,14 @@ export const GlobalStyles = () => (
 
       a:hover {
         color: var(--hover-color);
+      }
+
+      .ace_editor .ace_marker-layer .ace_bracket {
+        display: none;
+      }
+
+      .ace_editor .ace_cursor-layer .ace_cursor {
+        display: none !important;
       }
   `}</style>
   </>
