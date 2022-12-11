@@ -28,8 +28,6 @@ jobs:
       - name: Deploy pages
         id: deployment
         uses: actions/deploy-pages@v1
-        with:
-          environment-url: http://codedocs.ambic.app
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
