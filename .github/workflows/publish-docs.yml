@@ -20,7 +20,7 @@ jobs:
       - name: Set up Yarn cache
         uses: actions/setup-node@v3
         with:
-          node-version: "14"
+          node-version: "16"
           cache: "yarn"
       - name: Install
         run: yarn install --frozen-lockfile
@@ -41,7 +41,7 @@ jobs:
       - name: Set up Yarn cache
         uses: actions/setup-node@v3
         with:
-          node-version: "14"
+          node-version: "16"
           cache: "yarn"
       - name: Configure pages
         uses: actions/configure-pages@v2
