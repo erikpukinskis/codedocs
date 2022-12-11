@@ -1,0 +1,47 @@
+name: docs site
+on:
+  push:
+    branches:
+      - main
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: deploy-docs-site
+  cancel-in-progress: true
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v3
+      - name: Set up Yarn cache
+        uses: actions/setup-node@v3
+        with:
+          node-version: "16"
+          cache: yarn
+      - run: yarn install --frozen-lockfile
+      - name: Configure pages
+        uses: actions/configure-pages@v2
+      - name: Build Codedocs
+        run: yarn build
+      - name: Build site
+        run: yarn build:docs
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v1
+        with:
+          path: site
+      - name: Deploy pages
+        id: deployment
+        uses: actions/deploy-pages@v1
+      - name: Create GitHub deployment
+        id: github_deployment
+        uses: chrnorm/deployment-action@v2
+        with:
+          token: ${{ github.token }}
+          environment-url: http://codedocs.ambic.app
+          environment: production
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}

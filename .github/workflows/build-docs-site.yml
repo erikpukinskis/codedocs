@@ -1,0 +1,24 @@
+name: docs site
+on:
+  push:
+    branches:
+      - "!main"
+concurrency:
+  group: build-docs-site
+  cancel-in-progress: true
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v3
+      - name: Set up Yarn cache
+        uses: actions/setup-node@v3
+        with:
+          node-version: "16"
+          cache: yarn
+      - run: yarn install --frozen-lockfile
+      - name: Build Codedocs
+        run: yarn build
+      - name: Build site
+        run: yarn build:docs
