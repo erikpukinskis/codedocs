@@ -83,7 +83,7 @@
     "check:format": "prettier --check --ignore-path .gitignore .",
     "check:lint": "eslint --ignore-path .gitignore --no-error-on-unmatched-pattern .; if [ $? -eq 0 ]; then echo 8J+OiSBObyBsaW50IGluIHRoaXMgY29kZSEKCg== | base64 -d; else exit 1; fi",
     "check:types": "tsc --noEmit -p tsconfig.json; if [ $? -eq 0 ]; then echo 8J+OiSBUeXBlcyBhcmUgZ29vZCEKCg== | base64 -d; else exit 1; fi",
-    "confgen": "npx confgen@0.90.0-beta.7 @lib @docs --name Codedocs git yarn typescript codespaces react vite dist:lib eslint prettier githubActions",
+    "confgen": "npx confgen@0.90.0-beta.8 @lib @docs --name Codedocs git yarn typescript codespaces react vite dist:lib eslint prettier githubActions",
     "example": "vite serve example --config vite.config.js",
     "fix": "yarn fix:lint && yarn fix:format",
     "fix:format": "prettier --write --ignore-path .gitignore .",
