@@ -12,7 +12,7 @@ permissions:
   deployments: write
 
 concurrency:
-  group: "pages"
+  group: "deploy-docs-site"
   cancel-in-progress: true
 
 jobs:

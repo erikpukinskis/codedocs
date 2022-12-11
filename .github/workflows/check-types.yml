@@ -1,5 +1,8 @@
 name: types
 on: push
+concurrency:
+  group: check-types
+  cancel-in-progress: true
 jobs:
   check:
     runs-on: ubuntu-latest
