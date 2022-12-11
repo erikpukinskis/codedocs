@@ -1,11 +1,4 @@
 name: docs site
-on:
-  push:
-    branches:
-      - "!main"
-concurrency:
-  group: build-docs-site
-  cancel-in-progress: true
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -22,3 +15,10 @@ jobs:
         run: yarn build
       - name: Build site
         run: yarn build:docs
+concurrency:
+  group: build-docs-site
+  cancel-in-progress: true
+on:
+  push:
+    branches-ignore:
+      - main

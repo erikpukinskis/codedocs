@@ -1,15 +1,8 @@
 name: docs site
-on:
-  push:
-    branches:
-      - main
 permissions:
   contents: read
   pages: write
   id-token: write
-concurrency:
-  group: deploy-docs-site
-  cancel-in-progress: true
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -45,3 +38,10 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+concurrency:
+  group: deploy-docs-site
+  cancel-in-progress: true
+on:
+  push:
+    branches:
+      - main
