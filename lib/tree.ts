@@ -17,7 +17,11 @@ type ElementSource = {
   _source: { fileName: string; lineNumber: number; columnNumber: number }
 }
 
-type DemoElement = React.ReactElement<DemoProps, typeof Demo> & ElementSource
+type DemoElement = React.ReactElement<
+  DemoProps<Record<string, unknown>>,
+  typeof Demo
+> &
+  ElementSource
 
 type DemoSet = Record<string, DemoElement>
 

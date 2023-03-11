@@ -8,17 +8,31 @@ type HasChildren = {
   children: React.ReactElement | React.ReactText | React.ReactPortal
 }
 
-type Renderable = {
-  render: React.FC<unknown>
+export type PropsLike = Record<string, unknown>
+
+type RenderableWithProps<RenderProps extends PropsLike> = {
+  render: React.FC<RenderProps>
+  props: RenderProps
 }
 
-export type DemoProps = (HasChildren | Renderable) & {
+type RenderableNoProps = {
+  render: React.FC<{}>
+}
+
+export type DemoProps<RenderProps extends PropsLike> = (
+  | HasChildren
+  | RenderableNoProps
+  | RenderableWithProps<RenderProps>
+) & {
   source?: string
 }
 
-export const Demo = (props: DemoProps) => {
+export function Demo<RenderProps extends PropsLike>(
+  props: DemoProps<RenderProps>
+) {
   const [formatted, setFormatted] = useState("")
 
+  console.log("durd")
   useEffect(() => {
     if (props.source) {
       setFormatted(formatTypescript(props.source))
@@ -36,34 +50,55 @@ export const Demo = (props: DemoProps) => {
       )
     }
     demoArea = <>{props.children}</>
-  } else if (isRenderable(props)) {
+  } else if (isRenderableWithProps(props)) {
+    demoArea = <props.render {...props.props} />
+  } else if (isRenderableNoProps(props)) {
     demoArea = <props.render />
   } else {
-    throw new Error("not sure what type fo demo this is")
+    throw new Error("not sure what type of demo this is")
   }
 
   if (!formatted) return null
 
   return (
     <DemoWithCode>
-      <CodeColumn source={formatted} mode="tsx" />
+      {/* <CodeColumn source={formatted} mode="tsx" /> */}
       <DemoContainer>{demoArea}</DemoContainer>
     </DemoWithCode>
   )
 }
 
-function hasChildren(props: DemoProps): props is HasChildren {
-  return Boolean((props as HasChildren).children)
+function hasChildren<RenderProps extends PropsLike>(
+  demoProps: DemoProps<RenderProps>
+): demoProps is HasChildren {
+  return Object.prototype.hasOwnProperty.call(demoProps, "children")
 }
 
-function isRenderable(props: DemoProps): props is Renderable {
-  return Boolean((props as Renderable).render)
+function isRenderableWithProps<RenderProps extends PropsLike>(
+  demoProps: DemoProps<RenderProps>
+): demoProps is RenderableWithProps<RenderProps> {
+  return (
+    Object.prototype.hasOwnProperty.call(demoProps, "render") &&
+    Object.prototype.hasOwnProperty.call(demoProps, "props")
+  )
+}
+
+function isRenderableNoProps<RenderProps extends PropsLike>(
+  demoProps: DemoProps<RenderProps>
+): demoProps is RenderableNoProps {
+  return (
+    Object.prototype.hasOwnProperty.call(demoProps, "render") &&
+    !Object.prototype.hasOwnProperty.call(demoProps, "props")
+  )
 }
 
 const DemoWithCode = styled("div", {
   display: "flex",
   flexDirection: "row",
   gap: 16,
+  boxShadow: "inset 0 1px 6px 1px rgb(0 0 0 / 10%)",
+  padding: 16,
+  borderRadius: 8,
 })
 
 const DemoContainer = styled("div", {
