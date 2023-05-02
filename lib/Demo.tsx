@@ -2,7 +2,6 @@ import { styled } from "@stitches/react"
 import prettier from "prettier"
 import parserTypescript from "prettier/parser-typescript"
 import React, { useEffect, useState } from "react"
-import { Code } from "./Code"
 
 type HasChildren = {
   children: React.ReactElement | React.ReactText | React.ReactPortal
@@ -16,7 +15,7 @@ type RenderableWithProps<RenderProps extends PropsLike> = {
 }
 
 type RenderableNoProps = {
-  render: React.FC<{}>
+  render: React.FC
 }
 
 export type DemoProps<RenderProps extends PropsLike> = (
@@ -107,12 +106,6 @@ const DemoContainer = styled("div", {
   gap: 16,
   flexBasis: "40%",
   flexGrow: 1,
-})
-
-const CodeColumn = styled(Code, {
-  flexBasis: "60%",
-  flexGrow: 1,
-  overflowX: "scroll",
 })
 
 const NO_MACRO_ERROR = `// Source code unavailable

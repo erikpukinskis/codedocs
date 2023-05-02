@@ -1,11 +1,11 @@
 {
-  "homepage": "https://github.com/ambic-js/codedocs",
+  "homepage": "https://github.com/erikpukinskis/codedocs",
   "name": "codedocs",
   "version": "0.17.0",
   "license": "UNLICENSED",
   "repository": {
     "type": "git",
-    "url": "https://github.com/ambic-js/codedocs.git"
+    "url": "https://github.com/erikpukinskis/codedocs.git"
   },
   "main": "./dist/lib.umd.js",
   "module": "./dist/lib.es.js",
