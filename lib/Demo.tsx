@@ -5,6 +5,8 @@ import React, { useEffect, useState } from "react"
 
 type HasChildren = {
   children: React.ReactElement | React.ReactText | React.ReactPortal
+  only?: boolean
+  skip?: boolean
 }
 
 export type PropsLike = Record<string, unknown>
@@ -12,10 +14,14 @@ export type PropsLike = Record<string, unknown>
 type RenderableWithProps<RenderProps extends PropsLike> = {
   render: React.FC<RenderProps>
   props: RenderProps
+  only?: boolean
+  skip?: boolean
 }
 
 type RenderableNoProps = {
   render: React.FC
+  only?: boolean
+  skip?: boolean
 }
 
 export type DemoProps<RenderProps extends PropsLike> = (
@@ -31,7 +37,6 @@ export function Demo<RenderProps extends PropsLike>(
 ) {
   const [formatted, setFormatted] = useState("")
 
-  console.log("durd")
   useEffect(() => {
     if (props.source) {
       setFormatted(formatTypescript(props.source))
