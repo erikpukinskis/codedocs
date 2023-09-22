@@ -53,7 +53,7 @@ export function Demo<RenderProps extends PropsLike>(
         `Don't pass function children to <Demo>, pass a render function like: <Demo render={() => ... } />`
       )
     }
-    demoArea = <>{props.children}</>
+    demoArea = <React.Fragment>{props.children}</React.Fragment>
   } else if (isRenderableWithProps(props)) {
     demoArea = <props.render {...props.props} />
   } else if (isRenderableNoProps(props)) {
