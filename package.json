@@ -89,7 +89,9 @@
     "fix:format": "prettier --write --ignore-path .gitignore .",
     "fix:lint": "eslint --ignore-path .gitignore --no-error-on-unmatched-pattern . --fix; if [ $? -eq 0 ]; then echo 8J+OiSBObyBsaW50IGluIHRoaXMgY29kZSEKCg== | base64 -d; else exit 1; fi",
     "start:docs:dev": "vite serve docs --config vite.docs.config.js",
-    "watch:build": "chokidar --ignore /^dist/ --ignore /^[.]git/ --ignore /^node_modules/ -c \"yarn build\" ."
+    "watch": "chokidar . --initial --ignore /^dist/ --ignore /^[.]git/ --ignore /^node_modules/",
+    "watch:build": "yarn run watch -c \"yarn build\"",
+    "watch:build:yalc": "yarn run watch -c \"yarn build && yalc push\""
   },
   "packageManager": "yarn@1.22.19"
 }

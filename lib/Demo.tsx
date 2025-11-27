@@ -30,6 +30,7 @@ export type DemoProps<RenderProps extends PropsLike> = (
   | RenderableWithProps<RenderProps>
 ) & {
   source?: string
+  inline?: boolean
 }
 
 export function Demo<RenderProps extends PropsLike>(
@@ -65,11 +66,82 @@ export function Demo<RenderProps extends PropsLike>(
   if (!formatted) return null
 
   return (
-    <DemoWithCode>
+    <DemoWithCode inline={props.inline}>
       {/* <CodeColumn source={formatted} mode="tsx" /> */}
       <DemoContainer>{demoArea}</DemoContainer>
+      <HorizontalMark top left />
+      <HorizontalMark bottom left />
+      <HorizontalMark top right />
+      <HorizontalMark bottom right />
+
+      <VerticalMark top left />
+      <VerticalMark bottom left />
+      <VerticalMark top right />
+      <VerticalMark bottom right />
     </DemoWithCode>
   )
+}
+
+const CropMark = styled("div", {
+  background: "rgba(0,0,0,0.25)",
+  width: 1,
+  height: 1,
+  position: "absolute",
+})
+
+type CropMarksProps = {
+  top?: boolean
+  bottom?: boolean
+  left?: boolean
+  right?: boolean
+}
+
+const MARK_LENGTH = 6
+const MARK_OFFSET = 3
+
+const HorizontalMark: React.FC<CropMarksProps> = ({ top, left }) => {
+  const style: React.CSSProperties = {
+    width: MARK_LENGTH,
+  }
+
+  if (left) {
+    style.left = -1 * MARK_LENGTH - MARK_OFFSET
+  } else {
+    style.right = -1 * MARK_LENGTH - MARK_OFFSET
+  }
+
+  if (top) {
+    style.top = 0
+  } else {
+    style.bottom = 0
+  }
+
+  return <CropMark data-component="CropMark" style={style}></CropMark>
+}
+
+const VerticalMark: React.FC<CropMarksProps> = ({
+  top,
+  bottom,
+  left,
+  right,
+}) => {
+  const style: React.CSSProperties = {
+    height: MARK_LENGTH,
+  }
+
+  if (left) {
+    style.left = 0
+  } else {
+    style.right = 0
+  }
+
+  if (top) {
+    style.top = -1 * MARK_LENGTH - MARK_OFFSET
+  } else {
+    style.bottom = -1 * MARK_LENGTH - MARK_OFFSET
+  }
+
+  return <CropMark style={style}></CropMark>
 }
 
 function hasChildren<RenderProps extends PropsLike>(
@@ -98,11 +170,16 @@ function isRenderableNoProps<RenderProps extends PropsLike>(
 
 const DemoWithCode = styled("div", {
   display: "flex",
+  position: "relative",
   flexDirection: "row",
   gap: 16,
-  boxShadow: "inset 0 1px 6px 1px rgb(0 0 0 / 10%)",
-  padding: 16,
-  borderRadius: 8,
+  variants: {
+    inline: {
+      true: {
+        display: "inline-block",
+      },
+    },
+  },
 })
 
 const DemoContainer = styled("div", {
