@@ -1,5 +1,6 @@
 {
   "homepage": "https://github.com/erikpukinskis/codedocs",
+  "packageManager": "yarn@1.22.19",
   "name": "codedocs",
   "version": "0.18.0",
   "license": "UNLICENSED",
@@ -56,8 +57,8 @@
     "@types/lodash": "^4.14.186",
     "@types/node": "16.18.8",
     "@types/prettier": "^2.7.1",
-    "@types/react": "17.0.2",
-    "@types/react-dom": "17.0.2",
+    "@types/react": "^17.0.0",
+    "@types/react-dom": "^17.0.0",
     "@types/react-helmet": "^6.1.6",
     "@typescript-eslint/eslint-plugin": "5.46.0",
     "@typescript-eslint/parser": "^5.12.1",
@@ -67,8 +68,8 @@
     "eslint-import-resolver-typescript": "^3.5.2",
     "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-react": "7.31.11",
-    "react": "17.0.2",
-    "react-dom": "17.0.2",
+    "react": "^17.0.0",
+    "react-dom": "^17.0.0",
     "react-router-dom": "^6.2.1",
     "tsc-alias": "^1.7.0",
     "typescript": "4.9.4",
@@ -83,7 +84,7 @@
     "check:format": "prettier --check --ignore-path .gitignore .",
     "check:lint": "eslint --ignore-path .gitignore --no-error-on-unmatched-pattern .; if [ $? -eq 0 ]; then echo 8J+OiSBObyBsaW50IGluIHRoaXMgY29kZSEKCg== | base64 -d; else exit 1; fi",
     "check:types": "tsc --noEmit -p tsconfig.json; if [ $? -eq 0 ]; then echo 8J+OiSBUeXBlcyBhcmUgZ29vZCEKCg== | base64 -d; else exit 1; fi",
-    "confgen": "npx confgen@0.90.0-beta.12 @lib @docs --name Codedocs git yarn typescript codespaces react vite dist:lib eslint prettier githubActions codedocs",
+    "confgen": "npx confgen@latest @lib @docs --name Codedocs git yarn typescript codespaces react vite dist:lib eslint prettier githubActions codedocs",
     "fix": "yarn fix:lint && yarn fix:format",
     "fix:format": "prettier --write --ignore-path .gitignore .",
     "fix:lint": "eslint --ignore-path .gitignore --no-error-on-unmatched-pattern . --fix; if [ $? -eq 0 ]; then echo 8J+OiSBObyBsaW50IGluIHRoaXMgY29kZSEKCg== | base64 -d; else exit 1; fi",
@@ -91,6 +92,5 @@
     "watch": "chokidar . --initial --ignore /^dist/ --ignore /^[.]git/ --ignore /^node_modules/",
     "watch:build": "yarn run watch -c \"yarn build\"",
     "watch:build:yalc": "yarn run watch -c \"yarn build && yalc push\""
-  },
-  "packageManager": "yarn@1.22.19"
+  }
 }
