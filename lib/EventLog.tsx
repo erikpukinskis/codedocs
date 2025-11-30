@@ -1,4 +1,3 @@
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { styled, keyframes } from "@stitches/react"
 import React from "react"
 
@@ -21,50 +20,51 @@ export const EventLog: React.FC<{ events: CallbackEvent[] }> = ({ events }) => {
   )
 }
 
-const ShowEventsButtonBase = styled("a", {
-  fontSize: "0.8em",
-  fontWeight: "normal",
-  color: "#777",
-  background: "#c1ffc5",
-  textDecoration: "none",
-  cursor: "pointer",
-  display: "inline-block",
-  padding: 4,
-  marginTop: 4,
-  borderRadius: 4,
-})
+// const ShowEventsButtonBase = styled("a", {
+//   fontSize: "0.8em",
+//   fontWeight: "normal",
+//   color: "#777",
+//   background: "#c1ffc5",
+//   textDecoration: "none",
+//   cursor: "pointer",
+//   display: "inline-block",
+//   padding: 4,
+//   marginTop: 4,
+//   borderRadius: 4,
+// })
 
-const DisclosureIcon = styled(FontAwesomeIcon, {
-  marginLeft: 4,
-  marginRight: 4,
-})
+// const DisclosureIcon = styled(FontAwesomeIcon, {
+//   marginLeft: 4,
+//   marginRight: 4,
+// })
 
-type ShowEventsButtonProps = {
-  onClick: () => void
-  children: React.ReactNode
-  isOpen: boolean
-}
+// type ShowEventsButtonProps = {
+//   onClick: () => void
+//   children: React.ReactNode
+//   isOpen: boolean
+// }
 
-const ShowEventsButton: React.FC<ShowEventsButtonProps> = ({
-  onClick,
-  children,
-  isOpen,
-}) => {
-  return (
-    <div>
-      <ShowEventsButtonBase
-        href="#"
-        onClick={(event) => {
-          event.preventDefault()
-          onClick()
-        }}
-      >
-        <DisclosureIcon icon={isOpen ? "chevron-up" : "chevron-down"} />
-        {children}
-      </ShowEventsButtonBase>
-    </div>
-  )
-}
+// const ShowEventsButton: React.FC<ShowEventsButtonProps> = ({
+//   onClick,
+//   children,
+//   isOpen,
+// }) => {
+//   return (
+//     <div>
+//       <ShowEventsButtonBase
+//         href="#"
+//         onClick={(event) => {
+//           event.preventDefault()
+//           onClick()
+//         }}
+//       >
+//         <DisclosureIcon icon={isOpen ? "chevron-up" : "chevron-down"} />
+//         {children}
+//       </ShowEventsButtonBase>
+//     </div>
+//   )
+// }
+
 const EventLogBase = styled("ul", {
   position: "absolute",
   padding: 0,
