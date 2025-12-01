@@ -15,5 +15,9 @@
     "source.formatDocument": "explicit"
   },
   "editor.formatOnSave": true,
-  "editor.defaultFormatter": "esbenp.prettier-vscode"
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "terminal.integrated.shellArgs.osx": [
+    "-c",
+    "source ~/.nvm/nvm.sh && nvm install && exec zsh"
+  ]
 }

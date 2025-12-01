@@ -4,12 +4,24 @@
     {
       "label": "TypeScript Watch",
       "type": "typescript",
-      "tsconfig": "tsconfig.check.json",
+      "tsconfig": "tsconfig.json",
       "option": "watch",
       "problemMatcher": ["$tsc-watch"],
       "group": "build",
       "runOptions": {
         "runOn": "folderOpen"
+      }
+    },
+    {
+      "label": "ESLint Watch",
+      "type": "shell",
+      "command": "yarn run watch -c 'yarn eslint --format compact .'",
+      "problemMatcher": "$eslint-compact",
+      "group": "build",
+      "presentation": {
+        "reveal": "never",
+        "panel": "dedicated",
+        "clear": true
       }
     }
   ]
