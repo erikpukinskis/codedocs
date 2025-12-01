@@ -1,9 +1,9 @@
 import React from "react"
 import { useComponents } from "~/ComponentContext"
-import { addSpaces } from "~/helpers"
 import {
   isCategory,
   isSubCategory,
+  isPage,
   type Category,
   type SubCategory,
   type Page,
@@ -11,7 +11,8 @@ import {
   type SiteSection,
   isSite,
   isSiteSection,
-} from "~/tree"
+} from "~/helpers/buildSiteTree"
+import { addSpaces } from "~/helpers/strings"
 
 type SideNavProps = {
   categories: Category[]
@@ -86,9 +87,15 @@ const Nav = ({ item }: NavItemProps) => {
     return <Components.NavHeading>{item.name}</Components.NavHeading>
   }
 
+  // At this point, item must be a Page since we've eliminated all other types
+  // (Site, Category, SubCategory, and SiteSection) from the union
+  if (!isPage(item)) {
+    return null
+  }
+
   return (
     <Components.NavItem>
-      <Components.NavLink to={item.doc.props.path}>
+      <Components.NavLink to={item.path}>
         {addSpaces(item.name)}
       </Components.NavLink>
     </Components.NavItem>

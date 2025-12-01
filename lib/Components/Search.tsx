@@ -2,9 +2,62 @@ import { styled } from "@stitches/react"
 import React from "react"
 import { useNavigate, Link } from "react-router-dom"
 import useKeyboardShortcut from "use-keyboard-shortcut"
-import { useDropdown } from "./useDropdown"
 import { useComponents } from "~/ComponentContext"
+import { useDropdown } from "~/helpers/useDropdown"
 import { useSearchQuery, useSearchResults, type Result } from "~/SearchContext"
+
+const EmptyState = styled("div", {
+  width: "14em",
+  fontSize: "0.8em",
+  color: "#888",
+  paddingTop: 8,
+  paddingBottom: 8,
+  paddingLeft: 16,
+  paddingRight: 16,
+})
+
+const SearchResult = styled(Link, {
+  width: "14em",
+  display: "block",
+  color: "inherit",
+  paddingTop: 8,
+  paddingBottom: 8,
+  paddingLeft: 16,
+  paddingRight: 16,
+
+  "&:hover": {
+    background: "#eee",
+  },
+
+  variants: {
+    isHighlighted: {
+      true: {
+        background: "#eee",
+      },
+    },
+  },
+})
+
+const ResultSnippet = styled("div", {
+  fontSize: "0.8em",
+  color: "#888",
+  maxHeight: "2.6em",
+  overflow: "hidden",
+
+  "& mark": {
+    background: "#eeffc6",
+    color: "#3a7174",
+    fontWeight: "bold",
+  },
+})
+
+const ResultTitle = styled("div", {
+  "& mark": {
+    background: "#eeffc6",
+    color: "#3a7174",
+    fontWeight: "bold",
+  },
+})
 
 export const Search = () => {
   const Components = useComponents()
@@ -77,56 +130,3 @@ const getResultId = (result: Result) => {
     .toLowerCase()
     .replace(/  */g, "-")
 }
-
-const EmptyState = styled("div", {
-  width: "14em",
-  fontSize: "0.8em",
-  color: "#888",
-  paddingTop: 8,
-  paddingBottom: 8,
-  paddingLeft: 16,
-  paddingRight: 16,
-})
-
-const SearchResult = styled(Link, {
-  "width": "14em",
-  "display": "block",
-  "color": "inherit",
-  "paddingTop": 8,
-  "paddingBottom": 8,
-  "paddingLeft": 16,
-  "paddingRight": 16,
-
-  "&:hover": {
-    background: "#EEE",
-  },
-
-  "variants": {
-    isHighlighted: {
-      true: {
-        background: "#EEE",
-      },
-    },
-  },
-})
-
-const ResultSnippet = styled("div", {
-  "fontSize": "0.8em",
-  "color": "#888",
-  "maxHeight": "2.6em",
-  "overflow": "hidden",
-
-  "& mark": {
-    background: "#eeffc6",
-    color: "#3a7174",
-    fontWeight: "bold",
-  },
-})
-
-const ResultTitle = styled("div", {
-  "& mark": {
-    background: "#eeffc6",
-    color: "#3a7174",
-    fontWeight: "bold",
-  },
-})

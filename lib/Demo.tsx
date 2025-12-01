@@ -4,8 +4,14 @@ import parserTypescript from "prettier/parser-typescript"
 import React, { useEffect, useRef, useState } from "react"
 import { EventLog, type CallbackEvent } from "./EventLog"
 
+type ReactChildren =
+  | React.ReactElement
+  | React.ReactText
+  | React.ReactPortal
+  | string
+
 type HasChildren = {
-  children: React.ReactElement | React.ReactText | React.ReactPortal
+  children: ReactChildren | Array<ReactChildren>
   only?: boolean
   skip?: boolean
 }
@@ -41,6 +47,30 @@ export type DemoProps<RenderProps extends PropsLike> = (
   source?: string
   inline?: boolean
 }
+
+const CropMark = styled("div", {
+  background: "rgba(0,0,0,0.25)",
+  width: 1,
+  height: 1,
+  position: "absolute",
+})
+
+const DemoWithCode = styled("div", {})
+
+const DemoContainer = styled("div", {
+  position: "relative",
+
+  variants: {
+    inline: {
+      true: {
+        display: "inline-block",
+      },
+      false: {
+        width: "100%",
+      },
+    },
+  },
+})
 
 export function Demo<RenderProps extends PropsLike>(
   props: DemoProps<RenderProps>
@@ -110,13 +140,6 @@ export function Demo<RenderProps extends PropsLike>(
     </DemoWithCode>
   )
 }
-
-const CropMark = styled("div", {
-  background: "rgba(0,0,0,0.25)",
-  width: 1,
-  height: 1,
-  position: "absolute",
-})
 
 type CropMarksProps = {
   top?: boolean
@@ -191,22 +214,6 @@ function isRenderableNoProps<RenderProps extends PropsLike>(
     !Object.prototype.hasOwnProperty.call(demoProps, "props")
   )
 }
-
-const DemoWithCode = styled("div", {})
-
-const DemoContainer = styled("div", {
-  position: "relative",
-  variants: {
-    inline: {
-      true: {
-        display: "inline-block",
-      },
-      false: {
-        width: "100%",
-      },
-    },
-  },
-})
 
 const NO_MACRO_ERROR = `// Source code unavailable
 // try installing babel-plugin-macros or vite-plugin-babel-macros and using:

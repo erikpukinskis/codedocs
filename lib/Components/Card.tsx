@@ -4,9 +4,9 @@ import { type CardProps } from "~/ComponentTypes"
 
 export const Card = styled("div", {
   borderRadius: 4,
-  border: "1px solid #DDD",
+  border: "1px solid #ddd",
   background: "white",
-  boxShadow: "0px 2px 3px 0px rgba(0,0,0,0.05)",
+  boxShadow: "0px 2px 3px 0px rgba(0, 0, 0, 0.05)",
 
   variants: {
     pad: {

@@ -1,5 +1,5 @@
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { styled } from "@stitches/react"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import copyTextToClipboard from "copy-text-to-clipboard"
 import React, { useState } from "react"
 import AceEditor from "react-ace"
@@ -17,6 +17,13 @@ const CodeContainer = styled("div", {
   opacity: "90%",
   maxWidth: "45em",
   position: "relative",
+})
+
+const CopyButtonContainer = styled("div", {
+  position: "absolute",
+  zIndex: 1,
+  right: 8,
+  bottom: 8,
 })
 
 type CodeProps = EditorProps & {
@@ -90,10 +97,3 @@ const CopyButton = ({ source }: CopyButtonProps) => {
     </CopyButtonContainer>
   )
 }
-
-const CopyButtonContainer = styled("div", {
-  position: "absolute",
-  zIndex: 1,
-  right: 8,
-  bottom: 8,
-})

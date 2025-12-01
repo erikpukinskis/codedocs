@@ -13,12 +13,8 @@ import {
   type Components,
   type SocialProps,
 } from "~/ComponentTypes"
-import { NotFound } from "~/NotFound"
-import { PageContent, HomePageContent } from "~/PageContent"
-import { SearchContextProvider } from "~/SearchContext"
-import { SideNav } from "~/SideNav"
 import {
-  buildTree,
+  buildSiteTree,
   isPage,
   isHomePage,
   getNav,
@@ -28,7 +24,11 @@ import {
   type HomePage,
   type SiteSection,
   type PageOrParent,
-} from "~/tree"
+} from "~/helpers/buildSiteTree"
+import { NotFound } from "~/NotFound"
+import { PageContent, HomePageContent } from "~/PageContent"
+import { SearchContextProvider } from "~/SearchContext"
+import { SideNav } from "~/SideNav"
 
 type DocsAppProps = Partial<Components> &
   Partial<SocialProps> & {
@@ -58,7 +58,7 @@ const _DocsApp = ({
   copyright = "",
   ...rest
 }: DocsAppProps) => {
-  const pagesByPath = useMemo(() => buildTree(docs), [docs])
+  const pagesByPath = useMemo(() => buildSiteTree(docs), [docs])
 
   const ComponentOverrides = Object.keys(Defaults).reduce((overrides, key) => {
     const override = rest[key as ComponentName]

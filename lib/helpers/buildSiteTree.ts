@@ -1,6 +1,6 @@
-import { type Demo, type DemoProps } from "./Demo"
-import { type Doc, type DocProps } from "./Doc"
-import { getPathSegments } from "~/helpers"
+import { type Demo, type DemoProps } from "~/Demo"
+import { type Doc, type DocProps } from "~/Doc"
+import { getPathSegments } from "~/helpers/strings"
 
 export type DocExport = {
   default: JSX.Element
@@ -177,7 +177,7 @@ export function getSubCategoryChildren(
  * site/section/category/subcategory/page objects with parents, children, and
  * all the necessary metadata we need to render them.
  */
-export const buildTree = (
+export const buildSiteTree = (
   untypedDocs: DocExport[]
 ): Record<string, PageOrParent> => {
   const pagesByPath: Record<string, PageOrParent> = {}

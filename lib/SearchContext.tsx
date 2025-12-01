@@ -7,9 +7,9 @@ import React, {
   useState,
   type ReactNode,
 } from "react"
-import { reactNodeToText } from "./reactNodeToText"
-import { addSpaces } from "~/helpers"
-import { isHomePage, isPage, type PageOrParent } from "~/tree"
+import { reactNodeToText } from "./helpers/reactNodeToText"
+import { isHomePage, isPage, type PageOrParent } from "~/helpers/buildSiteTree"
+import { addSpaces } from "~/helpers/strings"
 
 type SearchContextProperties = {
   query: string

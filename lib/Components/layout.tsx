@@ -1,5 +1,5 @@
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { styled } from "@stitches/react"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 
 export const LayoutContainer = styled("div", {
   "--header-height": "84px",
@@ -32,7 +32,7 @@ export const FixedTopHeader = styled("div", {
   top: 0,
   left: 0,
   width: "100vw",
-  borderBottom: "1px solid #DDD",
+  borderBottom: "1px solid #ddd",
   boxSizing: "border-box",
   paddingLeft: 32,
   paddingRight: 32,
@@ -40,13 +40,13 @@ export const FixedTopHeader = styled("div", {
   flexDirection: "row",
   justifyContent: "space-between",
   alignItems: "center",
-  boxShadow: "0px 0px 3px 0px rgba(0,0,0,0.05)",
+  boxShadow: "0px 0px 3px 0px rgba(0, 0, 0, 0.05)",
   zIndex: 2,
 })
 
 export const LeftColumn = styled("nav", {
   marginTop: "var(--header-height)",
-  borderRight: "1px solid #EEE",
+  borderRight: "1px solid #eee",
   minWidth: "128px",
   paddingLeft: 32,
   paddingTop: 32,

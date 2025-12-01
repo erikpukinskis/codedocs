@@ -1,6 +1,7 @@
 import path from "path"
 import { defineConfig } from "vite"
 import react from "@vitejs/plugin-react"
+import tsconfigPaths from "vite-tsconfig-paths"
 
 const inCodespace = Boolean(process.env.GITHUB_CODESPACE_TOKEN)
 
@@ -13,13 +14,14 @@ export default defineConfig({
       }
     : {}),
 
-  resolve: {
-    alias: {
-      "~": path.resolve(__dirname, "./lib"),
-    },
-  },
-
-  plugins: [react()],
+  plugins: [
+    tsconfigPaths(),
+    react({
+      babel: {
+        plugins: ["babel-plugin-macros"],
+      },
+    }),
+  ],
 
   build: {
     outDir: "site",

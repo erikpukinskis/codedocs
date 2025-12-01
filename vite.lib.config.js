@@ -1,15 +1,10 @@
 import path from "path"
 import { defineConfig } from "vite"
 import react from "@vitejs/plugin-react"
+import tsconfigPaths from "vite-tsconfig-paths"
 
 export default defineConfig({
-  resolve: {
-    alias: {
-      "~": path.resolve(__dirname, "./lib"),
-    },
-  },
-
-  plugins: [react()],
+  plugins: [tsconfigPaths(), react()],
 
   build: {
     emptyOutDir: false,
@@ -40,7 +35,7 @@ export default defineConfig({
         "react-helmet",
         "react-laag",
         "react-use",
-        "react-use-scroll-lock",
+        "body-scroll-lock",
         "short-uuid",
         "use-keyboard-shortcut",
         "react",
@@ -57,7 +52,6 @@ export default defineConfig({
           "@fortawesome/react-fontawesome": "fortawesomereactfontawesome",
           "@stitches/react": "stitchesreact",
           "ace-builds": "acebuilds",
-          "babel-plugin-macros": "babelpluginmacros",
           "copy-text-to-clipboard": "copytexttoclipboard",
           "highlight-words": "highlightwords",
           "lodash": "lodash",
@@ -67,7 +61,7 @@ export default defineConfig({
           "react-helmet": "reacthelmet",
           "react-laag": "reactlaag",
           "react-use": "reactuse",
-          "react-use-scroll-lock": "reactusescrolllock",
+          "body-scroll-lock": "bodyscrolllock",
           "short-uuid": "shortuuid",
           "use-keyboard-shortcut": "usekeyboardshortcut",
           "react": "react",

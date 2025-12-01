@@ -8,8 +8,7 @@
     "lib": ["es2017", "dom"],
     "baseUrl": ".",
     "paths": {
-      "~/*": ["lib/*"],
-      "*": ["lib/*"]
+      "~/*": ["lib/*"]
     },
     "downlevelIteration": true,
     "jsx": "react-jsx",

@@ -8,70 +8,6 @@ export type CallbackEvent = {
   time: number
 }
 
-export const EventLog: React.FC<{ events: CallbackEvent[] }> = ({ events }) => {
-  if (events.length === 0) return null
-
-  return (
-    <EventLogBase>
-      {events.map((event) => {
-        return <EventItem name={event.name} args={event.args} key={event.id} />
-      })}
-    </EventLogBase>
-  )
-}
-
-// const ShowEventsButtonBase = styled("a", {
-//   fontSize: "0.8em",
-//   fontWeight: "normal",
-//   color: "#777",
-//   background: "#c1ffc5",
-//   textDecoration: "none",
-//   cursor: "pointer",
-//   display: "inline-block",
-//   padding: 4,
-//   marginTop: 4,
-//   borderRadius: 4,
-// })
-
-// const DisclosureIcon = styled(FontAwesomeIcon, {
-//   marginLeft: 4,
-//   marginRight: 4,
-// })
-
-// type ShowEventsButtonProps = {
-//   onClick: () => void
-//   children: React.ReactNode
-//   isOpen: boolean
-// }
-
-// const ShowEventsButton: React.FC<ShowEventsButtonProps> = ({
-//   onClick,
-//   children,
-//   isOpen,
-// }) => {
-//   return (
-//     <div>
-//       <ShowEventsButtonBase
-//         href="#"
-//         onClick={(event) => {
-//           event.preventDefault()
-//           onClick()
-//         }}
-//       >
-//         <DisclosureIcon icon={isOpen ? "chevron-up" : "chevron-down"} />
-//         {children}
-//       </ShowEventsButtonBase>
-//     </div>
-//   )
-// }
-
-const EventLogBase = styled("ul", {
-  position: "absolute",
-  padding: 0,
-  zIndex: 1,
-  margin: 0,
-})
-
 const fadeOut = keyframes({
   "0%": {
     opacity: 1,
@@ -79,6 +15,13 @@ const fadeOut = keyframes({
   "100%": {
     display: "none",
   },
+})
+
+const EventLogBase = styled("ul", {
+  position: "absolute",
+  padding: 0,
+  zIndex: 1,
+  margin: 0,
 })
 
 const EventItemBase = styled("li", {
@@ -110,6 +53,18 @@ const Arg = styled("span", {
   borderRadius: 4,
   display: "inline-block",
 })
+
+export const EventLog: React.FC<{ events: CallbackEvent[] }> = ({ events }) => {
+  if (events.length === 0) return null
+
+  return (
+    <EventLogBase>
+      {events.map((event) => {
+        return <EventItem name={event.name} args={event.args} key={event.id} />
+      })}
+    </EventLogBase>
+  )
+}
 
 /**
  * Formats a single value for display in the event log:
@@ -233,10 +188,10 @@ function argsDescription(args: unknown[]): React.ReactNode {
   }
 
   // Otherwise, comma-separated list of arguments
-  return args.map((arg, i) => (
+  return args.map((argValue, i) => (
     <React.Fragment key={i}>
       {i > 0 ? ", " : null}
-      <Arg key={i}>{formatValue(arg)}</Arg>
+      <Arg key={i}>{formatValue(argValue)}</Arg>
     </React.Fragment>
   ))
 }
