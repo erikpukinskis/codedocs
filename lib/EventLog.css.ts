@@ -11,12 +11,13 @@ export const fadeOut = keyframes({
 
 export const eventLogBase = style({
   position: "absolute",
-  padding: 0,
-  zIndex: 1,
+  paddingLeft: 4,
+  zIndex: 2,
   margin: 0,
 })
 
 export const eventItemBase = style({
+  whiteSpace: "nowrap",
   fontSize: "0.8em",
   listStyle: "none",
   marginTop: 8,
@@ -46,5 +47,5 @@ export const arg = style({
   display: "inline-block",
   color: "#00631f",
   marginLeft: 4,
+  marginRight: 2,
 })
-

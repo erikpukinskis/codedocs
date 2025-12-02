@@ -117,10 +117,10 @@ export function Demo(props: DemoProps) {
             </button>
           </div>
         </div>
+        <EventLog events={events} />
       </div>
 
       {showCode && <Code source={formatted} mode="tsx" />}
-      <EventLog events={events} />
     </div>
   )
 }
