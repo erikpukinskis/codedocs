@@ -55,9 +55,13 @@ export default (
       render={({ mock }: DemoContext) => (
         <button
           onClick={() =>
-            mock.callback("myHandler")(400, function baz() {
-              return true
-            })
+            mock.callback("myHandler")(
+              400,
+              function baz() {
+                return true
+              },
+              new Date()
+            )
           }
         >
           Fire custom callback

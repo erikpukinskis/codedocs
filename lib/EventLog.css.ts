@@ -47,4 +47,3 @@ export const arg = style({
   color: "#00631f",
   marginLeft: 4,
 })
-
