@@ -1,30 +1,22 @@
 // @codedocs include-wrapper-in-source
 import React, { useState } from "react"
+// eslint-disable-next-line no-restricted-imports
 import { Demo, Doc } from "../macro"
-import * as styles from "./Demo.docs.css"
-
-const Fill = ({
-  children,
-  ...props
-}: React.ComponentPropsWithoutRef<"div">) => (
-  <div className={styles.fill} {...props}>
-    {children}
-  </div>
-)
+import { Placeholder } from "~/Placeholder"
 
 export default (
   <Doc path="/Docs/Demos">
     <h2>Full Width</h2>
     <p>Here is some new stuff</p>
     <Demo>
-      <Fill>By default, demos will be rendered full-width.</Fill>
+      <Placeholder>By default, demos will be rendered full-width.</Placeholder>
     </Demo>
 
     <h2>Inline</h2>
     <Demo inline>
-      <Fill style={{ width: "200px" }}>
+      <Placeholder style={{ width: "200px" }}>
         Inline demos only grow to fit the content width.
-      </Fill>
+      </Placeholder>
     </Demo>
 
     <h2>Render Prop</h2>
