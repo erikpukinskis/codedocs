@@ -5,7 +5,7 @@ import tsconfigPaths from "vite-tsconfig-paths"
 
 export default defineConfig({
   test: {
-    environment: "jsdom",
+    environment: "happy-dom",
     setupFiles: ["./lib/test/vitest-setup.ts"],
   },
 
