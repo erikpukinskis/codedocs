@@ -54,4 +54,3 @@ globalStyle(`${resultTitle} mark`, {
   color: "#3a7174",
   fontWeight: "bold",
 })
-

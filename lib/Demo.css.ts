@@ -25,4 +25,3 @@ export const demoContainer = recipe({
     },
   },
 })
-

@@ -7,4 +7,3 @@ export const button = style({
   border: "none",
   borderRadius: 5,
 })
-

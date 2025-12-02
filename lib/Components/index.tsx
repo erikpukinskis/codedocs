@@ -16,13 +16,19 @@ export * from "./Button"
 
 export const Link = _Link
 
-export const PageHeading = ({ children, ...props }: React.ComponentPropsWithoutRef<"h1">) => (
+export const PageHeading = ({
+  children,
+  ...props
+}: React.ComponentPropsWithoutRef<"h1">) => (
   <h1 className={styles.pageHeading} {...props}>
     {children}
   </h1>
 )
 
-export const DemoHeading = ({ children, ...props }: React.ComponentPropsWithoutRef<"h2">) => (
+export const DemoHeading = ({
+  children,
+  ...props
+}: React.ComponentPropsWithoutRef<"h2">) => (
   <h2 className={styles.demoHeading} {...props}>
     {children}
   </h2>

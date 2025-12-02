@@ -23,4 +23,3 @@ export const copyright = style({
   marginTop: 16,
   color: "#b5aaa0",
 })
-

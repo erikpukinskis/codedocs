@@ -70,4 +70,3 @@ export const centerColumn = style({
   position: "relative",
   padding: 32,
 })
-

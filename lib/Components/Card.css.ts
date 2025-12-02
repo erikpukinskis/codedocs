@@ -22,4 +22,3 @@ export const card = recipe({
     pad: "default",
   },
 })
-

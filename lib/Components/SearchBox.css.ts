@@ -79,4 +79,3 @@ globalStyle(`${styledSearchInput}:focus + .${styledKeys}`, {
 globalStyle(`${styledSearchInput}:not(:placeholder-shown) + .${styledKeys}`, {
   display: "none",
 })
-

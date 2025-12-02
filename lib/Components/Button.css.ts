@@ -12,4 +12,3 @@ export const styledButton = style({
     cursor: "pointer",
   },
 })
-

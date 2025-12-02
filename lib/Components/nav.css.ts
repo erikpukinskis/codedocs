@@ -25,4 +25,3 @@ export const navItem = style({
   color: "#444",
   listStyleType: "none",
 })
-

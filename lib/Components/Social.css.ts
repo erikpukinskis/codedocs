@@ -5,4 +5,3 @@ export const socialLink = style({
   padding: 4,
   boxSizing: "border-box",
 })
-
