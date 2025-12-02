@@ -1,6 +1,7 @@
 import prettier from "prettier"
 import parserTypescript from "prettier/parser-typescript"
 import React, { useEffect, useRef, useState } from "react"
+import { Code } from "./Code"
 import * as styles from "./Demo.css"
 
 type ReactChildren =
@@ -60,7 +61,6 @@ export function Demo(props: DemoProps) {
       className={styles.demoWithCode}
       data-component="DemoWithCode"
     >
-      {/* <CodeColumn source={formatted} mode="tsx" /> */}
       <div
         className={styles.demoContainer({ inline })}
         data-component="DemoContainer"
@@ -76,6 +76,8 @@ export function Demo(props: DemoProps) {
         <VerticalMark top right />
         <VerticalMark bottom right />
       </div>
+
+      <Code source={formatted} mode="tsx" />
     </div>
   )
 }
