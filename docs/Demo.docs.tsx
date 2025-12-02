@@ -1,5 +1,6 @@
-import { Demo, Doc } from "codedocs/macro"
+// @codedocs include-wrapper-in-source
 import React, { useState } from "react"
+import { Demo, Doc } from "../macro"
 import * as styles from "./Demo.docs.css"
 
 const Fill = ({
@@ -14,6 +15,7 @@ const Fill = ({
 export default (
   <Doc path="/Docs/Demos">
     <h2>Full Width</h2>
+    <p>Here is some new stuff</p>
     <Demo>
       <Fill>By default, demos will be rendered full-width.</Fill>
     </Demo>

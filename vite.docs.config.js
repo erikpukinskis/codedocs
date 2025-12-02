@@ -16,13 +16,6 @@ export default defineConfig({
       }
     : {}),
 
-  resolve: {
-    alias: {
-      "codedocs/macro": path.resolve(__dirname, "macro"),
-      codedocs: path.resolve(__dirname, "lib"),
-    },
-  },
-
   plugins: [
     macros(),
     tsconfigPaths(),
