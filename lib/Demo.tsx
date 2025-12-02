@@ -1,7 +1,6 @@
 import prettier from "prettier"
 import parserTypescript from "prettier/parser-typescript"
 import React, { useEffect, useRef, useState } from "react"
-import { EventLog, type CallbackEvent } from "./EventLog"
 import * as styles from "./Demo.css"
 
 type ReactChildren =
@@ -16,25 +15,17 @@ type HasChildren = {
   skip?: boolean
 }
 
-type CallbackFactory = (name: string) => (...args: unknown[]) => void
-
 export type PropsLike = Record<string, unknown>
 
-export type DemoContext = {
-  mock: {
-    callback: CallbackFactory
-  }
-}
-
 type RenderableWithProps<RenderProps extends PropsLike> = {
-  render: React.FC<RenderProps & DemoContext>
+  render: React.FC<RenderProps>
   props: RenderProps
   only?: boolean
   skip?: boolean
 }
 
 type RenderableNoProps = {
-  render: React.FC<DemoContext>
+  render: React.FC
   only?: boolean
   skip?: boolean
 }
@@ -48,12 +39,10 @@ export type DemoProps<RenderProps extends PropsLike> = (
   inline?: boolean
 }
 
-
 export function Demo<RenderProps extends PropsLike>(
   props: DemoProps<RenderProps>
 ) {
   const [formatted, setFormatted] = useState("")
-  const [events, setEvents] = useState<CallbackEvent[]>([])
   const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -64,31 +53,14 @@ export function Demo<RenderProps extends PropsLike>(
     }
   }, [props.source])
 
-  // Create the context object to pass to render functions
-  const demoContext: DemoContext = {
-    mock: {
-      callback: (name: string) => {
-        return (...args: unknown[]) => {
-          const event: CallbackEvent = {
-            id: Math.random().toString(36).slice(2, 10),
-            name,
-            args,
-            time: Date.now().valueOf(),
-          }
-          setEvents((prev) => [event, ...prev])
-        }
-      },
-    },
-  }
-
   let demoArea: JSX.Element
 
   if (hasChildren(props)) {
     demoArea = <>{props.children}</>
   } else if (isRenderableWithProps(props)) {
-    demoArea = <props.render {...props.props} {...demoContext} />
+    demoArea = <props.render {...props.props} />
   } else if (isRenderableNoProps(props)) {
-    demoArea = <props.render {...demoContext} />
+    demoArea = <props.render />
   } else {
     throw new Error("not sure what type of demo this is")
   }
@@ -98,9 +70,16 @@ export function Demo<RenderProps extends PropsLike>(
   const { inline = false } = props
 
   return (
-    <div ref={containerRef} className={styles.demoWithCode} data-component="DemoWithCode">
+    <div
+      ref={containerRef}
+      className={styles.demoWithCode}
+      data-component="DemoWithCode"
+    >
       {/* <CodeColumn source={formatted} mode="tsx" /> */}
-      <div className={styles.demoContainer({ inline })} data-component="DemoContainer">
+      <div
+        className={styles.demoContainer({ inline })}
+        data-component="DemoContainer"
+      >
         {demoArea}
         <HorizontalMark top left />
         <HorizontalMark bottom left />
@@ -112,8 +91,6 @@ export function Demo<RenderProps extends PropsLike>(
         <VerticalMark top right />
         <VerticalMark bottom right />
       </div>
-
-      <EventLog events={events} />
     </div>
   )
 }
@@ -146,7 +123,11 @@ const HorizontalMark: React.FC<CropMarksProps> = ({ top, left }) => {
   }
 
   return (
-    <div className={styles.cropMark} data-component="CropMark" style={style}></div>
+    <div
+      className={styles.cropMark}
+      data-component="CropMark"
+      style={style}
+    ></div>
   )
 }
 

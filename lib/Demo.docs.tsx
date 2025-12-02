@@ -1,10 +1,12 @@
 import React, { useState } from "react"
 import { Demo } from "./Demo"
-import type { DemoContext } from "./Demo"
-import { Doc } from "./Doc"
 import * as styles from "./Demo.docs.css"
+import { Doc } from "./Doc"
 
-const Fill = ({ children, ...props }: React.ComponentPropsWithoutRef<"div">) => (
+const Fill = ({
+  children,
+  ...props
+}: React.ComponentPropsWithoutRef<"div">) => (
   <div className={styles.fill} {...props}>
     {children}
   </div>
@@ -39,31 +41,6 @@ export default (
           </button>
         )
       }}
-    />
-    <p>
-      You can also track callbacks in the demo using a mock callback factory.
-      For example, a mouse handler:
-    </p>
-    <Demo
-      inline
-      render={({ mock }: DemoContext) => (
-        <button onClick={mock.callback("onClick")}>Fire a mouse event</button>
-      )}
-    />
-    <p>Or a callback with some other arguments:</p>
-    <Demo
-      inline
-      render={({ mock }: DemoContext) => (
-        <button
-          onClick={() =>
-            mock.callback("myHandler")(400, function baz() {
-              return true
-            })
-          }
-        >
-          Fire custom callback
-        </button>
-      )}
     />
   </Doc>
 )
