@@ -13,13 +13,13 @@ export const emptyState = style({
 
 export const searchResult = recipe({
   base: {
-    width: "14em",
-    display: "block",
-    color: "inherit",
-    paddingTop: 8,
-    paddingBottom: 8,
-    paddingLeft: 16,
-    paddingRight: 16,
+    "width": "14em",
+    "display": "block",
+    "color": "inherit",
+    "paddingTop": 8,
+    "paddingBottom": 8,
+    "paddingLeft": 16,
+    "paddingRight": 16,
 
     ":hover": {
       background: "#eee",

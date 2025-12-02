@@ -1,6 +1,6 @@
 import React from "react"
-import { COLORS } from "./GlobalStyles"
 import * as styles from "./Footer.css"
+import { COLORS } from "./GlobalStyles"
 
 type FooterProps = {
   copyright: string

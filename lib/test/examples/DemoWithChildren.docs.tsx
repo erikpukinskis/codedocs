@@ -1,5 +1,5 @@
-// eslint-disable-next-line no-restricted-imports
 import React from "react"
+// eslint-disable-next-line no-restricted-imports
 import { Doc, Demo } from "../../../macro"
 
 export default <Doc path="/" />

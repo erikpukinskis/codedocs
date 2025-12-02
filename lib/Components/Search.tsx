@@ -1,10 +1,10 @@
 import React from "react"
 import { useNavigate, Link } from "react-router-dom"
 import useKeyboardShortcut from "use-keyboard-shortcut"
+import * as styles from "./Search.css"
 import { useComponents } from "~/ComponentContext"
 import { useDropdown } from "~/helpers/useDropdown"
 import { useSearchQuery, useSearchResults, type Result } from "~/SearchContext"
-import * as styles from "./Search.css"
 
 export const Search = () => {
   const Components = useComponents()

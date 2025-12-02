@@ -1,6 +1,6 @@
-import type React from "react"
-import { type CardProps } from "~/ComponentTypes"
+import React from "react"
 import * as styles from "./Card.css"
+import { type CardProps } from "~/ComponentTypes"
 
 export const Card = ({
   children,

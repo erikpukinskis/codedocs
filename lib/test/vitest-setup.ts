@@ -1,17 +1,14 @@
 import "@testing-library/jest-dom/vitest"
+import type DetachedWindowAPI from "happy-dom/lib/window/DetachedWindowAPI.js"
 import { http, HttpResponse } from "msw"
 import { setupServer } from "msw/node"
 import { afterAll, afterEach, beforeAll } from "vitest"
 
-// Mock CSSOM insertRule to handle Stitches CSS-in-JS
-// jsdom's CSSOM doesn't support the custom CSS variables that Stitches uses
-const mockInsertRule = CSSStyleSheet.prototype.insertRule
-CSSStyleSheet.prototype.insertRule = function (rule: string, index?: number) {
-  // Skip Stitches' custom CSS variable rules that jsdom can't parse
-  if (rule.includes("--sxs")) {
-    return 0
+// Type augmentation for the global window with happy-dom
+declare global {
+  interface Window {
+    happyDOM?: DetachedWindowAPI
   }
-  return mockInsertRule.call(this, rule, index)
 }
 
 // Set up MSW server to mock font requests
@@ -36,7 +33,7 @@ afterEach(async () => {
   server.resetHandlers()
   // Wait for happy-dom to complete any pending async tasks
   if (globalThis.window?.happyDOM) {
-    await globalThis.window.happyDOM.whenAsyncComplete()
+    await globalThis.window.happyDOM.waitUntilComplete()
   }
 })
 

@@ -7,8 +7,8 @@ import "ace-builds/src-noconflict/mode-tsx"
 import "ace-builds/src-noconflict/mode-markdown"
 import "ace-builds/src-noconflict/theme-dracula"
 import "ace-builds/src-noconflict/ext-language_tools"
-import { useComponents } from "./ComponentContext"
 import * as styles from "./Code.css"
+import { useComponents } from "./ComponentContext"
 
 type CodeProps = EditorProps & {
   className?: string

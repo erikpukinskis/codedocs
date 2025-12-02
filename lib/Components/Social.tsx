@@ -1,8 +1,8 @@
 import React from "react"
 import { Link } from "react-router-dom"
+import * as styles from "./Social.css"
 import type { SocialProps } from "~/ComponentTypes"
 import githubLogoUrl from "~/github.png"
-import * as styles from "./Social.css"
 
 export const Social = ({ githubUrl }: SocialProps) =>
   githubUrl ? (

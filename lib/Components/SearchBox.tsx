@@ -1,6 +1,6 @@
 import React from "react"
-import type { SearchBoxProps } from "~/ComponentTypes"
 import * as styles from "./SearchBox.css"
+import type { SearchBoxProps } from "~/ComponentTypes"
 
 export const SearchBox = ({ inputProps, onClickClear }: SearchBoxProps) => {
   return (

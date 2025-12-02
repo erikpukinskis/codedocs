@@ -1,16 +1,16 @@
 import { style, globalStyle } from "@vanilla-extract/css"
 
 export const clearButtonTarget = style({
-  background: "#aaa",
-  width: 20,
-  height: 20,
-  lineHeight: "21px",
-  overflow: "hidden",
-  textAlign: "center",
-  borderRadius: 9999,
-  color: "white",
-  fontSize: "1.2em",
-  cursor: "pointer",
+  "background": "#aaa",
+  "width": 20,
+  "height": 20,
+  "lineHeight": "21px",
+  "overflow": "hidden",
+  "textAlign": "center",
+  "borderRadius": 9999,
+  "color": "white",
+  "fontSize": "1.2em",
+  "cursor": "pointer",
 
   ":hover": {
     background: "#bbb",

@@ -3,12 +3,12 @@ import * as Icons from "@fortawesome/free-solid-svg-icons"
 import React, { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import { useMeasure, useWindowSize } from "react-use"
+import * as styles from "./Header.css"
 import { FixedTopHeader, LogoIcon } from "./layout"
 import { useComponents } from "~/ComponentContext"
 import type { HeaderProps } from "~/ComponentTypes"
 import { addSpaces } from "~/helpers/strings"
 import useScrollLock from "~/helpers/useScrollLock"
-import * as styles from "./Header.css"
 
 const icons = Object.keys(Icons)
   .filter((key) => key !== "fas" && key !== "prefix")
