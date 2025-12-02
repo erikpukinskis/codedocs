@@ -4,16 +4,11 @@ import react from "@vitejs/plugin-react"
 import tsconfigPaths from "vite-tsconfig-paths"
 import { vanillaExtractPlugin } from "@vanilla-extract/vite-plugin"
 
-const inCodespace = Boolean(process.env.GITHUB_CODESPACE_TOKEN)
-
 export default defineConfig({
-  ...(inCodespace
-    ? {
-        hmr: {
-          port: 443,
-        },
-      }
-    : {}),
+  test: {
+    environment: "happy-dom",
+    setupFiles: ["./lib/test/vitest-setup.ts"],
+  },
 
   plugins: [
     tsconfigPaths(),
@@ -26,11 +21,6 @@ export default defineConfig({
   ],
 
   build: {
-    outDir: "site",
-    assetsDir: "./",
-
-    rollupOptions: {
-      input: path.resolve(__dirname, "docs", "index.html"),
-    },
+    rollupOptions: {},
   },
 })

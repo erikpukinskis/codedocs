@@ -1,5 +1,4 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { styled } from "@stitches/react"
 import copyTextToClipboard from "copy-text-to-clipboard"
 import React, { useState } from "react"
 import AceEditor from "react-ace"
@@ -8,26 +7,18 @@ import "ace-builds/src-noconflict/mode-tsx"
 import "ace-builds/src-noconflict/mode-markdown"
 import "ace-builds/src-noconflict/theme-dracula"
 import "ace-builds/src-noconflict/ext-language_tools"
+import * as styles from "./Code.css"
 import { useComponents } from "./ComponentContext"
-
-const CodeContainer = styled("div", {
-  borderRadius: 6,
-  background: "#282A36",
-  padding: 6,
-  opacity: "90%",
-  maxWidth: "45em",
-  position: "relative",
-})
 
 type CodeProps = EditorProps & {
   className?: string
 }
 
 export const Code = ({ className, source, mode }: CodeProps) => (
-  <CodeContainer className={className}>
+  <div className={`${styles.codeContainer} ${className || ""}`}>
     <Editor source={source} mode={mode} />
     <CopyButton source={source} />
-  </CodeContainer>
+  </div>
 )
 
 type EditorProps = {
@@ -83,17 +74,10 @@ const CopyButton = ({ source }: CopyButtonProps) => {
   }
 
   return (
-    <CopyButtonContainer>
+    <div className={styles.copyButtonContainer}>
       <Components.Button onClick={copy}>
         <FontAwesomeIcon icon="copy" /> {buttonText}
       </Components.Button>
-    </CopyButtonContainer>
+    </div>
   )
 }
-
-const CopyButtonContainer = styled("div", {
-  position: "absolute",
-  zIndex: 1,
-  right: 8,
-  bottom: 8,
-})

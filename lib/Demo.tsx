@@ -1,10 +1,18 @@
-import { styled } from "@stitches/react"
 import prettier from "prettier"
 import parserTypescript from "prettier/parser-typescript"
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useRef, useState } from "react"
+import * as styles from "./Demo.css"
+
+type ReactChildren =
+  | React.ReactElement
+  | React.ReactText
+  | React.ReactPortal
+  | string
 
 type HasChildren = {
-  children: React.ReactElement | React.ReactText | React.ReactPortal
+  children: ReactChildren | Array<ReactChildren>
+  only?: boolean
+  skip?: boolean
 }
 
 export type PropsLike = Record<string, unknown>
@@ -12,10 +20,14 @@ export type PropsLike = Record<string, unknown>
 type RenderableWithProps<RenderProps extends PropsLike> = {
   render: React.FC<RenderProps>
   props: RenderProps
+  only?: boolean
+  skip?: boolean
 }
 
 type RenderableNoProps = {
   render: React.FC
+  only?: boolean
+  skip?: boolean
 }
 
 export type DemoProps<RenderProps extends PropsLike> = (
@@ -24,14 +36,15 @@ export type DemoProps<RenderProps extends PropsLike> = (
   | RenderableWithProps<RenderProps>
 ) & {
   source?: string
+  inline?: boolean
 }
 
 export function Demo<RenderProps extends PropsLike>(
   props: DemoProps<RenderProps>
 ) {
   const [formatted, setFormatted] = useState("")
+  const containerRef = useRef<HTMLDivElement>(null)
 
-  console.log("durd")
   useEffect(() => {
     if (props.source) {
       setFormatted(formatTypescript(props.source))
@@ -43,11 +56,6 @@ export function Demo<RenderProps extends PropsLike>(
   let demoArea: JSX.Element
 
   if (hasChildren(props)) {
-    if (typeof props.children === "function") {
-      throw new Error(
-        `Don't pass function children to <Demo>, pass a render function like: <Demo render={() => ... } />`
-      )
-    }
     demoArea = <>{props.children}</>
   } else if (isRenderableWithProps(props)) {
     demoArea = <props.render {...props.props} />
@@ -59,12 +67,88 @@ export function Demo<RenderProps extends PropsLike>(
 
   if (!formatted) return null
 
+  const { inline = false } = props
+
   return (
-    <DemoWithCode>
+    <div
+      ref={containerRef}
+      className={styles.demoWithCode}
+      data-component="DemoWithCode"
+    >
       {/* <CodeColumn source={formatted} mode="tsx" /> */}
-      <DemoContainer>{demoArea}</DemoContainer>
-    </DemoWithCode>
+      <div
+        className={styles.demoContainer({ inline })}
+        data-component="DemoContainer"
+      >
+        {demoArea}
+        <HorizontalMark top left />
+        <HorizontalMark bottom left />
+        <HorizontalMark top right />
+        <HorizontalMark bottom right />
+
+        <VerticalMark top left />
+        <VerticalMark bottom left />
+        <VerticalMark top right />
+        <VerticalMark bottom right />
+      </div>
+    </div>
   )
+}
+
+type CropMarksProps = {
+  top?: boolean
+  bottom?: boolean
+  left?: boolean
+  right?: boolean
+}
+
+const MARK_LENGTH = 6
+const MARK_OFFSET = 3
+
+const HorizontalMark: React.FC<CropMarksProps> = ({ top, left }) => {
+  const style: React.CSSProperties = {
+    width: MARK_LENGTH,
+  }
+
+  if (left) {
+    style.left = -1 * MARK_LENGTH - MARK_OFFSET
+  } else {
+    style.right = -1 * MARK_LENGTH - MARK_OFFSET
+  }
+
+  if (top) {
+    style.top = 0
+  } else {
+    style.bottom = 0
+  }
+
+  return (
+    <div
+      className={styles.cropMark}
+      data-component="CropMark"
+      style={style}
+    ></div>
+  )
+}
+
+const VerticalMark: React.FC<CropMarksProps> = ({ top, left }) => {
+  const style: React.CSSProperties = {
+    height: MARK_LENGTH,
+  }
+
+  if (left) {
+    style.left = 0
+  } else {
+    style.right = 0
+  }
+
+  if (top) {
+    style.top = -1 * MARK_LENGTH - MARK_OFFSET
+  } else {
+    style.bottom = -1 * MARK_LENGTH - MARK_OFFSET
+  }
+
+  return <div className={styles.cropMark} style={style}></div>
 }
 
 function hasChildren<RenderProps extends PropsLike>(
@@ -90,23 +174,6 @@ function isRenderableNoProps<RenderProps extends PropsLike>(
     !Object.prototype.hasOwnProperty.call(demoProps, "props")
   )
 }
-
-const DemoWithCode = styled("div", {
-  display: "flex",
-  flexDirection: "row",
-  gap: 16,
-  boxShadow: "inset 0 1px 6px 1px rgb(0 0 0 / 10%)",
-  padding: 16,
-  borderRadius: 8,
-})
-
-const DemoContainer = styled("div", {
-  display: "flex",
-  flexDirection: "row",
-  gap: 16,
-  flexBasis: "40%",
-  flexGrow: 1,
-})
 
 const NO_MACRO_ERROR = `// Source code unavailable
 // try installing babel-plugin-macros or vite-plugin-babel-macros and using:

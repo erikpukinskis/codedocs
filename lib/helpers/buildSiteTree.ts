@@ -1,6 +1,6 @@
-import { type Demo, type DemoProps } from "./Demo"
-import { type Doc, type DocProps } from "./Doc"
-import { getPathSegments } from "~/helpers"
+import { type Demo, type DemoProps } from "~/Demo"
+import { type Doc, type DocProps } from "~/Doc"
+import { getPathSegments } from "~/helpers/strings"
 
 export type DocExport = {
   default: JSX.Element
@@ -177,7 +177,7 @@ export function getSubCategoryChildren(
  * site/section/category/subcategory/page objects with parents, children, and
  * all the necessary metadata we need to render them.
  */
-export const buildTree = (
+export const buildSiteTree = (
   untypedDocs: DocExport[]
 ): Record<string, PageOrParent> => {
   const pagesByPath: Record<string, PageOrParent> = {}
@@ -211,7 +211,7 @@ export const buildTree = (
         __typename: "HomePage",
         path: "/",
         doc,
-        demos,
+        demos: showHideDemos(demos),
         parent: site,
       }
       continue
@@ -292,7 +292,7 @@ export const buildTree = (
       path,
       name: breadcrumbs[0],
       doc,
-      demos,
+      demos: showHideDemos(demos),
       parent,
       order,
     }
@@ -307,6 +307,38 @@ export const buildTree = (
   }
 
   return pagesByPath
+}
+
+/**
+ * Mutates demos
+ */
+function showHideDemos(demos: DemoSet) {
+  let someOnlys = false
+
+  for (const demoName in demos) {
+    const demo = demos[demoName]
+
+    if (demo.props.only && demo.props.skip) {
+      throw new Error(
+        `Demo ${demoName} cannot have both skip and only props set to true`
+      )
+    } else if (demo.props.skip) {
+      delete demos[demoName]
+    } else if (demo.props.only) {
+      someOnlys = true
+    }
+  }
+
+  if (!someOnlys) return demos
+
+  for (const demoName in demos) {
+    const demo = demos[demoName]
+    if (!demo.props.only) {
+      delete demos[demoName]
+    }
+  }
+
+  return demos
 }
 
 function shift<T>(array: T[]) {

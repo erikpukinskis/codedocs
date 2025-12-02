@@ -1,9 +1,11 @@
-import { styled } from "@stitches/react"
+import React from "react"
+import * as styles from "./Button.css"
 
-export const Button = styled("button", () => ({
-  background: "#4c6",
-  color: "white",
-  padding: "8px 12px",
-  border: "none",
-  borderRadius: 5,
-}))
+export const Button = ({
+  children,
+  ...props
+}: React.ComponentPropsWithoutRef<"button">) => (
+  <button className={styles.button} {...props}>
+    {children}
+  </button>
+)

@@ -1,8 +1,8 @@
 import React from "react"
 import { ErrorBoundary } from "./ErrorBoundary"
 import { useComponents } from "~/ComponentContext"
-import { addSpaces } from "~/helpers"
-import { type Page, type HomePage } from "~/tree"
+import { type Page, type HomePage } from "~/helpers/buildSiteTree"
+import { addSpaces } from "~/helpers/strings"
 
 type PageContentProps = {
   page: Page

@@ -11,9 +11,13 @@
   "editor.insertSpaces": true,
   "editor.detectIndentation": false,
   "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": true,
-    "source.formatDocument": true
+    "source.fixAll.eslint": "explicit",
+    "source.formatDocument": "explicit"
   },
   "editor.formatOnSave": true,
-  "editor.defaultFormatter": "esbenp.prettier-vscode"
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "terminal.integrated.shellArgs.osx": [
+    "-c",
+    "source ~/.nvm/nvm.sh && nvm install && exec zsh"
+  ]
 }

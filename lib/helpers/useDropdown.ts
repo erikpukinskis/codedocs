@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react"
-import { useFocusGroup } from "~/useFocusGroup"
+import { useFocusGroup } from "~/helpers/useFocusGroup"
 
 type DropdownOptions<ItemType> = {
   label: string

@@ -1,14 +1,14 @@
 import { library, type IconDefinition } from "@fortawesome/fontawesome-svg-core"
 import * as Icons from "@fortawesome/free-solid-svg-icons"
-import { styled } from "@stitches/react"
 import React, { useEffect, useState } from "react"
 import { Link } from "react-router-dom"
 import { useMeasure, useWindowSize } from "react-use"
-import useScrollLock from "react-use-scroll-lock"
+import * as styles from "./Header.css"
 import { FixedTopHeader, LogoIcon } from "./layout"
 import { useComponents } from "~/ComponentContext"
 import type { HeaderProps } from "~/ComponentTypes"
-import { addSpaces } from "~/helpers"
+import { addSpaces } from "~/helpers/strings"
+import useScrollLock from "~/helpers/useScrollLock"
 
 const icons = Object.keys(Icons)
   .filter((key) => key !== "fas" && key !== "prefix")
@@ -79,10 +79,10 @@ export const Header = ({
 
   return (
     <FixedTopHeader>
-      <StyledLogo to="/" ref={logoRef}>
+      <Link to="/" ref={logoRef} className={styles.styledLogo}>
         {icon ? <LogoIcon color="black" icon={icon} /> : null}
         {logo}
-      </StyledLogo>
+      </Link>
       {onMobile ? (
         <Components.Button onClick={toggleMenu}>Menu</Components.Button>
       ) : null}
@@ -91,32 +91,25 @@ export const Header = ({
         onMobile={onMobile}
         menuIsOpen={menuIsOpen}
       >
-        {sections.map(({ name }) => (
-          <HeaderLink
-            key={name}
-            to={`/${name}`}
-            isCurrent={currentSection?.name === name}
-            onClick={closeMenu}
-          >
-            {addSpaces(name)}
-          </HeaderLink>
-        ))}
+        {sections.map(({ name }) => {
+          const isCurrent = currentSection?.name === name
+          return (
+            <Link
+              key={name}
+              to={`/${name}`}
+              className={styles.headerLink({ isCurrent })}
+              onClick={closeMenu}
+            >
+              {addSpaces(name)}
+            </Link>
+          )
+        })}
         <Components.Search />
         <Components.Social {...socialProps} />
       </HeaderLinks>
     </FixedTopHeader>
   )
 }
-
-const StyledLogo = styled(Link, {
-  display: "flex",
-  padding: 8,
-  flexDirection: "row",
-  whiteSpace: "nowrap",
-  marginLeft: -2,
-  marginRight: 32,
-  lineHeight: "16px",
-})
 
 type HeaderLinksProps = {
   onMobile: boolean
@@ -128,45 +121,9 @@ const HeaderLinks = React.forwardRef<HTMLDivElement, HeaderLinksProps>(
   function HeaderLinks({ onMobile, menuIsOpen, children }, ref) {
     if (onMobile && !menuIsOpen) return null
     return (
-      <HeaderLinksContainer onMobile={onMobile} ref={ref}>
+      <div className={styles.headerLinksContainer({ onMobile })} ref={ref}>
         {children}
-      </HeaderLinksContainer>
+      </div>
     )
   }
 )
-
-const HeaderLink = styled(Link, {
-  lineHeight: "16px",
-  padding: 8,
-
-  variants: {
-    isCurrent: {
-      true: { color: "black" },
-    },
-  },
-})
-
-const HeaderLinksContainer = styled("div", {
-  display: "flex",
-  flexDirection: "row",
-  alignItems: "center",
-  gap: 24,
-
-  variants: {
-    onMobile: {
-      true: {
-        position: "absolute",
-        top: "var(--header-height)",
-        right: 0,
-        left: 0,
-        height: "100vh",
-        paddingTop: 24,
-        paddingRight: 28,
-        boxSizing: "border-box",
-        flexDirection: "column",
-        background: "white",
-        alignItems: "flex-end",
-      },
-    },
-  },
-})

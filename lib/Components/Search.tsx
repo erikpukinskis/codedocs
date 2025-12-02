@@ -1,9 +1,9 @@
-import { styled } from "@stitches/react"
 import React from "react"
 import { useNavigate, Link } from "react-router-dom"
 import useKeyboardShortcut from "use-keyboard-shortcut"
-import { useDropdown } from "./useDropdown"
+import * as styles from "./Search.css"
 import { useComponents } from "~/ComponentContext"
+import { useDropdown } from "~/helpers/useDropdown"
 import { useSearchQuery, useSearchResults, type Result } from "~/SearchContext"
 
 export const Search = () => {
@@ -49,18 +49,20 @@ export const Search = () => {
         isExpanded && results ? (
           <Components.Card {...getListboxProps()} pad="top-and-bottom">
             {results.length === 0 ? (
-              <EmptyState>No results</EmptyState>
+              <div className={styles.emptyState}>No results</div>
             ) : (
               results.map((result, index) => (
-                <SearchResult
+                <Link
                   key={result.path}
                   to={result.path}
-                  isHighlighted={highlightedIndex === index}
+                  className={styles.searchResult({
+                    isHighlighted: highlightedIndex === index,
+                  })}
                   {...getOptionProps(index)}
                 >
-                  <ResultTitle>{result.title}</ResultTitle>
-                  <ResultSnippet>{result.text}</ResultSnippet>
-                </SearchResult>
+                  <div className={styles.resultTitle}>{result.title}</div>
+                  <div className={styles.resultSnippet}>{result.text}</div>
+                </Link>
               ))
             )}
           </Components.Card>
@@ -77,56 +79,3 @@ const getResultId = (result: Result) => {
     .toLowerCase()
     .replace(/  */g, "-")
 }
-
-const EmptyState = styled("div", {
-  width: "14em",
-  fontSize: "0.8em",
-  color: "#888",
-  paddingTop: 8,
-  paddingBottom: 8,
-  paddingLeft: 16,
-  paddingRight: 16,
-})
-
-const SearchResult = styled(Link, {
-  "width": "14em",
-  "display": "block",
-  "color": "inherit",
-  "paddingTop": 8,
-  "paddingBottom": 8,
-  "paddingLeft": 16,
-  "paddingRight": 16,
-
-  "&:hover": {
-    background: "#EEE",
-  },
-
-  "variants": {
-    isHighlighted: {
-      true: {
-        background: "#EEE",
-      },
-    },
-  },
-})
-
-const ResultSnippet = styled("div", {
-  "fontSize": "0.8em",
-  "color": "#888",
-  "maxHeight": "2.6em",
-  "overflow": "hidden",
-
-  "& mark": {
-    background: "#eeffc6",
-    color: "#3a7174",
-    fontWeight: "bold",
-  },
-})
-
-const ResultTitle = styled("div", {
-  "& mark": {
-    background: "#eeffc6",
-    color: "#3a7174",
-    fontWeight: "bold",
-  },
-})

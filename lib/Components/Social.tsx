@@ -1,18 +1,12 @@
-import { styled } from "@stitches/react"
 import React from "react"
 import { Link } from "react-router-dom"
+import * as styles from "./Social.css"
 import type { SocialProps } from "~/ComponentTypes"
 import githubLogoUrl from "~/github.png"
 
 export const Social = ({ githubUrl }: SocialProps) =>
   githubUrl ? (
-    <SocialLink to={githubUrl}>
+    <Link to={githubUrl} className={styles.socialLink}>
       <img alt="github repository" src={githubLogoUrl} width={24} height={24} />
-    </SocialLink>
+    </Link>
   ) : null
-
-const SocialLink = styled(Link, {
-  lineHeight: 0,
-  padding: 4,
-  boxSizing: "border-box",
-})

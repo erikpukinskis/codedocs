@@ -153,6 +153,9 @@ The general philosophy of Codedocs is
 Things that will probably happen:
 
 - [x] Search
+- [ ] Render function has mock.callback argument
+- [ ] Allow empty props if the render function props type only has optional props
+  - I don't remember what this means. Why would a render function have a props type or optional props?
 - [ ] When Site Sections can't be shown, include them in the left nav
 - [ ] Add a 2nd breakpoint where we can have the menu trigger and the search bar
 - [ ] Code samples
@@ -168,6 +171,12 @@ Things that _might_ happen:
 - Visual tests
 - In-browser unit tests
 - Editing mode
+
+Todo
+
+- Run confgen again
+- Add vitest
+- Write a test that runs the macro
 
 ### Inspiration
 

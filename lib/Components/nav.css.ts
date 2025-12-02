@@ -1,24 +1,23 @@
-import { styled } from "@stitches/react"
-import { Link } from "react-router-dom"
+import { style } from "@vanilla-extract/css"
 
-export const NavList = styled("ul", {
+export const navList = style({
   marginTop: 12,
   marginLeft: 12,
   marginBottom: 12,
 })
 
-export const NavHeading = styled("span", {
+export const navHeading = style({
   lineHeight: "24px",
   fontWeight: 600,
   color: "#b4b4b4",
 })
 
-export const NavLink = styled(Link, {
+export const navLink = style({
   display: "block",
   lineHeight: "24px",
 })
 
-export const NavItem = styled("li", {
+export const navItem = style({
   padding: "none",
   margin: "none",
   marginLeft: "0 !important",

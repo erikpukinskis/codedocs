@@ -109,6 +109,8 @@ function isRenderAttribute(path) {
 }
 
 function isDemoIdentifier(path) {
+  if (!path.node.name) return false
+
   const { type, name } = path.node.name
 
   if (type !== "JSXIdentifier") return false

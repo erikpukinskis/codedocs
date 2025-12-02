@@ -8,7 +8,7 @@ jobs:
       - name: Set up Yarn cache
         uses: actions/setup-node@v3
         with:
-          node-version: "16"
+          node-version-file: ".nvmrc"
           cache: yarn
       - run: yarn install --frozen-lockfile
       - name: Build Codedocs
