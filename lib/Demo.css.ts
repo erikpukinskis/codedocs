@@ -13,6 +13,7 @@ export const demoWithCode = style({})
 export const demoContainer = recipe({
   base: {
     position: "relative",
+    marginBottom: "calc(0.8em + 12px)",
   },
   variants: {
     inline: {
@@ -24,4 +25,16 @@ export const demoContainer = recipe({
       },
     },
   },
+})
+
+export const tabs = style({
+  position: "absolute",
+  right: 0,
+  top: "100%",
+  display: "flex",
+  flexDirection: "row",
+  justifyContent: "flex-end",
+  gap: 10,
+  paddingBlock: 6,
+  paddingInline: 4,
 })

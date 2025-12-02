@@ -2,13 +2,28 @@ import { style } from "@vanilla-extract/css"
 
 export const styledButton = style({
   "background": "white",
-  "padding": "8px 24px",
-  "border": "1px solid black",
+  "padding": "4px 6px",
+  "border": "none",
   "borderRadius": 5,
-  "fontSize": "1em",
+  "fontSize": "0.8em",
+  "cursor": "pointer",
 
   ":hover": {
-    boxShadow: "0px 2px 0px 1px rgba(0, 0, 0, 0.2)",
-    cursor: "pointer",
+    color: "#333",
+  },
+})
+
+export const linkButton = style({
+  "background": "none",
+  "padding": 0,
+  "border": "none",
+  "display": "inline",
+  "fontSize": "0.8em",
+  "cursor": "pointer",
+  "color": "#444",
+  "textShadow": "0.3px 0 0 currentColor",
+
+  ":hover": {
+    color: "#000",
   },
 })

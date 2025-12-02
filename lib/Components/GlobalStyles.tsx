@@ -120,6 +120,11 @@ export const GlobalStyles = () => (
       .ace_editor .ace_cursor-layer .ace_cursor {
         display: none !important;
       }
-  `}</style>
+
+      .ace_editor {
+        margin-left: -6px;
+      }
+
+`}</style>
   </>
 )

@@ -1,6 +1,6 @@
+import { Demo, Doc } from "codedocs/macro"
 import React, { useState } from "react"
 import * as styles from "./Demo.docs.css"
-import { Demo, Doc } from "~/index"
 
 const Fill = ({
   children,

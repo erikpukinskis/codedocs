@@ -55,6 +55,11 @@ export type ButtonProps = {
   children: React.ReactNode
 }
 
+export type LinkButtonProps = {
+  onClick?(event: React.MouseEvent): void
+  children: React.ReactNode
+}
+
 export type Components = {
   Button: React.FC<ButtonProps>
   GlobalStyles: React.FC<Record<string, never>>
@@ -63,6 +68,7 @@ export type Components = {
   SearchBox: React.FC<SearchBoxProps>
   Header: React.FC<HeaderProps>
   LayoutContainer: Container
+  LinkButton: React.FC<LinkButtonProps>
   LogoIcon: React.FC<LogoIconProps>
   Columns: Container
   FixedTopHeader: Container

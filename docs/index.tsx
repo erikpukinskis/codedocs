@@ -1,9 +1,9 @@
+import { DocsApp } from "codedocs"
 import React from "react"
 import { render } from "react-dom"
 import * as Demo from "./Demo.docs"
 import * as GettingStarted from "./GettingStarted.docs"
 import * as Home from "./HomePage.docs"
-import { DocsApp } from "~/index"
 
 render(
   <DocsApp
