@@ -17,31 +17,18 @@ type HasChildren = {
 
 export type PropsLike = Record<string, unknown>
 
-type RenderableWithProps<RenderProps extends PropsLike> = {
-  render: React.FC<RenderProps>
-  props: RenderProps
-  only?: boolean
-  skip?: boolean
-}
-
 type RenderableNoProps = {
   render: React.FC
   only?: boolean
   skip?: boolean
 }
 
-export type DemoProps<RenderProps extends PropsLike> = (
-  | HasChildren
-  | RenderableNoProps
-  | RenderableWithProps<RenderProps>
-) & {
+export type DemoProps = (HasChildren | RenderableNoProps) & {
   source?: string
   inline?: boolean
 }
 
-export function Demo<RenderProps extends PropsLike>(
-  props: DemoProps<RenderProps>
-) {
+export function Demo(props: DemoProps) {
   const [formatted, setFormatted] = useState("")
   const containerRef = useRef<HTMLDivElement>(null)
 
@@ -57,9 +44,7 @@ export function Demo<RenderProps extends PropsLike>(
 
   if (hasChildren(props)) {
     demoArea = <>{props.children}</>
-  } else if (isRenderableWithProps(props)) {
-    demoArea = <props.render {...props.props} />
-  } else if (isRenderableNoProps(props)) {
+  } else if (isRenderable(props)) {
     demoArea = <props.render />
   } else {
     throw new Error("not sure what type of demo this is")
@@ -151,24 +136,11 @@ const VerticalMark: React.FC<CropMarksProps> = ({ top, left }) => {
   return <div className={styles.cropMark} style={style}></div>
 }
 
-function hasChildren<RenderProps extends PropsLike>(
-  demoProps: DemoProps<RenderProps>
-): demoProps is HasChildren {
+function hasChildren(demoProps: DemoProps): demoProps is HasChildren {
   return Object.prototype.hasOwnProperty.call(demoProps, "children")
 }
 
-function isRenderableWithProps<RenderProps extends PropsLike>(
-  demoProps: DemoProps<RenderProps>
-): demoProps is RenderableWithProps<RenderProps> {
-  return (
-    Object.prototype.hasOwnProperty.call(demoProps, "render") &&
-    Object.prototype.hasOwnProperty.call(demoProps, "props")
-  )
-}
-
-function isRenderableNoProps<RenderProps extends PropsLike>(
-  demoProps: DemoProps<RenderProps>
-): demoProps is RenderableNoProps {
+function isRenderable(demoProps: DemoProps): demoProps is RenderableNoProps {
   return (
     Object.prototype.hasOwnProperty.call(demoProps, "render") &&
     !Object.prototype.hasOwnProperty.call(demoProps, "props")
