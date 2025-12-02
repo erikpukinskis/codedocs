@@ -1,7 +1,6 @@
 import React, { useState } from "react"
-import { Demo } from "./Demo"
 import * as styles from "./Demo.docs.css"
-import { Doc } from "./Doc"
+import { Demo, Doc } from "~/index"
 
 const Fill = ({
   children,
