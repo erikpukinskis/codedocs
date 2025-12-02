@@ -1,5 +1,6 @@
 import React from "react"
-import { Doc, Code } from "~/index"
+// eslint-disable-next-line no-restricted-imports
+import { Doc, Code } from "../macro"
 
 export default (
   <Doc path="/Docs/GettingStarted">

@@ -16,6 +16,12 @@ export default defineConfig({
       }
     : {}),
 
+  resolve: {
+    alias: {
+      codedocs: path.resolve(__dirname, "lib", "index.ts"),
+    },
+  },
+
   plugins: [
     macros(),
     tsconfigPaths(),

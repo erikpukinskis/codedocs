@@ -2,7 +2,13 @@ const { createMacro } = require("babel-plugin-macros")
 const { default: traverse } = require("@babel/traverse")
 
 module.exports = createMacro(function Demo({ references, state, babel }) {
-  const { Demo = [], Doc = [], DocsApp = [] } = references
+  const {
+    Demo = [],
+    Doc = [],
+    DocsApp = [],
+    Code = [],
+    Placeholder = [],
+  } = references
 
   const includeWrapperInSource = state.file.code.startsWith(
     "// @codedocs include-wrapper-in-source"
@@ -89,6 +95,12 @@ module.exports = createMacro(function Demo({ references, state, babel }) {
   }
   if (DocsApp.length > 0) {
     specifierIdentifiers.push("DocsApp")
+  }
+  if (Code.length > 0) {
+    specifierIdentifiers.push("Code")
+  }
+  if (Placeholder.length > 0) {
+    specifierIdentifiers.push("Placeholder")
   }
 
   const specifiers = specifierIdentifiers.map((identifier) =>

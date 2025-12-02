@@ -2054,29 +2054,6 @@ cliui@^8.0.1:
     strip-ansi "^6.0.1"
     wrap-ansi "^7.0.0"
 
-"codedocs@file:.":
-  version "0.18.0"
-  dependencies:
-    "@fortawesome/fontawesome-free-solid" "^5.0.13"
-    "@fortawesome/fontawesome-svg-core" "^6.2.1"
-    "@fortawesome/free-solid-svg-icons" "^6.2.1"
-    "@fortawesome/react-fontawesome" "^0.2.0"
-    "@vanilla-extract/css" "^1.17.5"
-    "@vanilla-extract/recipes" "^0.5.7"
-    ace-builds "^1.13.1"
-    body-scroll-lock "^4.0.0-beta.0"
-    copy-text-to-clipboard "^3.0.1"
-    highlight-words "^1.2.1"
-    lodash "^4.17.21"
-    minisearch "^5.0.0"
-    prettier "2.8.1"
-    react-ace "^10.1.0"
-    react-helmet "^6.1.0"
-    react-laag "^2.0.4"
-    react-use "^17.4.0"
-    short-uuid "^4.2.2"
-    use-keyboard-shortcut "^1.1.6"
-
 color-convert@^1.9.0:
   version "1.9.3"
   resolved "https://registry.yarnpkg.com/color-convert/-/color-convert-1.9.3.tgz#bb71850690e1f136567de629d2d5471deda4c1e8"
