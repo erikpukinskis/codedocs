@@ -2,6 +2,7 @@ import path from "path"
 import { defineConfig } from "vite"
 import react from "@vitejs/plugin-react"
 import tsconfigPaths from "vite-tsconfig-paths"
+import { vanillaExtractPlugin } from "@vanilla-extract/vite-plugin"
 
 const inCodespace = Boolean(process.env.GITHUB_CODESPACE_TOKEN)
 
@@ -16,6 +17,7 @@ export default defineConfig({
 
   plugins: [
     tsconfigPaths(),
+    vanillaExtractPlugin(),
     react({
       babel: {
         plugins: ["babel-plugin-macros"],

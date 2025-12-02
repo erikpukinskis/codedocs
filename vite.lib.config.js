@@ -2,9 +2,10 @@ import path from "path"
 import { defineConfig } from "vite"
 import react from "@vitejs/plugin-react"
 import tsconfigPaths from "vite-tsconfig-paths"
+import { vanillaExtractPlugin } from "@vanilla-extract/vite-plugin"
 
 export default defineConfig({
-  plugins: [tsconfigPaths(), react()],
+  plugins: [tsconfigPaths(), vanillaExtractPlugin(), react()],
 
   build: {
     emptyOutDir: false,
@@ -23,7 +24,6 @@ export default defineConfig({
         "@fortawesome/fontawesome-svg-core",
         "@fortawesome/free-solid-svg-icons",
         "@fortawesome/react-fontawesome",
-        "@stitches/react",
         "ace-builds",
         "babel-plugin-macros",
         "copy-text-to-clipboard",
@@ -50,7 +50,6 @@ export default defineConfig({
           "@fortawesome/fontawesome-svg-core": "fortawesomefontawesomesvgcore",
           "@fortawesome/free-solid-svg-icons": "fortawesomefreesolidsvgicons",
           "@fortawesome/react-fontawesome": "fortawesomereactfontawesome",
-          "@stitches/react": "stitchesreact",
           "ace-builds": "acebuilds",
           "copy-text-to-clipboard": "copytexttoclipboard",
           "highlight-words": "highlightwords",

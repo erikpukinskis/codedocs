@@ -1,13 +1,14 @@
-import { styled } from "@stitches/react"
 import React, { useState } from "react"
 import { Demo } from "./Demo"
 import type { DemoContext } from "./Demo"
 import { Doc } from "./Doc"
+import * as styles from "./Demo.docs.css"
 
-const Fill = styled("div", {
-  padding: "12px 16px",
-  background: `repeating-linear-gradient(-45deg, white, white 3px, #e1e6fe 3px, #e1e6fe 4px)`,
-})
+const Fill = ({ children, ...props }: React.ComponentPropsWithoutRef<"div">) => (
+  <div className={styles.fill} {...props}>
+    {children}
+  </div>
+)
 
 export default (
   <Doc path="/Docs/Demos">

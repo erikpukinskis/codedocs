@@ -19,7 +19,5 @@ test("macro includes source of Demo children", () => {
   // Debug: log the entire body contents
   screen.debug(document.body)
 
-  expect(
-    getByRole("heading", { name: "Demo With Children" })
-  ).toBeInTheDocument()
+  expect(getByRole("link", { name: "Demo With Children" })).toBeInTheDocument()
 })

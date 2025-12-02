@@ -1,28 +1,18 @@
-import { styled } from "@stitches/react"
 import { Link } from "react-router-dom"
+import * as styles from "./nav.css"
 
-export const NavList = styled("ul", {
-  marginTop: 12,
-  marginLeft: 12,
-  marginBottom: 12,
-})
+export const NavList = ({ children, ...props }: React.ComponentPropsWithoutRef<"ul">) => (
+  <ul className={styles.navList} {...props}>{children}</ul>
+)
 
-export const NavHeading = styled("span", {
-  lineHeight: "24px",
-  fontWeight: 600,
-  color: "#b4b4b4",
-})
+export const NavHeading = ({ children, ...props }: React.ComponentPropsWithoutRef<"span">) => (
+  <span className={styles.navHeading} {...props}>{children}</span>
+)
 
-export const NavLink = styled(Link, {
-  display: "block",
-  lineHeight: "24px",
-})
+export const NavLink = ({ children, ...props }: React.ComponentPropsWithoutRef<typeof Link>) => (
+  <Link className={styles.navLink} {...props}>{children}</Link>
+)
 
-export const NavItem = styled("li", {
-  padding: "none",
-  margin: "none",
-  marginLeft: "0 !important",
-  whiteSpace: "nowrap",
-  color: "#444",
-  listStyleType: "none",
-})
+export const NavItem = ({ children, ...props }: React.ComponentPropsWithoutRef<"li">) => (
+  <li className={styles.navItem} {...props}>{children}</li>
+)

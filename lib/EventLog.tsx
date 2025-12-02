@@ -1,5 +1,5 @@
-import { styled, keyframes } from "@stitches/react"
 import React from "react"
+import * as styles from "./EventLog.css"
 
 export type CallbackEvent = {
   id: string
@@ -8,61 +8,15 @@ export type CallbackEvent = {
   time: number
 }
 
-const fadeOut = keyframes({
-  "0%": {
-    opacity: 1,
-  },
-  "100%": {
-    display: "none",
-  },
-})
-
-const EventLogBase = styled("ul", {
-  position: "absolute",
-  padding: 0,
-  zIndex: 1,
-  margin: 0,
-})
-
-const EventItemBase = styled("li", {
-  fontSize: "0.8em",
-  listStyle: "none",
-  marginTop: 8,
-  marginLeft: 0,
-  marginRight: 0,
-  marginBottom: 0,
-  background: "#c1ffc5",
-  padding: "4px 6px",
-  borderRadius: 4,
-  boxSizing: "border-box",
-  animation: `${fadeOut.name} 1s linear 2s forwards`,
-  boxShadow: "0px 0px 8px 0px rgba(47, 255, 0, 0.3)",
-})
-
-const EventName = styled("span", {
-  fontWeight: "bold",
-  background: "white",
-  padding: "2px 4px",
-  borderRadius: 4,
-  display: "inline-block",
-})
-
-const Arg = styled("span", {
-  background: "white",
-  padding: "2px 4px",
-  borderRadius: 4,
-  display: "inline-block",
-})
-
 export const EventLog: React.FC<{ events: CallbackEvent[] }> = ({ events }) => {
   if (events.length === 0) return null
 
   return (
-    <EventLogBase>
+    <ul className={styles.eventLogBase}>
       {events.map((event) => {
         return <EventItem name={event.name} args={event.args} key={event.id} />
       })}
-    </EventLogBase>
+    </ul>
   )
 }
 
@@ -191,7 +145,9 @@ function argsDescription(args: unknown[]): React.ReactNode {
   return args.map((argValue, i) => (
     <React.Fragment key={i}>
       {i > 0 ? ", " : null}
-      <Arg key={i}>{formatValue(argValue)}</Arg>
+      <span className={styles.arg} key={i}>
+        {formatValue(argValue)}
+      </span>
     </React.Fragment>
   ))
 }
@@ -203,8 +159,9 @@ type EventItemProps = {
 
 const EventItem: React.FC<EventItemProps> = ({ name, args }) => {
   return (
-    <EventItemBase>
-      Called <EventName>{name}</EventName> with {argsDescription(args)}
-    </EventItemBase>
+    <li className={styles.eventItemBase}>
+      Called <span className={styles.eventName}>{name}</span> with{" "}
+      {argsDescription(args)}
+    </li>
   )
 }

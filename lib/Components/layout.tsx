@@ -1,70 +1,31 @@
-import { styled } from "@stitches/react"
+import React from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import * as styles from "./layout.css"
 
-export const LayoutContainer = styled("div", {
-  "--header-height": "84px",
-})
+export const LayoutContainer = ({ children, ...props }: React.ComponentPropsWithoutRef<"div">) => (
+  <div className={styles.layoutContainer} {...props}>{children}</div>
+)
 
-export const Columns = styled("div", {
-  display: "flex",
-  flexDirection: "row",
-  minHeight: "100vh",
-  position: "absolute",
-  overflow: "scroll-y",
-  top: 0,
-  left: 0,
-  width: "100vw",
-  height: "100vh",
-})
+export const Columns = ({ children, ...props }: React.ComponentPropsWithoutRef<"div">) => (
+  <div className={styles.columns} {...props}>{children}</div>
+)
 
-export const LogoIcon = styled(FontAwesomeIcon, {
-  border: "2px solid black",
-  borderRadius: 6,
-  padding: 4,
-  margin: -6,
-  marginRight: 8,
-})
+export const LogoIcon = (props: React.ComponentPropsWithoutRef<typeof FontAwesomeIcon>) => (
+  <FontAwesomeIcon className={styles.logoIcon} {...props} />
+)
 
-export const FixedTopHeader = styled("div", {
-  position: "fixed",
-  height: "var(--header-height)",
-  background: "white",
-  top: 0,
-  left: 0,
-  width: "100vw",
-  borderBottom: "1px solid #ddd",
-  boxSizing: "border-box",
-  paddingLeft: 32,
-  paddingRight: 32,
-  display: "flex",
-  flexDirection: "row",
-  justifyContent: "space-between",
-  alignItems: "center",
-  boxShadow: "0px 0px 3px 0px rgba(0, 0, 0, 0.05)",
-  zIndex: 2,
-})
+export const FixedTopHeader = ({ children, ...props }: React.ComponentPropsWithoutRef<"div">) => (
+  <div className={styles.fixedTopHeader} {...props}>{children}</div>
+)
 
-export const LeftColumn = styled("nav", {
-  marginTop: "var(--header-height)",
-  borderRight: "1px solid #eee",
-  minWidth: "128px",
-  paddingLeft: 32,
-  paddingTop: 32,
-  paddingRight: 8,
-})
+export const LeftColumn = ({ children, ...props }: React.ComponentPropsWithoutRef<"nav">) => (
+  <nav className={styles.leftColumn} {...props}>{children}</nav>
+)
 
-export const MainColumn = styled("div", {
-  marginTop: "var(--header-height)",
-  padding: 32,
-  paddingBottom: 256,
-  width: "90%",
-  position: "relative",
-})
+export const MainColumn = ({ children, ...props }: React.ComponentPropsWithoutRef<"div">) => (
+  <div className={styles.mainColumn} {...props}>{children}</div>
+)
 
-export const CenterColumn = styled(MainColumn, {
-  marginTop: "var(--header-height)",
-  marginLeft: 0,
-  paddingBottom: 256,
-  minHeight: "100vh",
-  position: "relative",
-})
+export const CenterColumn = ({ children, ...props }: React.ComponentPropsWithoutRef<"div">) => (
+  <div className={styles.centerColumn} {...props}>{children}</div>
+)

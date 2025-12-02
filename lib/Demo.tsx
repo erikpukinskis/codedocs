@@ -1,8 +1,8 @@
-import { styled } from "@stitches/react"
 import prettier from "prettier"
 import parserTypescript from "prettier/parser-typescript"
 import React, { useEffect, useRef, useState } from "react"
 import { EventLog, type CallbackEvent } from "./EventLog"
+import * as styles from "./Demo.css"
 
 type ReactChildren =
   | React.ReactElement
@@ -48,29 +48,6 @@ export type DemoProps<RenderProps extends PropsLike> = (
   inline?: boolean
 }
 
-const CropMark = styled("div", {
-  background: "rgba(0,0,0,0.25)",
-  width: 1,
-  height: 1,
-  position: "absolute",
-})
-
-const DemoWithCode = styled("div", {})
-
-const DemoContainer = styled("div", {
-  position: "relative",
-
-  variants: {
-    inline: {
-      true: {
-        display: "inline-block",
-      },
-      false: {
-        width: "100%",
-      },
-    },
-  },
-})
 
 export function Demo<RenderProps extends PropsLike>(
   props: DemoProps<RenderProps>
@@ -121,9 +98,9 @@ export function Demo<RenderProps extends PropsLike>(
   const { inline = false } = props
 
   return (
-    <DemoWithCode ref={containerRef} data-component="DemoWithCode">
+    <div ref={containerRef} className={styles.demoWithCode} data-component="DemoWithCode">
       {/* <CodeColumn source={formatted} mode="tsx" /> */}
-      <DemoContainer inline={inline} data-component="DemoContainer">
+      <div className={styles.demoContainer({ inline })} data-component="DemoContainer">
         {demoArea}
         <HorizontalMark top left />
         <HorizontalMark bottom left />
@@ -134,10 +111,10 @@ export function Demo<RenderProps extends PropsLike>(
         <VerticalMark bottom left />
         <VerticalMark top right />
         <VerticalMark bottom right />
-      </DemoContainer>
+      </div>
 
       <EventLog events={events} />
-    </DemoWithCode>
+    </div>
   )
 }
 
@@ -168,7 +145,9 @@ const HorizontalMark: React.FC<CropMarksProps> = ({ top, left }) => {
     style.bottom = 0
   }
 
-  return <CropMark data-component="CropMark" style={style}></CropMark>
+  return (
+    <div className={styles.cropMark} data-component="CropMark" style={style}></div>
+  )
 }
 
 const VerticalMark: React.FC<CropMarksProps> = ({ top, left }) => {
@@ -188,7 +167,7 @@ const VerticalMark: React.FC<CropMarksProps> = ({ top, left }) => {
     style.bottom = -1 * MARK_LENGTH - MARK_OFFSET
   }
 
-  return <CropMark style={style}></CropMark>
+  return <div className={styles.cropMark} style={style}></div>
 }
 
 function hasChildren<RenderProps extends PropsLike>(
