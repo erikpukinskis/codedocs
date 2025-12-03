@@ -72,7 +72,7 @@ const _DocsApp = ({
 
   const socialProps = omit(rest, COMPONENT_NAMES) as SocialProps
 
-  const Components = {
+  const components: Components = {
     ...Defaults,
     ...ComponentOverrides,
   }
@@ -83,7 +83,7 @@ const _DocsApp = ({
         <link rel="icon" href={favicon} type="image/svg+xml" />
       </Helmet>
       <DesignSystemProvider>
-        <ComponentContextProvider Components={Components}>
+        <ComponentContextProvider Components={components}>
           <BrowserRouter>
             <Defaults.LayoutContainer>
               <Routes>

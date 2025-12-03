@@ -2,9 +2,17 @@ const { createMacro } = require("babel-plugin-macros")
 const { default: traverse } = require("@babel/traverse")
 
 module.exports = createMacro(function Demo({ references, state, babel }) {
-  const { Demo = [], Doc = [], DocsApp = [] } = references
+  const {
+    Demo = [],
+    Doc = [],
+    DocsApp = [],
+    Code = [],
+    Placeholder = [],
+  } = references
 
-  // dump("STATE", state)
+  const includeWrapperInSource = state.file.code.startsWith(
+    "// @codedocs include-wrapper-in-source"
+  )
 
   function getSource(node) {
     const { start, end } = node
@@ -48,7 +56,9 @@ module.exports = createMacro(function Demo({ references, state, babel }) {
 
           if (jsxElement.type !== "JSXElement") return
 
-          const source = jsxElement.children.map(getSource).join("")
+          const source = includeWrapperInSource
+            ? getSource(jsxElement)
+            : jsxElement.children.map(getSource).join("")
 
           setSourceAttribute(jsxElement.openingElement, source)
         },
@@ -59,8 +69,13 @@ module.exports = createMacro(function Demo({ references, state, babel }) {
 
           if (!isRenderAttribute(path.parentPath)) return
 
-          const bodySource = getSource(path.node.expression.body)
-          const source = bodySource.slice(1, bodySource.length - 2)
+          let source
+          if (includeWrapperInSource) {
+            source = getSource(demoIdentifier.parentPath.node)
+          } else {
+            const bodySource = getSource(path.node.expression.body)
+            source = bodySource.slice(1, bodySource.length - 2)
+          }
 
           setSourceAttribute(demoIdentifier.node, source)
         },
@@ -80,6 +95,12 @@ module.exports = createMacro(function Demo({ references, state, babel }) {
   }
   if (DocsApp.length > 0) {
     specifierIdentifiers.push("DocsApp")
+  }
+  if (Code.length > 0) {
+    specifierIdentifiers.push("Code")
+  }
+  if (Placeholder.length > 0) {
+    specifierIdentifiers.push("Placeholder")
   }
 
   const specifiers = specifierIdentifiers.map((identifier) =>

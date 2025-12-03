@@ -8,11 +8,14 @@ export const cropMark = style({
   position: "absolute",
 })
 
-export const demoWithCode = style({})
+export const demoWithCode = style({
+  marginTop: "1em",
+})
 
 export const demoContainer = recipe({
   base: {
     position: "relative",
+    marginBottom: "calc(0.8em + 12px)",
   },
   variants: {
     inline: {
@@ -21,6 +24,70 @@ export const demoContainer = recipe({
       },
       false: {
         width: "100%",
+      },
+    },
+  },
+})
+
+/**
+ * This container positions the tabs all the way to the right edge of the demo.
+ * However, it has a max-width of 100% to ensure it doesn't grow past the *left*
+ * edge of the demo.
+ *
+ * Then, tabs element below gets whitespace: nowrap and is allowed to overflow.
+ *
+ * This means the tabs will, in most cases, be aligned to the right of the demo,
+ * but if they're too wide to fit they'll stick out the right side rather than
+ * the left.
+ */
+export const tabsContainer = style({
+  position: "absolute",
+  top: "100%",
+  right: 0,
+  maxWidth: "100%",
+})
+
+export const tabs = style({
+  whiteSpace: "nowrap",
+  position: "relative",
+  left: 0,
+  display: "flex",
+  flexDirection: "row",
+  justifyContent: "flex-start",
+  gap: 10,
+})
+
+export const tab = recipe({
+  base: {
+    "zIndex": 1,
+    "background": "none",
+    "marginTop": 2,
+    "paddingTop": 6,
+    "paddingBottom": 12,
+    "borderTopLeftRadius": 6,
+    "borderTopRightRadius": 6,
+    "border": "none",
+    "fontSize": "0.8em",
+    "cursor": "pointer",
+    "color": "#555",
+    "textShadow": "0.3px 0 0 currentColor",
+
+    ":hover": {
+      color: "#000",
+    },
+  },
+
+  variants: {
+    active: {
+      true: {
+        "fontWeight": "bold",
+        "textShadow": "none",
+        "color": "white",
+        "textDecorationColor": "white",
+        "background": "#3e404b",
+        ":hover": {
+          color: "white",
+        },
       },
     },
   },

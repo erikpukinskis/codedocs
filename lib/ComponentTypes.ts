@@ -55,6 +55,11 @@ export type ButtonProps = {
   children: React.ReactNode
 }
 
+export type LinkButtonProps = {
+  onClick?(event: React.MouseEvent): void
+  children: React.ReactNode
+}
+
 export type Components = {
   Button: React.FC<ButtonProps>
   GlobalStyles: React.FC<Record<string, never>>

@@ -154,16 +154,13 @@ Things that will probably happen:
 
 - [x] Search
 - [ ] Render function has mock.callback argument
-- [ ] Allow empty props if the render function props type only has optional props
-  - I don't remember what this means. Why would a render function have a props type or optional props?
 - [ ] When Site Sections can't be shown, include them in the left nav
 - [ ] Add a 2nd breakpoint where we can have the menu trigger and the search bar
-- [ ] Code samples
 - [ ] "Live" code samples
 - [ ] Server-side rendering
-- [ ] Move the demos into the `<Doc>` block so you can lay out those pages explicitly
+- [x] Move the demos into the `<Doc>` block so you can lay out those pages explicitly
 - [ ] An `<API>` helper component for documenting component apis
-- [ ] Babel macro which can grab the code sample for your demos
+- [x] Babel macro which can grab the code for your demos
 - [ ] A contact sheet so you can visually scan for the control you're looking for
 
 Things that _might_ happen:
@@ -171,12 +168,6 @@ Things that _might_ happen:
 - Visual tests
 - In-browser unit tests
 - Editing mode
-
-Todo
-
-- Run confgen again
-- Add vitest
-- Write a test that runs the macro
 
 ### Inspiration
 

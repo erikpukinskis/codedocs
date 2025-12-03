@@ -1,6 +1,7 @@
 import prettier from "prettier"
 import parserTypescript from "prettier/parser-typescript"
 import React, { useEffect, useRef, useState } from "react"
+import { Code } from "./Code"
 import * as styles from "./Demo.css"
 
 type ReactChildren =
@@ -17,32 +18,20 @@ type HasChildren = {
 
 export type PropsLike = Record<string, unknown>
 
-type RenderableWithProps<RenderProps extends PropsLike> = {
-  render: React.FC<RenderProps>
-  props: RenderProps
-  only?: boolean
-  skip?: boolean
-}
-
 type RenderableNoProps = {
   render: React.FC
   only?: boolean
   skip?: boolean
 }
 
-export type DemoProps<RenderProps extends PropsLike> = (
-  | HasChildren
-  | RenderableNoProps
-  | RenderableWithProps<RenderProps>
-) & {
+export type DemoProps = (HasChildren | RenderableNoProps) & {
   source?: string
   inline?: boolean
 }
 
-export function Demo<RenderProps extends PropsLike>(
-  props: DemoProps<RenderProps>
-) {
+export function Demo(props: DemoProps) {
   const [formatted, setFormatted] = useState("")
+  const [showCode, setShowCode] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -57,9 +46,7 @@ export function Demo<RenderProps extends PropsLike>(
 
   if (hasChildren(props)) {
     demoArea = <>{props.children}</>
-  } else if (isRenderableWithProps(props)) {
-    demoArea = <props.render {...props.props} />
-  } else if (isRenderableNoProps(props)) {
+  } else if (isRenderable(props)) {
     demoArea = <props.render />
   } else {
     throw new Error("not sure what type of demo this is")
@@ -75,7 +62,6 @@ export function Demo<RenderProps extends PropsLike>(
       className={styles.demoWithCode}
       data-component="DemoWithCode"
     >
-      {/* <CodeColumn source={formatted} mode="tsx" /> */}
       <div
         className={styles.demoContainer({ inline })}
         data-component="DemoContainer"
@@ -90,7 +76,20 @@ export function Demo<RenderProps extends PropsLike>(
         <VerticalMark bottom left />
         <VerticalMark top right />
         <VerticalMark bottom right />
+
+        <div className={styles.tabsContainer}>
+          <div className={styles.tabs}>
+            <button
+              className={styles.tab({ active: showCode })}
+              onClick={() => setShowCode(!showCode)}
+            >
+              Source
+            </button>
+          </div>
+        </div>
       </div>
+
+      {showCode && <Code source={formatted} mode="tsx" />}
     </div>
   )
 }
@@ -151,24 +150,11 @@ const VerticalMark: React.FC<CropMarksProps> = ({ top, left }) => {
   return <div className={styles.cropMark} style={style}></div>
 }
 
-function hasChildren<RenderProps extends PropsLike>(
-  demoProps: DemoProps<RenderProps>
-): demoProps is HasChildren {
+function hasChildren(demoProps: DemoProps): demoProps is HasChildren {
   return Object.prototype.hasOwnProperty.call(demoProps, "children")
 }
 
-function isRenderableWithProps<RenderProps extends PropsLike>(
-  demoProps: DemoProps<RenderProps>
-): demoProps is RenderableWithProps<RenderProps> {
-  return (
-    Object.prototype.hasOwnProperty.call(demoProps, "render") &&
-    Object.prototype.hasOwnProperty.call(demoProps, "props")
-  )
-}
-
-function isRenderableNoProps<RenderProps extends PropsLike>(
-  demoProps: DemoProps<RenderProps>
-): demoProps is RenderableNoProps {
+function isRenderable(demoProps: DemoProps): demoProps is RenderableNoProps {
   return (
     Object.prototype.hasOwnProperty.call(demoProps, "render") &&
     !Object.prototype.hasOwnProperty.call(demoProps, "props")
@@ -188,4 +174,5 @@ function formatTypescript(source: string) {
       semi: false,
     })
     .replace(/^;/, "")
+    .trim()
 }

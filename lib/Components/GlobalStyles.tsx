@@ -66,7 +66,7 @@ export const GlobalStyles = () => (
       }
 
       h2 {
-        font-size: 1em;
+        font-size: 1.1em;
         font-weight: 500;
         margin-top: 2em;
       }
@@ -120,6 +120,11 @@ export const GlobalStyles = () => (
       .ace_editor .ace_cursor-layer .ace_cursor {
         display: none !important;
       }
-  `}</style>
+
+      .ace_editor {
+        margin-left: -6px;
+      }
+
+`}</style>
   </>
 )
