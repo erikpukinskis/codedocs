@@ -1,13 +1,12 @@
 // @codedocs include-wrapper-in-source
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import React, { useState } from "react"
 // eslint-disable-next-line no-restricted-imports
-import { Demo, Doc } from "../macro"
-import { Placeholder } from "~/Placeholder"
+import { Demo, Doc, Placeholder } from "../macro"
 
 export default (
   <Doc path="/Docs/Demos">
     <h2>Full Width</h2>
-    <p>Here is some new stuff</p>
     <Demo>
       <Placeholder>By default, demos will be rendered full-width.</Placeholder>
     </Demo>
@@ -17,6 +16,10 @@ export default (
       <Placeholder style={{ width: "200px" }}>
         Inline demos only grow to fit the content width.
       </Placeholder>
+    </Demo>
+
+    <Demo inline>
+      <FontAwesomeIcon icon="check" />
     </Demo>
 
     <h2>Render Prop</h2>

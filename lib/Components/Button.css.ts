@@ -12,18 +12,3 @@ export const styledButton = style({
     color: "#333",
   },
 })
-
-export const linkButton = style({
-  "background": "none",
-  "padding": 0,
-  "border": "none",
-  "display": "inline",
-  "fontSize": "0.8em",
-  "cursor": "pointer",
-  "color": "#444",
-  "textShadow": "0.3px 0 0 currentColor",
-
-  ":hover": {
-    color: "#000",
-  },
-})

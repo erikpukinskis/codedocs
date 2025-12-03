@@ -16,8 +16,10 @@ type CodeProps = EditorProps & {
 
 export const Code = ({ className, source, mode }: CodeProps) => (
   <div className={`${styles.codeContainer} ${className || ""}`}>
-    <Editor source={source} mode={mode} />
-    <CopyButton source={source} />
+    <div className={styles.codeInnerContainer}>
+      <Editor source={source} mode={mode} />
+      <CopyButton source={source} />
+    </div>
   </div>
 )
 

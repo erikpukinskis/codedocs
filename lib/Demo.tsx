@@ -2,7 +2,6 @@ import prettier from "prettier"
 import parserTypescript from "prettier/parser-typescript"
 import React, { useEffect, useRef, useState } from "react"
 import { Code } from "./Code"
-import { useComponents } from "./ComponentContext"
 import * as styles from "./Demo.css"
 
 type ReactChildren =
@@ -34,7 +33,6 @@ export function Demo(props: DemoProps) {
   const [formatted, setFormatted] = useState("")
   const [showCode, setShowCode] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
-  const Components = useComponents()
 
   useEffect(() => {
     if (props.source) {
@@ -78,10 +76,16 @@ export function Demo(props: DemoProps) {
         <VerticalMark bottom left />
         <VerticalMark top right />
         <VerticalMark bottom right />
-        <div className={styles.tabs}>
-          <Components.LinkButton onClick={() => setShowCode(!showCode)}>
-            Source
-          </Components.LinkButton>
+
+        <div className={styles.tabsContainer}>
+          <div className={styles.tabs}>
+            <button
+              className={styles.tab({ active: showCode })}
+              onClick={() => setShowCode(!showCode)}
+            >
+              Source
+            </button>
+          </div>
         </div>
       </div>
 

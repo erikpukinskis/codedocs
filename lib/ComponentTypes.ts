@@ -68,7 +68,6 @@ export type Components = {
   SearchBox: React.FC<SearchBoxProps>
   Header: React.FC<HeaderProps>
   LayoutContainer: Container
-  LinkButton: React.FC<LinkButtonProps>
   LogoIcon: React.FC<LogoIconProps>
   Columns: Container
   FixedTopHeader: Container
