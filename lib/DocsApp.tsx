@@ -26,7 +26,7 @@ import {
   type PageOrParent,
 } from "~/helpers/buildSiteTree"
 import { NotFound } from "~/NotFound"
-import { PageContent, HomePageContent } from "~/PageContent"
+import { PageContent, HomePageComponent } from "~/PageContent"
 import { SearchContextProvider } from "~/SearchContext"
 import { SideNav } from "~/SideNav"
 
@@ -178,12 +178,7 @@ const WildcardRoute = ({ pagesByPath, copyright }: WildcardRouteProps) => {
     return <NotFound path={path} availablePaths={Object.keys(pagesByPath)} />
   } else if (isHomePage(currentPageOrParent)) {
     return (
-      <Components.Columns>
-        <Components.CenterColumn>
-          <HomePageContent page={currentPageOrParent} />
-          <Components.Footer copyright={copyright} />
-        </Components.CenterColumn>
-      </Components.Columns>
+      <HomePageComponent page={currentPageOrParent} copyright={copyright} />
     )
   } else if (isPage(currentPageOrParent)) {
     return <PageComponent page={currentPageOrParent} copyright={copyright} />

@@ -153,6 +153,7 @@ The general philosophy of Codedocs is
 Things that will probably happen:
 
 - [x] Search
+- [ ] Fullscreen demos
 - [ ] Render function has mock.callback argument
 - [ ] When Site Sections can't be shown, include them in the left nav
 - [ ] Add a 2nd breakpoint where we can have the menu trigger and the search bar

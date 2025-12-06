@@ -2,15 +2,14 @@ import { style } from "@vanilla-extract/css"
 
 export const codeContainer = style({
   borderRadius: 6,
-  background: "#0c0529",
+  background: "#15006e",
   opacity: "90%",
-  maxWidth: "45em",
-  paddingBottom: 4,
+  paddingBottom: 3,
 })
 
 export const codeInnerContainer = style({
   borderRadius: 6,
-  background: "#282A36",
+  background: "#4d446e",
   padding: 6,
   position: "relative",
 })

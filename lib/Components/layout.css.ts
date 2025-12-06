@@ -59,6 +59,7 @@ export const mainColumn = style({
   padding: 32,
   paddingBottom: 256,
   width: "90%",
+  maxWidth: "50em",
   position: "relative",
 })
 

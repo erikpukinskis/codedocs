@@ -125,6 +125,10 @@ export const GlobalStyles = () => (
         margin-left: -6px;
       }
 
+      .ace_editor, .ace_gutter {
+        background: #4d446e !important;
+      }
+
 `}</style>
   </>
 )

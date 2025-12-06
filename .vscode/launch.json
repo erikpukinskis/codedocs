@@ -7,7 +7,13 @@
       "name": "Debug Current Test File",
       "skipFiles": ["<node_internals>/**", "**/node_modules/**"],
       "program": "${workspaceRoot}/node_modules/vitest/vitest.mjs",
-      "args": ["related", "--config", "vite.test.config.js", "${relativeFile}"],
+      "args": [
+        "related",
+        "--no-watch",
+        "--config",
+        "vite.test.config.js",
+        "${relativeFile}"
+      ],
       "smartStep": true,
       "console": "integratedTerminal"
     }

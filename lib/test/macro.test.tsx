@@ -13,7 +13,9 @@ test.only("macro includes source of Demo children", () => {
 
   const { getByRole } = render(ui)
 
-  expect(getByRole("link", { name: "Demo With Children" })).toBeInTheDocument()
+  expect(
+    getByRole("heading", { name: "Demo With Children" })
+  ).toBeInTheDocument()
 })
 
 test("macro doesn't blow up if you use mock callbacks", () => {
