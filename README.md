@@ -150,25 +150,24 @@ The general philosophy of Codedocs is
 3. Work within the existing build
 4. Give the best possible realtime feedback
 
-Things that will probably happen:
+Roadmap to 1.0
 
+- [x] Render demos
+- [x] Site sections, pages, homepage, nav
+- [x] Prose documentation (HTML)
+- [x] Publish static sites
 - [x] Search
+- [x] Demos with state, hooks, etc
+- [x] Extract source vía macro
+- [x] Show events emitted from demos
+- [ ] Variant demos
+- [ ] ApiReference
+- [ ] Dark mode
+- [ ] Contact sheet
+- [ ] Live edit demos (at least on localhost)
+- [ ] Live edit headings, paragraphs, etc
+- [ ] Visual tests
 - [ ] Fullscreen demos
-- [ ] Render function has mock.callback argument
-- [ ] When Site Sections can't be shown, include them in the left nav
-- [ ] Add a 2nd breakpoint where we can have the menu trigger and the search bar
-- [ ] "Live" code samples
-- [ ] Server-side rendering
-- [x] Move the demos into the `<Doc>` block so you can lay out those pages explicitly
-- [ ] An `<API>` helper component for documenting component apis
-- [x] Babel macro which can grab the code for your demos
-- [ ] A contact sheet so you can visually scan for the control you're looking for
-
-Things that _might_ happen:
-
-- Visual tests
-- In-browser unit tests
-- Editing mode
 
 ### Inspiration
 

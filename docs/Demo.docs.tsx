@@ -3,7 +3,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import React, { useState } from "react"
 // eslint-disable-next-line no-restricted-imports
 import { Demo, Doc, Placeholder } from "../macro"
-import type { DemoContext } from "~/Demo"
 
 export default (
   <Doc path="/Docs/Demos">
@@ -45,28 +44,34 @@ export default (
     </p>
     <Demo
       inline
-      render={({ mock }: DemoContext) => (
-        <button onClick={mock.callback("onClick")}>Fire a mouse event</button>
+      render={({ mock }) => (
+        <button onClick={mock.callback("handleClick")}>
+          Fire a mouse event
+        </button>
       )}
     />
     <p>Or a callback with some other arguments:</p>
     <Demo
       inline
-      render={({ mock }: DemoContext) => (
-        <button
-          onClick={() =>
-            mock.callback("myHandler")(
-              400,
-              function baz() {
-                return true
-              },
-              new Date()
-            )
-          }
-        >
-          Fire custom callback
-        </button>
-      )}
+      render={({ mock }) => {
+        const handleArgs = mock.callback("handleArgs")
+
+        return (
+          <button
+            onClick={() =>
+              handleArgs(
+                400,
+                function baz() {
+                  return true
+                },
+                new Date()
+              )
+            }
+          >
+            Fire custom callback
+          </button>
+        )
+      }}
     />
   </Doc>
 )

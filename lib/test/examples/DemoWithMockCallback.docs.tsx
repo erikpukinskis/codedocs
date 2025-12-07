@@ -7,7 +7,7 @@ export default <Doc path="/" />
 export const DemoWithMockCallback = (
   <Demo
     render={({ mock }) => (
-      <button onClick={mock.callback("onClick")}>Fire a mouse event</button>
+      <button onClick={mock.callback("handleClick")}>Fire a mouse event</button>
     )}
   />
 )

@@ -165,7 +165,6 @@ type WildcardRouteProps = {
 }
 
 const WildcardRoute = ({ pagesByPath, copyright }: WildcardRouteProps) => {
-  const Components = useComponents()
   const location = useLocation()
   const path = getPathFromLocation(location)
   const currentPageOrParent = pagesByPath[path]
