@@ -84,7 +84,7 @@ export const tab = recipe({
         "textShadow": "none",
         "color": "white",
         "textDecorationColor": "white",
-        "background": "#3e404b",
+        "background": "#5f577d",
         ":hover": {
           color: "white",
         },

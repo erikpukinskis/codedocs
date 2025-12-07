@@ -1,4 +1,5 @@
 {
+  "typescript.tsc.autoDetect": "off",
   "workbench.startupEditor": "none",
   "workbench.colorTheme": "GitHub Dark",
   "workbench.colorCustomizations": {

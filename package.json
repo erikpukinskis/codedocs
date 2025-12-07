@@ -102,8 +102,10 @@
     "start:docs:dev": "vite serve docs --config vite.docs.config.js",
     "test": "vitest run --config vite.test.config.js",
     "watch": "chokidar . --initial --ignore /^dist/ --ignore /^[.]git/ --ignore /^node_modules/",
-    "watch:build": "yarn run watch -c \"yarn build\"",
-    "watch:build:yalc": "yarn run watch -c \"yarn build && yalc push\"",
-    "watch:test": "vitest watch --config vite.test.config.js"
+    "watch:build": "yarn run watch -c 'yarn build'",
+    "watch:build:yalc": "yarn run watch -c 'yarn build && yalc push'",
+    "watch:lint": "yarn run watch -c 'yarn eslint --format compact .'",
+    "watch:test": "vitest watch --config vite.test.config.js",
+    "watch:types": "tsc --noEmit --watch -p tsconfig.json"
   }
 }

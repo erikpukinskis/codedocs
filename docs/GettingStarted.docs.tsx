@@ -9,9 +9,7 @@ export default (
       We're assuming you've already done this, since you're an app developer.
       Another easy way to get an app set up is to use Confgen:
     </p>
-    <Code
-      source={`npx confgen@latest @docs yarn git typescript react eslint prettier codedocs`}
-    />
+    <Code source="npx confgen@latest @docs yarn git typescript react eslint prettier codedocs" />
     <h2>Step 2: Write some docs</h2>
     <p>
       Codedocs should live next to your code. They can import from your code

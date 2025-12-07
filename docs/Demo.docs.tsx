@@ -38,5 +38,40 @@ export default (
         )
       }}
     />
+    <p>
+      You can also track callbacks in the demo using a mock callback factory.
+      For example, a mouse handler:
+    </p>
+    <Demo
+      inline
+      render={({ mock }) => (
+        <button onClick={mock.callback("handleClick")}>
+          Fire a mouse event
+        </button>
+      )}
+    />
+    <p>Or a callback with some other arguments:</p>
+    <Demo
+      inline
+      render={({ mock }) => {
+        const handleArgs = mock.callback("handleArgs")
+
+        return (
+          <button
+            onClick={() =>
+              handleArgs(
+                400,
+                function baz() {
+                  return true
+                },
+                new Date()
+              )
+            }
+          >
+            Fire custom callback
+          </button>
+        )
+      }}
+    />
   </Doc>
 )

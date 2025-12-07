@@ -73,8 +73,16 @@ module.exports = createMacro(function Demo({ references, state, babel }) {
           if (includeWrapperInSource) {
             source = getSource(demoIdentifier.parentPath.node)
           } else {
-            const bodySource = getSource(path.node.expression.body)
-            source = bodySource.slice(1, bodySource.length - 2)
+            const body = path.node.expression.body
+            const bodySource = getSource(body)
+
+            if (body.type === "BlockStatement") {
+              // For block statements like () => { return <div/> }, remove the braces
+              source = bodySource.slice(1, bodySource.length - 1).trim()
+            } else {
+              // For concise arrow functions like () => <div/>, use as-is
+              source = bodySource
+            }
           }
 
           setSourceAttribute(demoIdentifier.node, source)

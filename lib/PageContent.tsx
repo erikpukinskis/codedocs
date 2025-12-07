@@ -25,10 +25,28 @@ export const PageContent = ({ page }: PageContentProps) => {
   )
 }
 
-type HomePageContentProps = {
+type HomePageComponentProps = {
   page: HomePage
+  copyright: string
 }
 
-export const HomePageContent = ({ page }: HomePageContentProps) => {
-  return page.doc
+export const HomePageComponent = ({
+  page,
+  copyright,
+}: HomePageComponentProps) => {
+  const Components = useComponents()
+  return (
+    <Components.Columns>
+      <Components.CenterColumn>
+        {page.doc}
+        {Object.entries(page.demos).map(([name, demo]) => (
+          <React.Fragment key={name}>
+            <Components.DemoHeading>{addSpaces(name)}</Components.DemoHeading>
+            {demo}
+          </React.Fragment>
+        ))}
+        <Components.Footer copyright={copyright} />
+      </Components.CenterColumn>
+    </Components.Columns>
+  )
 }

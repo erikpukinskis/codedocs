@@ -37,7 +37,7 @@ const Editor = ({ source, mode }: EditorProps) => {
       mode={mode ?? "sh"}
       theme="dracula"
       name={name}
-      fontSize={15}
+      fontSize={14}
       minLines={2}
       maxLines={999}
       width="100%"

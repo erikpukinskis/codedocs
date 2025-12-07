@@ -14,6 +14,7 @@ export default defineConfig({
     tsconfigPaths(),
     vanillaExtractPlugin(),
     react({
+      fastRefresh: false,
       babel: {
         plugins: ["babel-plugin-macros"],
       },
