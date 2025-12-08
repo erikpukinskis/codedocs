@@ -58,7 +58,7 @@ export const mainColumn = style({
   marginTop: "var(--header-height)",
   padding: 32,
   paddingBottom: 256,
-  width: "90%",
+  width: "40em",
   maxWidth: "50em",
   position: "relative",
 })
