@@ -1,6 +1,6 @@
 import prettier from "prettier"
 import parserTypescript from "prettier/parser-typescript"
-import React, { useEffect, useRef, useState } from "react"
+import React, { useEffect, useMemo, useRef, useState } from "react"
 import { Code } from "./Code"
 import * as styles from "./Demo.css"
 import { EventLog, type CallbackEvent } from "./EventLog"
@@ -13,6 +13,7 @@ type ReactChildren =
 
 type DemoPropsWithChildren = {
   children: ReactChildren | Array<ReactChildren>
+  defaultValue?: never
   only?: boolean
   skip?: boolean
 }
@@ -21,31 +22,38 @@ type CallbackFactory = (name: string) => (...args: unknown[]) => void
 
 export type PropsLike = Record<string, unknown>
 
-export type DemoContext = {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type DemoContext<T = any> = {
+  value: T
+  setValue: (value: T) => void
   mock: {
     callback: CallbackFactory
   }
 }
 
-type DemoPropsWithRenderFunction = {
-  render: React.FC<DemoContext>
+type DemoPropsWithRenderFunction<T = unknown> = {
+  render: React.FC<DemoContext<T>>
+  defaultValue?: T
   only?: boolean
   skip?: boolean
 }
 
-export type DemoProps = (
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type DemoProps<T = any> = (
   | DemoPropsWithChildren
-  | DemoPropsWithRenderFunction
+  | DemoPropsWithRenderFunction<T>
 ) & {
   source?: string
   inline?: boolean
 }
 
-export function Demo(props: DemoProps) {
+export function Demo<T>(props: DemoProps<T>) {
   const [formatted, setFormatted] = useState("")
   const [showCode, setShowCode] = useState(false)
   const [events, setEvents] = useState<CallbackEvent[]>([])
   const containerRef = useRef<HTMLDivElement>(null)
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  const [value, setValue] = useState(props.defaultValue)
 
   useEffect(() => {
     if (props.source) {
@@ -56,21 +64,27 @@ export function Demo(props: DemoProps) {
   }, [props.source])
 
   // Create the context object to pass to render functions
-  const demoContext: DemoContext = {
-    mock: {
-      callback: (name: string) => {
-        return (...args: unknown[]) => {
-          const event: CallbackEvent = {
-            id: Math.random().toString(36).slice(2, 10),
-            name,
-            args,
-            time: Date.now().valueOf(),
+  const demoContext = useMemo<DemoContext>(
+    () => ({
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      value,
+      setValue,
+      mock: {
+        callback: (name: string) => {
+          return (...args: unknown[]) => {
+            const event: CallbackEvent = {
+              id: Math.random().toString(36).slice(2, 10),
+              name,
+              args,
+              time: Date.now().valueOf(),
+            }
+            setEvents((prev) => [event, ...prev])
           }
-          setEvents((prev) => [event, ...prev])
-        }
+        },
       },
-    },
-  }
+    }),
+    [value]
+  )
 
   let demoArea: JSX.Element
 

@@ -129,6 +129,14 @@ export const GlobalStyles = () => (
         background: #4d446e !important;
       }
 
+      code {
+        background: #ede8ff;
+        padding: 2px 4px;
+        color: #6b54c0;
+        font-size: 0.85em;
+        vertical-align: 0.4px;
+        border-radius: 4px;
+      }
 `}</style>
   </>
 )
