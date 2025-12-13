@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import React, { useState } from "react"
 // eslint-disable-next-line no-restricted-imports
 import { Demo, Doc, Placeholder } from "../macro"
+import { Code } from "~/Code"
 
 export default (
   <Doc path="/Docs/Demos">
@@ -38,6 +39,8 @@ export default (
         )
       }}
     />
+
+    <h2>Mock Callbacks/Handlers</h2>
     <p>
       You can also track callbacks in the demo using a mock callback factory.
       For example, a mouse handler:
@@ -73,5 +76,40 @@ export default (
         )
       }}
     />
+
+    <h2>Basic State</h2>
+    <p>
+      Your render function will also be provided with a very basic state setter
+      and getter.
+    </p>
+    <p>
+      You can set an explicit type on a <code>defaultValue</code> if you are in
+      strict mode.
+    </p>
+    <Demo
+      inline
+      defaultValue={"" as string | undefined}
+      render={({ value, setValue }) => (
+        <input
+          type="text"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+        />
+      )}
+    />
   </Doc>
+)
+
+export const _NamingExportedDemos = (
+  <Demo>
+    <p>
+      If you export demos with a leading underscore, it will be removed. This is
+      useful to avoid conflicts with your component names:
+    </p>
+    <Code source={"export const _Button = <Button>Hello, world</Button>"} />
+    <p>Spaces are also added between words:</p>
+    <Code
+      source={"export const DefaultButton = <Button>Start a project</Button>"}
+    />
+  </Demo>
 )
