@@ -8,6 +8,8 @@ export const nameFromPath = (path: string) => {
 }
 
 export const addSpaces = (name: string) => {
+  if (name[0].toLowerCase() === name[0] && name[0] !== "_") return name
+
   return name
     .replace(/^_/, "")
     .replace(/([A-Z])/g, " $1")

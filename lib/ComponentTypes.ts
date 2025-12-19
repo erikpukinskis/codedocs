@@ -51,6 +51,7 @@ export type CardProps = {
 export type LogoIconProps = Parameters<typeof FontAwesomeIcon>[0]
 
 export type ButtonProps = {
+  secondary?: boolean
   onClick?(event: React.MouseEvent): void
   children: React.ReactNode
 }

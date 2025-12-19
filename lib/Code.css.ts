@@ -2,7 +2,7 @@ import { style } from "@vanilla-extract/css"
 
 export const codeContainer = style({
   borderRadius: 6,
-  background: "#15006e",
+  background: "#2d1c75",
   opacity: "90%",
   paddingBottom: 3,
 })
@@ -19,4 +19,7 @@ export const copyButtonContainer = style({
   zIndex: 1,
   right: 8,
   bottom: 8,
+  display: "flex",
+  flexDirection: "row",
+  gap: 4,
 })

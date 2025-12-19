@@ -7,6 +7,34 @@ import { Code } from "~/Code"
 
 export default (
   <Doc path="/Docs/Demos">
+    <h2>Absolute Positioned Content</h2>
+    <p>
+      If you would like to expand the demo area to include some absolute
+      positioned content, you can pass selectors to include in the demo area.
+    </p>
+    <p>
+      Note that this bounding box is only calculated once after the demo is
+      mounted, not for updates.
+    </p>
+    <Demo inline boundingSelectors={["#dropdown"]}>
+      <Placeholder style={{ position: "relative" }}>
+        Selected
+        <Placeholder
+          id="dropdown"
+          style={{
+            position: "absolute",
+            top: "calc(100% + 10px)",
+            whiteSpace: "nowrap",
+          }}
+        >
+          Option 1
+          <br />
+          Option 2
+          <br />
+          Option 3
+        </Placeholder>
+      </Placeholder>
+    </Demo>
     <h2>Full Width</h2>
     <Demo>
       <Placeholder>By default, demos will be rendered full-width.</Placeholder>
@@ -97,6 +125,19 @@ export default (
         />
       )}
     />
+    <h2>Overflowing Elements</h2>
+    <p>
+      Elements which are too wide to fit in the document content div are allowed
+      to overflow, but you will see the crop marks where the overflow happens.
+    </p>
+    <p>A fullscreen mode demos that need more space is coming soon.</p>
+    <Demo inline>
+      <Placeholder style={{ whiteSpace: "nowrap" }}>
+        Elements which are too wide to fit in the document content div are
+        allowed to overflow, but you will see the crop marks where the overflow
+        happens.
+      </Placeholder>
+    </Demo>
   </Doc>
 )
 
@@ -112,4 +153,12 @@ export const _NamingExportedDemos = (
       source={"export const DefaultButton = <Button>Start a project</Button>"}
     />
   </Demo>
+)
+
+export const ErrorsInDemos = (
+  <Demo
+    render={() => {
+      throw new Error("This is a test error")
+    }}
+  />
 )
