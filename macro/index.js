@@ -37,6 +37,75 @@ module.exports = createMacro(function Demo({ references, state, babel }) {
     }
   }
 
+  /**
+   * Finds the dependencies attribute and extracts source for each dependency.
+   * Adds a dependencySources attribute with the extracted sources.
+   */
+  function setDependencySourcesAttribute(openingElement) {
+    const dependenciesAttr = openingElement.attributes.find(
+      (attr) =>
+        attr.type === "JSXAttribute" &&
+        attr.name.name === "dependencies" &&
+        attr.value?.type === "JSXExpressionContainer"
+    )
+
+    if (!dependenciesAttr) return
+
+    const objExpr = dependenciesAttr.value.expression
+    if (objExpr.type !== "ObjectExpression") return
+
+    // Transform: dependencies={{ ChildComponent: () => <div/> }}
+    // Into:      dependencySources={{ "ChildComponent": `() => <div/>` }}
+    //
+    // We iterate over each property in the dependencies object and build
+    // a corresponding property for dependencySources where the value is
+    // the raw source code string (as a template literal).
+    const dependencySourcesProperties = objExpr.properties
+      // Filter for actual object properties (Babel uses "ObjectProperty",
+      // some parsers use "Property" - handle both)
+      .filter(
+        (prop) => prop.type === "ObjectProperty" || prop.type === "Property"
+      )
+      .map((prop) => {
+        // Get the property name, e.g. "ChildComponent"
+        // Handles both `ChildComponent: ...` (Identifier) and `"ChildComponent": ...` (StringLiteral)
+        const keyName =
+          prop.key.type === "Identifier" ? prop.key.name : prop.key.value
+
+        // Extract the raw source code of the value (the component function)
+        // e.g. "() => { const data = useMyHook(); return <>{data}</> }"
+        const valueSource = getSource(prop.value, code)
+
+        // Build an AST node for: "ChildComponent": `() => { ... }`
+        return babel.types.objectProperty(
+          babel.types.stringLiteral(keyName),
+          babel.types.templateLiteral(
+            [babel.types.templateElement({ raw: valueSource }, true)],
+            []
+          )
+        )
+      })
+
+    if (dependencySourcesProperties.length === 0) return
+
+    // Guard against adding duplicates (the traverse runs once per Demo in the file,
+    // so this function gets called multiple times for the same element)
+    const alreadyHasDependencySources = openingElement.attributes.some(
+      (attr) =>
+        attr.type === "JSXAttribute" && attr.name.name === "dependencySources"
+    )
+    if (alreadyHasDependencySources) return
+
+    const dependencySourcesAttr = babel.types.jsxAttribute(
+      babel.types.jsxIdentifier("dependencySources"),
+      babel.types.jsxExpressionContainer(
+        babel.types.objectExpression(dependencySourcesProperties)
+      )
+    )
+
+    openingElement.attributes.push(dependencySourcesAttr)
+  }
+
   Demo.forEach(function processCodedocsDemo(nodePath) {
     if (nodePath.parentPath.node.type !== "JSXOpeningElement") return
 
@@ -69,6 +138,7 @@ module.exports = createMacro(function Demo({ references, state, babel }) {
           }
 
           setSourceAttribute(jsxElement.openingElement, source)
+          setDependencySourcesAttribute(jsxElement.openingElement)
         },
         JSXExpressionContainer(path, state) {
           if (!isDemoIdentifier(path.parentPath.parentPath)) return
@@ -77,8 +147,14 @@ module.exports = createMacro(function Demo({ references, state, babel }) {
 
           if (!isRenderAttribute(path.parentPath)) return
 
+          const noWrapperInSource = demoIdentifier.node.attributes.find(
+            (attr) =>
+              attr.type === "JSXAttribute" &&
+              attr.name.name === "noWrapperInSource"
+          )
+
           let source
-          if (includeWrapperInSource) {
+          if (includeWrapperInSource && !noWrapperInSource) {
             source = getSource(demoIdentifier.parentPath.node, code)
           } else {
             const body = path.node.expression.body

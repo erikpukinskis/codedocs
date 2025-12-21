@@ -10,7 +10,7 @@ export type DocChunk = {
  */
 function isDemo(
   element: React.ReactElement
-): element is React.ReactElement<DemoProps> {
+): element is React.ReactElement<DemoProps<unknown>> {
   return element.type === Demo
 }
 

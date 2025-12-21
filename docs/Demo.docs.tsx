@@ -92,6 +92,30 @@ export const DemoDocs = (
         />
       )}
     />
+    <h2>Multi-component demos</h2>
+    <p>
+      Sometimes you want to demonstrate something that requires some additional
+      components, hooks, etc. You can specify additional "dependencies" that can
+      be used by your render function. For example, when you want to demonstrate
+      a context provider and a hook:
+    </p>
+    <Demo
+      only
+      noWrapperInSource
+      dependencies={{
+        ChildComponent: () => {
+          const data = useMyHook()
+          return <>{data}</>
+        },
+      }}
+      render={({ ChildComponent }) => {
+        return (
+          <MyProvider>
+            <ChildComponent />
+          </MyProvider>
+        )
+      }}
+    />
     <h2>Overflowing Elements</h2>
     <p>
       Elements which are too wide to fit in the document content div are allowed
@@ -166,3 +190,16 @@ export const DemoDocs = (
     </Demo>
   </Doc>
 )
+
+const MyProvider = ({ children }: { children: React.ReactNode }) => {
+  return (
+    <Placeholder>
+      <h3>MyProvider</h3>
+      {children}
+    </Placeholder>
+  )
+}
+
+const useMyHook = () => {
+  return "[hook data]"
+}
