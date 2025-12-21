@@ -3,6 +3,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import React, { useState } from "react"
 // eslint-disable-next-line no-restricted-imports
 import { Demo, Doc, Placeholder } from "../macro"
+import { Code } from "~/Code"
 
 export const DemoDocs = (
   <Doc path="/Docs/Demos">
@@ -10,18 +11,15 @@ export const DemoDocs = (
     <Demo>
       <Placeholder>By default, demos will be rendered full-width.</Placeholder>
     </Demo>
-
     <h2>Inline</h2>
     <Demo inline>
       <Placeholder style={{ width: "200px" }}>
         Inline demos only grow to fit the content width.
       </Placeholder>
     </Demo>
-
     <Demo inline>
       <FontAwesomeIcon icon="check" />
     </Demo>
-
     <h2>Render Prop</h2>
     <p>
       If your demo needs state, or other hooks, you can provide a render prop
@@ -38,7 +36,6 @@ export const DemoDocs = (
         )
       }}
     />
-
     <h2>Mock Callbacks/Handlers</h2>
     <p>
       You can also track callbacks in the demo using a mock callback factory.
@@ -75,7 +72,6 @@ export const DemoDocs = (
         )
       }}
     />
-
     <h2>Basic State</h2>
     <p>
       Your render function will also be provided with a very basic state setter
@@ -109,13 +105,36 @@ export const DemoDocs = (
         happens.
       </Placeholder>
     </Demo>
-
     <h2>Errors In Demos</h2>
     <p>When an error occurs in a demo, it will be caught and displayed:</p>
     <Demo
       render={() => {
         throw new Error("This is a test error")
       }}
+    />
+    <h2>Skipping demos</h2>
+    If you have a broken demo that you would like to ignore temporarily, you can
+    add the <code>skip</code> prop:
+    <Demo
+      skip
+      render={() => {
+        throw new Error("This component would crash")
+      }}
+    />
+    <h2>Focus mode</h2>
+    <p>
+      You can focus on a specific demo (or three) by adding the{" "}
+      <code>only</code> prop:
+    </p>
+    <Code
+      mode="tsx"
+      source={`<h2>Focused demo</h2>
+<p>Additional elements back to the preceding heading will be shown.</p>
+<Demo only>This demo will be rendered</Demo>
+
+<h2>Hidden demo</h2>
+<p>Content around the hidden demos is hidden too.</p>
+<Demo>This demo will be hidden</Demo>`}
     />
     <h2>Absolute Positioned Content</h2>
     <p>

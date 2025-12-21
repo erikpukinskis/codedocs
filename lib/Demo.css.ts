@@ -93,3 +93,20 @@ export const tab = recipe({
     },
   },
 })
+
+export const skippedDemo = style({
+  background: "#ffbc2c",
+  fontSize: "0.85em",
+  color: "white",
+  paddingInline: 14,
+  paddingBlock: 10,
+  borderRadius: 8,
+  boxShadow: "0px 2px 10px 0px inset #ffa33c",
+  borderBottom: "1px solid #ffd79d",
+})
+
+export const outdentIcon = style({
+  position: "absolute",
+  top: 13,
+  left: -22,
+})

@@ -1,3 +1,4 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import prettier from "prettier"
 import parserTypescript from "prettier/parser-typescript"
 import React, {
@@ -21,8 +22,6 @@ type ReactChildren =
 type DemoPropsWithChildren = {
   children: ReactChildren | Array<ReactChildren>
   defaultValue?: never
-  only?: boolean
-  boundingSelectors?: string[]
 }
 
 type CallbackFactory = (name: string) => (...args: unknown[]) => void
@@ -41,8 +40,6 @@ export type DemoContext<T = any> = {
 type DemoPropsWithRenderFunction<T = unknown> = {
   render: React.FC<DemoContext<T>>
   defaultValue?: T
-  only?: boolean
-  boundingSelectors?: string[]
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -52,6 +49,9 @@ export type DemoProps<T = any> = (
 ) & {
   source?: string
   inline?: boolean
+  skip?: boolean
+  only?: boolean
+  boundingSelectors?: string[]
 }
 
 export function Demo<T>(props: DemoProps<T>) {
@@ -107,14 +107,18 @@ export function Demo<T>(props: DemoProps<T>) {
         className={styles.demoContainer({ inline })}
         data-component="DemoContainer"
       >
-        <ErrorBoundary location="demo-area">
-          <DemoArea
-            inline={inline}
-            props={props}
-            context={demoContext}
-            boundingSelectors={props.boundingSelectors}
-          />
-        </ErrorBoundary>
+        {props.skip ? (
+          <SkippedDemo />
+        ) : (
+          <ErrorBoundary location="demo-area">
+            <DemoArea
+              inline={inline}
+              props={props}
+              context={demoContext}
+              boundingSelectors={props.boundingSelectors}
+            />
+          </ErrorBoundary>
+        )}
 
         <div className={styles.tabsContainer}>
           <div className={styles.tabs}>
@@ -136,6 +140,19 @@ export function Demo<T>(props: DemoProps<T>) {
           onClickClose={() => setShowCode(false)}
         />
       )}
+    </div>
+  )
+}
+
+const SkippedDemo: React.FC = () => {
+  return (
+    <div data-component="SkippedDemo" className={styles.skippedDemo}>
+      <FontAwesomeIcon
+        icon="eye-slash"
+        color="#ffa800"
+        className={styles.outdentIcon}
+      />
+      This demo has been skipped.
     </div>
   )
 }
