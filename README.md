@@ -33,31 +33,31 @@ Design choices in Codedocs have been made to address some places where Storybook
 
 Your documentation files can still live alongside your code, but they just export JSX elements:
 
-```js
+```tsx
 // Button.docs.tsx
 import React from "react"
 import { Doc, Demo } from "codedocs"
 import { Button } from "./Button"
 
-export default (
+export const ButtonDocs = (
   <Doc path="/Controls/Button">
-    The Button is meant to be used for everything that can be tapped, whether or
-    not it has a background.
+    <p>
+      The Button is meant to be used for everything that can be tapped, whether
+      or not it has a background.
+    </p>
+    <h2>Basic Button</h2>
+    <Demo>
+      <Button>Save</Button>
+    </Demo>
   </Doc>
-)
-
-export const BasicButton = (
-  <Demo>
-    <Button>Save</Button>
-  </Demo>
 )
 ```
 
 Then, you can go ahead and use create-react-app or install Vite and throw an index.html somewhere,
 that's up to you. To get the site working, all you need to do is render `<DocsApp>` in there:
 
-```js
-import * as ButtonDocs from "./Button.docs"
+```tsx
+import { ButtonDocs } from "./Button.docs"
 import { DocsApp } from "codedocs"
 import React from "react"
 import { render } from "react-dom"
