@@ -2,7 +2,7 @@ import React from "react"
 // eslint-disable-next-line no-restricted-imports
 import { Doc, Code } from "../macro"
 
-export default (
+export const HomePageDocs = (
   <Doc path="/">
     <h1 id="document-code-in-code">
       Document code <em>in</em> code

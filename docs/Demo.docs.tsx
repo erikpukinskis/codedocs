@@ -3,9 +3,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import React, { useState } from "react"
 // eslint-disable-next-line no-restricted-imports
 import { Demo, Doc, Placeholder } from "../macro"
-import { Code } from "~/Code"
 
-export default (
+export const DemoDocs = (
   <Doc path="/Docs/Demos">
     <h2>Absolute Positioned Content</h2>
     <p>
@@ -138,27 +137,13 @@ export default (
         happens.
       </Placeholder>
     </Demo>
-  </Doc>
-)
 
-export const _NamingExportedDemos = (
-  <Demo>
-    <p>
-      If you export demos with a leading underscore, it will be removed. This is
-      useful to avoid conflicts with your component names:
-    </p>
-    <Code source={"export const _Button = <Button>Hello, world</Button>"} />
-    <p>Spaces are also added between words:</p>
-    <Code
-      source={"export const DefaultButton = <Button>Start a project</Button>"}
+    <h2>Errors In Demos</h2>
+    <p>When an error occurs in a demo, it will be caught and displayed:</p>
+    <Demo
+      render={() => {
+        throw new Error("This is a test error")
+      }}
     />
-  </Demo>
-)
-
-export const ErrorsInDemos = (
-  <Demo
-    render={() => {
-      throw new Error("This is a test error")
-    }}
-  />
+  </Doc>
 )

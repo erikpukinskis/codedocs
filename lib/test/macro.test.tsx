@@ -3,13 +3,17 @@ import React from "react"
 import { expect, test } from "vitest"
 // eslint-disable-next-line no-restricted-imports
 import { DocsApp } from "../../macro"
-import * as DemoWithChildren from "./examples/DemoWithChildren.docs"
-import * as DemoWithMockCallback from "./examples/DemoWithMockCallback.docs"
-import * as DemoWithRenderProp from "./examples/DemoWithRenderProp.docs"
+import { DemoWithChildrenDocs } from "./examples/DemoWithChildren.docs"
+import { DemoWithMockCallbackDocs } from "./examples/DemoWithMockCallback.docs"
+import { DemoWithRenderPropDocs } from "./examples/DemoWithRenderProp.docs"
 
 test("macro includes source of Demo children", () => {
   const ui = (
-    <DocsApp logo="Codedocs Tests" icon="children" docs={[DemoWithChildren]} />
+    <DocsApp
+      logo="Codedocs Tests"
+      icon="children"
+      docs={[DemoWithChildrenDocs]}
+    />
   )
 
   const { getByRole } = render(ui)
@@ -26,7 +30,7 @@ test("shows the body of the render prop in a Demo", () => {
     <DocsApp
       logo="Codedocs Tests"
       icon="children"
-      docs={[DemoWithRenderProp]}
+      docs={[DemoWithRenderPropDocs]}
     />
   )
 
@@ -41,7 +45,11 @@ test("shows the body of the render prop in a Demo", () => {
 
 test("macro doesn't blow up if you use mock callbacks", () => {
   const ui = (
-    <DocsApp logo="Codedocs Tests" icon="ghost" docs={[DemoWithMockCallback]} />
+    <DocsApp
+      logo="Codedocs Tests"
+      icon="ghost"
+      docs={[DemoWithMockCallbackDocs]}
+    />
   )
 
   const { getByRole } = render(ui)

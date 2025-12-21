@@ -15,12 +15,6 @@ export const PageContent = ({ page }: PageContentProps) => {
     <ErrorBoundary>
       <Components.PageHeading>{addSpaces(page.name)}</Components.PageHeading>
       {page.doc}
-      {Object.entries(page.demos).map(([name, demo]) => (
-        <React.Fragment key={name}>
-          <Components.DemoHeading>{addSpaces(name)}</Components.DemoHeading>
-          {demo}
-        </React.Fragment>
-      ))}
     </ErrorBoundary>
   )
 }
@@ -39,12 +33,6 @@ export const HomePageComponent = ({
     <Components.Columns>
       <Components.CenterColumn>
         {page.doc}
-        {Object.entries(page.demos).map(([name, demo]) => (
-          <React.Fragment key={name}>
-            <Components.DemoHeading>{addSpaces(name)}</Components.DemoHeading>
-            {demo}
-          </React.Fragment>
-        ))}
         <Components.Footer copyright={copyright} />
       </Components.CenterColumn>
     </Components.Columns>
