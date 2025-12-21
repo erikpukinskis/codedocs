@@ -68,7 +68,7 @@ export const GlobalStyles = () => (
       h2 {
         font-size: 1.1em;
         font-weight: 500;
-        margin-top: 2em;
+        margin-block: 1em;
       }
 
       h3 {

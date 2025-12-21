@@ -15,7 +15,7 @@ export const demoWithCode = style({
 export const demoContainer = recipe({
   base: {
     position: "relative",
-    marginBottom: "calc(0.8em + 12px)",
+    paddingBottom: "calc(0.8em + 8px + 4px)",
     maxWidth: "100%",
   },
   variants: {
@@ -43,7 +43,7 @@ export const demoContainer = recipe({
  */
 export const tabsContainer = style({
   position: "absolute",
-  top: "100%",
+  bottom: 0,
   right: 0,
   maxWidth: "100%",
 })
@@ -63,10 +63,9 @@ export const tab = recipe({
     "zIndex": 1,
     "background": "none",
     "marginTop": 2,
-    "paddingTop": 6,
-    "paddingBottom": 12,
-    "borderTopLeftRadius": 6,
-    "borderTopRightRadius": 6,
+    "paddingInline": 6,
+    "paddingBlock": 4,
+    "borderRadius": 4,
     "border": "none",
     "fontSize": "0.8em",
     "cursor": "pointer",
@@ -86,6 +85,7 @@ export const tab = recipe({
         "color": "white",
         "textDecorationColor": "white",
         "background": "#5f577d",
+        "boxShadow": "0 10px 0 0 #5f577d",
         ":hover": {
           color: "white",
         },

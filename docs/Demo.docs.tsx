@@ -151,13 +151,15 @@ export const DemoDocs = (
     </p>
     <Code
       mode="tsx"
-      source={`<h2>Focused demo</h2>
-<p>Additional elements back to the preceding heading will be shown.</p>
-<Demo only>This demo will be rendered</Demo>
+      source={`<Doc path="/">
+  <h2>Focused demo</h2>
+  <p>Additional elements back to the preceding heading will be shown.</p>
+  <Demo only>Only this demo will be rendered</Demo>
 
-<h2>Hidden demo</h2>
-<p>Content around the hidden demos is hidden too.</p>
-<Demo>This demo will be hidden</Demo>`}
+  <h2>Hidden demo</h2>
+  <p>Content around the hidden demos is hidden too.</p>
+  <Demo>This demo will be hidden</Demo>
+</Doc>`}
     />
     <h2>Absolute Positioned Content</h2>
     <p>
