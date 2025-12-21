@@ -5,52 +5,21 @@ import React, { useState } from "react"
 import { Demo, Doc, Placeholder } from "../macro"
 import { Code } from "~/Code"
 
-export default (
+export const DemoDocs = (
   <Doc path="/Docs/Demos">
-    <h2>Absolute Positioned Content</h2>
-    <p>
-      If you would like to expand the demo area to include some absolute
-      positioned content, you can pass selectors to include in the demo area.
-    </p>
-    <p>
-      Note that this bounding box is only calculated once after the demo is
-      mounted, not for updates.
-    </p>
-    <Demo inline boundingSelectors={["#dropdown"]}>
-      <Placeholder style={{ position: "relative" }}>
-        Selected
-        <Placeholder
-          id="dropdown"
-          style={{
-            position: "absolute",
-            top: "calc(100% + 10px)",
-            whiteSpace: "nowrap",
-          }}
-        >
-          Option 1
-          <br />
-          Option 2
-          <br />
-          Option 3
-        </Placeholder>
-      </Placeholder>
-    </Demo>
     <h2>Full Width</h2>
     <Demo>
       <Placeholder>By default, demos will be rendered full-width.</Placeholder>
     </Demo>
-
     <h2>Inline</h2>
     <Demo inline>
       <Placeholder style={{ width: "200px" }}>
         Inline demos only grow to fit the content width.
       </Placeholder>
     </Demo>
-
     <Demo inline>
       <FontAwesomeIcon icon="check" />
     </Demo>
-
     <h2>Render Prop</h2>
     <p>
       If your demo needs state, or other hooks, you can provide a render prop
@@ -67,7 +36,6 @@ export default (
         )
       }}
     />
-
     <h2>Mock Callbacks/Handlers</h2>
     <p>
       You can also track callbacks in the demo using a mock callback factory.
@@ -104,7 +72,6 @@ export default (
         )
       }}
     />
-
     <h2>Basic State</h2>
     <p>
       Your render function will also be provided with a very basic state setter
@@ -138,27 +105,64 @@ export default (
         happens.
       </Placeholder>
     </Demo>
-  </Doc>
-)
-
-export const _NamingExportedDemos = (
-  <Demo>
-    <p>
-      If you export demos with a leading underscore, it will be removed. This is
-      useful to avoid conflicts with your component names:
-    </p>
-    <Code source={"export const _Button = <Button>Hello, world</Button>"} />
-    <p>Spaces are also added between words:</p>
-    <Code
-      source={"export const DefaultButton = <Button>Start a project</Button>"}
+    <h2>Errors In Demos</h2>
+    <p>When an error occurs in a demo, it will be caught and displayed:</p>
+    <Demo
+      render={() => {
+        throw new Error("This is a test error")
+      }}
     />
-  </Demo>
-)
+    <h2>Skipping demos</h2>
+    If you have a broken demo that you would like to ignore temporarily, you can
+    add the <code>skip</code> prop:
+    <Demo
+      skip
+      render={() => {
+        throw new Error("This component would crash")
+      }}
+    />
+    <h2>Focus mode</h2>
+    <p>
+      You can focus on a specific demo (or three) by adding the{" "}
+      <code>only</code> prop:
+    </p>
+    <Code
+      mode="tsx"
+      source={`<h2>Focused demo</h2>
+<p>Additional elements back to the preceding heading will be shown.</p>
+<Demo only>This demo will be rendered</Demo>
 
-export const ErrorsInDemos = (
-  <Demo
-    render={() => {
-      throw new Error("This is a test error")
-    }}
-  />
+<h2>Hidden demo</h2>
+<p>Content around the hidden demos is hidden too.</p>
+<Demo>This demo will be hidden</Demo>`}
+    />
+    <h2>Absolute Positioned Content</h2>
+    <p>
+      If you would like to expand the demo area to include some absolute
+      positioned content, you can pass selectors to include in the demo area.
+    </p>
+    <p>
+      Note that this bounding box is only calculated once after the demo is
+      mounted, not for updates.
+    </p>
+    <Demo inline boundingSelectors={["#dropdown"]}>
+      <Placeholder style={{ position: "relative" }}>
+        Selected
+        <Placeholder
+          id="dropdown"
+          style={{
+            position: "absolute",
+            top: "calc(100% + 10px)",
+            whiteSpace: "nowrap",
+          }}
+        >
+          Option 1
+          <br />
+          Option 2
+          <br />
+          Option 3
+        </Placeholder>
+      </Placeholder>
+    </Demo>
+  </Doc>
 )

@@ -2,6 +2,7 @@ import React from "react"
 import { ErrorBoundary } from "./ErrorBoundary"
 import { useComponents } from "~/ComponentContext"
 import { type Page, type HomePage } from "~/helpers/buildSiteTree"
+import { parseDocChunks, filterChunks } from "~/helpers/parseDocChunks"
 import { addSpaces } from "~/helpers/strings"
 
 type PageContentProps = {
@@ -11,15 +12,14 @@ type PageContentProps = {
 export const PageContent = ({ page }: PageContentProps) => {
   const Components = useComponents()
 
+  const allChunks = parseDocChunks(page.doc.props.children)
+  const chunks = filterChunks(allChunks)
+
   return (
     <ErrorBoundary>
       <Components.PageHeading>{addSpaces(page.name)}</Components.PageHeading>
-      {page.doc}
-      {Object.entries(page.demos).map(([name, demo]) => (
-        <React.Fragment key={name}>
-          <Components.DemoHeading>{addSpaces(name)}</Components.DemoHeading>
-          {demo}
-        </React.Fragment>
+      {chunks.map((chunk, index) => (
+        <React.Fragment key={index}>{chunk.elements}</React.Fragment>
       ))}
     </ErrorBoundary>
   )
@@ -35,15 +35,15 @@ export const HomePageComponent = ({
   copyright,
 }: HomePageComponentProps) => {
   const Components = useComponents()
+
+  const allChunks = parseDocChunks(page.doc.props.children)
+  const chunks = filterChunks(allChunks)
+
   return (
     <Components.Columns>
       <Components.CenterColumn>
-        {page.doc}
-        {Object.entries(page.demos).map(([name, demo]) => (
-          <React.Fragment key={name}>
-            <Components.DemoHeading>{addSpaces(name)}</Components.DemoHeading>
-            {demo}
-          </React.Fragment>
+        {chunks.map((chunk, index) => (
+          <React.Fragment key={index}>{chunk.elements}</React.Fragment>
         ))}
         <Components.Footer copyright={copyright} />
       </Components.CenterColumn>

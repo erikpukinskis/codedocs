@@ -1,25 +1,16 @@
-import { type Demo, type DemoProps } from "~/Demo"
 import { type Doc, type DocProps } from "~/Doc"
 import { getPathSegments } from "~/helpers/strings"
-
-export type DocExport = {
-  default: JSX.Element
-} & Record<string, JSX.Element>
-
-type DocExportPlus = {
-  default: DocElement
-} & DemoSet
-
-export type DocElement = React.ReactElement<DocProps, typeof Doc> &
-  ElementSource
 
 type ElementSource = {
   _source: { fileName: string; lineNumber: number; columnNumber: number }
 }
 
-type DemoElement = React.ReactElement<DemoProps, typeof Demo> & ElementSource
+// Internal type that includes _source from Babel's development mode
+type DocElementInternal = React.ReactElement<DocProps, typeof Doc> &
+  ElementSource
 
-type DemoSet = Record<string, DemoElement>
+// Public type for the docs prop - we accept JSX.Element and cast internally
+export type DocElement = React.ReactElement<DocProps, typeof Doc>
 
 export type PageParent = Site | SiteSection | Category | SubCategory
 
@@ -40,7 +31,6 @@ export type Page = {
   path: string
   name: string
   doc: DocElement
-  demos: DemoSet
   parent: PageParent
   order?: number
 }
@@ -49,7 +39,6 @@ export type HomePage = {
   __typename: "HomePage"
   path: "/"
   doc: DocElement
-  demos: DemoSet
   // Making the HomePage a child of the Site is a little weird, because it's not
   // one of the Site's "children" (those are SiteSections). But we made the Site
   // the HomePage's parent so that every page has a parent and you can grab the
@@ -174,11 +163,9 @@ export function getSubCategoryChildren(
  * all the necessary metadata we need to render them.
  */
 export const buildSiteTree = (
-  untypedDocs: DocExport[]
+  docs: DocElement[]
 ): Record<string, PageOrParent> => {
   const pagesByPath: Record<string, PageOrParent> = {}
-
-  const docs = untypedDocs as DocExportPlus[]
 
   const site: Site = {
     __typename: "Site",
@@ -188,11 +175,11 @@ export const buildSiteTree = (
     parent: undefined as never,
   }
 
-  for (const docsAndDemos of docs) {
-    const { default: doc, ...demos } = docsAndDemos
-
+  for (const doc of docs) {
     if (!/^\//.test(doc.props.path)) {
-      const { fileName, lineNumber, columnNumber } = doc._source
+      // _source is added by Babel in development mode
+      const { fileName, lineNumber, columnNumber } = (doc as DocElementInternal)
+        ._source
       throw new Error(
         `Doc paths must start with a /... try <Doc path="/${doc.props.path}"> at ${fileName}:${lineNumber}:${columnNumber}`
       )
@@ -207,7 +194,6 @@ export const buildSiteTree = (
         __typename: "HomePage",
         path: "/",
         doc,
-        demos: showHideDemos(demos),
         parent: site,
       }
       continue
@@ -288,7 +274,6 @@ export const buildSiteTree = (
       path,
       name: breadcrumbs[0],
       doc,
-      demos: showHideDemos(demos),
       parent,
       order,
     }
@@ -303,38 +288,6 @@ export const buildSiteTree = (
   }
 
   return pagesByPath
-}
-
-/**
- * Mutates demos
- */
-function showHideDemos(demos: DemoSet) {
-  let someOnlys = false
-
-  for (const demoName in demos) {
-    const demo = demos[demoName]
-
-    if (demo.props.only && demo.props.skip) {
-      throw new Error(
-        `Demo ${demoName} cannot have both skip and only props set to true`
-      )
-    } else if (demo.props.skip) {
-      delete demos[demoName]
-    } else if (demo.props.only) {
-      someOnlys = true
-    }
-  }
-
-  if (!someOnlys) return demos
-
-  for (const demoName in demos) {
-    const demo = demos[demoName]
-    if (!demo.props.only) {
-      delete demos[demoName]
-    }
-  }
-
-  return demos
 }
 
 function shift<T>(array: T[]) {

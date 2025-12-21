@@ -18,7 +18,7 @@ import {
   isPage,
   isHomePage,
   getNav,
-  type DocExport,
+  type DocElement,
   type Page,
   type PageParent,
   type HomePage,
@@ -32,7 +32,7 @@ import { SideNav } from "~/SideNav"
 
 type DocsAppProps = Partial<Components> &
   Partial<SocialProps> & {
-    docs: DocExport[]
+    docs: DocElement[]
     logo: string | ReactNode
     githubUrl?: string
     DesignSystemProvider?: Container

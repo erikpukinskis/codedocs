@@ -2,7 +2,7 @@ import React from "react"
 // eslint-disable-next-line no-restricted-imports
 import { Doc, Code } from "../macro"
 
-export default (
+export const GettingStartedDocs = (
   <Doc path="/Docs/GettingStarted">
     <h2>Step 1: Set up an app</h2>
     <p>
@@ -24,15 +24,15 @@ import { Button } from "./Button"
 
 export default (
   <Doc path="/Controls/Button">
-    The Button is meant to be used for everything that can be tapped, whether or
-    not it has a background.
+    <p>
+      The Button is meant to be used for everything that can be tapped, whether
+      or not it has a background.
+    </p>
+    <h2>Basic Button</h2>
+    <Demo>
+      <Button>Save</Button>
+    </Demo>
   </Doc>
-)
-
-export const BasicButton = (
-  <Demo>
-    <Button>Save</Button>
-  </Demo>
 )`}
     />
     <h2>Step 3: Mount the docs somewhere</h2>

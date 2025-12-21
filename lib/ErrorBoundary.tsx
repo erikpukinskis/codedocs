@@ -1,4 +1,6 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import React from "react"
+import { outdentIcon } from "./Demo.css"
 import * as styles from "./ErrorBoundary.css"
 
 type ErrorBoundaryProps = { children: React.ReactNode; location?: "demo-area" }
@@ -27,6 +29,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps> {
     if (this.props.location === "demo-area") {
       return (
         <div className={styles.demoErrorContainer}>
+          <FontAwesomeIcon icon="bug" color="#ff6666" className={outdentIcon} />
           <div className={styles.demoErrorHeading}>
             Error rendering demo
             {this.state.message && `: "${this.state.message}"`}
