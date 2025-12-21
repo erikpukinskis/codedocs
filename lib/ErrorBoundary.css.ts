@@ -7,7 +7,7 @@ export const demoErrorContainer = style({
   paddingInline: 14,
   paddingBlock: 10,
   borderRadius: 8,
-  boxShadow: "0px 2px 10px 0px inset #dd4295",
+  boxShadow: "0px 2px 10px 0px inset #ff5b69",
   borderBottom: "1px solid #ffaad6",
   margin: "-8px",
 })

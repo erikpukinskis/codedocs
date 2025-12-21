@@ -22,7 +22,6 @@ type DemoPropsWithChildren = {
   children: ReactChildren | Array<ReactChildren>
   defaultValue?: never
   only?: boolean
-  skip?: boolean
   boundingSelectors?: string[]
 }
 
@@ -43,7 +42,6 @@ type DemoPropsWithRenderFunction<T = unknown> = {
   render: React.FC<DemoContext<T>>
   defaultValue?: T
   only?: boolean
-  skip?: boolean
   boundingSelectors?: string[]
 }
 

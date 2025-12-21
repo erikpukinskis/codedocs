@@ -6,34 +6,6 @@ import { Demo, Doc, Placeholder } from "../macro"
 
 export const DemoDocs = (
   <Doc path="/Docs/Demos">
-    <h2>Absolute Positioned Content</h2>
-    <p>
-      If you would like to expand the demo area to include some absolute
-      positioned content, you can pass selectors to include in the demo area.
-    </p>
-    <p>
-      Note that this bounding box is only calculated once after the demo is
-      mounted, not for updates.
-    </p>
-    <Demo inline boundingSelectors={["#dropdown"]}>
-      <Placeholder style={{ position: "relative" }}>
-        Selected
-        <Placeholder
-          id="dropdown"
-          style={{
-            position: "absolute",
-            top: "calc(100% + 10px)",
-            whiteSpace: "nowrap",
-          }}
-        >
-          Option 1
-          <br />
-          Option 2
-          <br />
-          Option 3
-        </Placeholder>
-      </Placeholder>
-    </Demo>
     <h2>Full Width</h2>
     <Demo>
       <Placeholder>By default, demos will be rendered full-width.</Placeholder>
@@ -145,5 +117,33 @@ export const DemoDocs = (
         throw new Error("This is a test error")
       }}
     />
+    <h2>Absolute Positioned Content</h2>
+    <p>
+      If you would like to expand the demo area to include some absolute
+      positioned content, you can pass selectors to include in the demo area.
+    </p>
+    <p>
+      Note that this bounding box is only calculated once after the demo is
+      mounted, not for updates.
+    </p>
+    <Demo inline boundingSelectors={["#dropdown"]}>
+      <Placeholder style={{ position: "relative" }}>
+        Selected
+        <Placeholder
+          id="dropdown"
+          style={{
+            position: "absolute",
+            top: "calc(100% + 10px)",
+            whiteSpace: "nowrap",
+          }}
+        >
+          Option 1
+          <br />
+          Option 2
+          <br />
+          Option 3
+        </Placeholder>
+      </Placeholder>
+    </Demo>
   </Doc>
 )
