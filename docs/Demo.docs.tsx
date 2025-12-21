@@ -100,7 +100,6 @@ export const DemoDocs = (
       a context provider and a hook:
     </p>
     <Demo
-      only
       noWrapperInSource
       dependencies={{
         ChildComponent: () => {
