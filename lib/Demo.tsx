@@ -1,13 +1,7 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import prettier from "prettier"
 import parserTypescript from "prettier/parser-typescript"
-import React, {
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react"
+import React, { useLayoutEffect, useMemo, useRef, useState } from "react"
 import { Code } from "./Code"
 import * as styles from "./Demo.css"
 import { ErrorBoundary } from "./ErrorBoundary"
@@ -28,52 +22,81 @@ type CallbackFactory = (name: string) => (...args: unknown[]) => void
 
 export type PropsLike = Record<string, unknown>
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type DemoContext<T = any> = {
-  value: T
-  setValue: (value: T) => void
+export type DemoContext<
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ValueType,
+  DependenciesType extends DependencyMap = DependencyMap
+> = {
+  value: ValueType | undefined
+  setValue: (value: ValueType | undefined) => void
   mock: {
     callback: CallbackFactory
   }
+} & DependenciesType
+
+export type DependencyMap = Record<string, unknown>
+
+type DemoPropsWithRenderFunction<
+  ValueType = unknown,
+  DependenciesType extends DependencyMap = DependencyMap
+> = {
+  render: React.FC<DemoContext<ValueType, DependenciesType>>
+  defaultValue?: ValueType
 }
 
-type DemoPropsWithRenderFunction<T = unknown> = {
-  render: React.FC<DemoContext<T>>
-  defaultValue?: T
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type DemoProps<T = any> = (
+export type DemoProps<
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ValueType,
+  DependenciesType extends DependencyMap = DependencyMap
+> = (
   | DemoPropsWithChildren
-  | DemoPropsWithRenderFunction<T>
+  | DemoPropsWithRenderFunction<ValueType, DependenciesType>
 ) & {
   source?: string
   inline?: boolean
   skip?: boolean
   only?: boolean
   boundingSelectors?: string[]
+  dependencies?: DependenciesType
+  dependencySources?: Record<string, string>
+  noWrapperInSource?: boolean
 }
 
-export function Demo<T>(props: DemoProps<T>) {
-  const [formatted, setFormatted] = useState("")
+export function Demo<ValueType, DependenciesType extends DependencyMap>(
+  props: DemoProps<ValueType, DependenciesType>
+) {
+  const [activeTab, setActiveTab] = useState<string>("__source")
   const [showCode, setShowCode] = useState(false)
   const [events, setEvents] = useState<CallbackEvent[]>([])
   const containerRef = useRef<HTMLDivElement>(null)
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const [value, setValue] = useState(props.defaultValue)
 
-  useEffect(() => {
-    if (props.source) {
-      setFormatted(formatTypescript(props.source))
-    } else {
-      setFormatted(NO_MACRO_ERROR)
-    }
-  }, [props.source])
+  const dependencySources = hasDependencies(props)
+    ? props.dependencySources
+    : undefined
+  const dependencyNames = dependencySources
+    ? Object.keys(dependencySources)
+    : []
+
+  const formattedSource = (() => {
+    if (!showCode) return null
+
+    const rawSource =
+      activeTab === "__source" ? props.source : dependencySources?.[activeTab]
+
+    if (!rawSource) return NO_MACRO_ERROR
+
+    return formatTypescript(rawSource)
+  })()
+
+  const dependencies = (
+    hasDependencies(props) ? props.dependencies : {}
+  ) as DependenciesType
 
   // Create the context object to pass to render functions
-  const demoContext = useMemo<DemoContext>(
+  const demoContext = useMemo<DemoContext<ValueType, DependenciesType>>(
     () => ({
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       value,
       setValue,
       mock: {
@@ -89,11 +112,10 @@ export function Demo<T>(props: DemoProps<T>) {
           }
         },
       },
+      ...dependencies,
     }),
-    [value]
+    [value, dependencies]
   )
-
-  if (!formatted) return null
 
   const { inline = false } = props
 
@@ -123,19 +145,48 @@ export function Demo<T>(props: DemoProps<T>) {
         <div className={styles.tabsContainer}>
           <div className={styles.tabs}>
             <button
-              className={styles.tab({ active: showCode })}
-              onClick={() => setShowCode(!showCode)}
+              className={styles.tab({
+                active: showCode && activeTab === "__source",
+              })}
+              onClick={() => {
+                if (showCode && activeTab === "__source") {
+                  setShowCode(false)
+                } else {
+                  setActiveTab("__source")
+                  setShowCode(true)
+                }
+              }}
             >
               Source
             </button>
+            {dependencyNames.map((name) => (
+              <button
+                key={name}
+                className={styles.tab({
+                  active: showCode && activeTab === name,
+                })}
+                onClick={() => {
+                  if (showCode && activeTab === name) {
+                    setShowCode(false)
+                  } else {
+                    setActiveTab(name)
+                    setShowCode(true)
+                  }
+                }}
+              >
+                {name}
+              </button>
+            ))}
           </div>
         </div>
         <EventLog events={events} />
       </div>
 
-      {showCode && (
+      {formattedSource && (
         <Code
-          source={formatted}
+          // Set this key to force re-mount (stat reset) when we switch files:
+          key={activeTab}
+          source={formattedSource}
           mode="tsx"
           onClickClose={() => setShowCode(false)}
         />
@@ -157,19 +208,19 @@ const SkippedDemo: React.FC = () => {
   )
 }
 
-type DemoAreaProps = {
-  props: DemoProps
-  context: DemoContext
+type DemoAreaProps<ValueType, DependenciesType extends DependencyMap> = {
+  props: DemoProps<ValueType, DependenciesType>
+  context: DemoContext<ValueType, DependenciesType>
   boundingSelectors?: string[]
   inline: boolean
 }
 
-const DemoArea: React.FC<DemoAreaProps> = ({
+function DemoArea<ValueType, DependenciesType extends DependencyMap>({
   props,
   context,
   boundingSelectors,
   inline,
-}: DemoAreaProps) => {
+}: DemoAreaProps<ValueType, DependenciesType>) {
   const areaRef = useRef<HTMLDivElement>(null)
 
   useLayoutEffect(() => {
@@ -303,13 +354,23 @@ const VerticalMark: React.FC<CropMarksProps> = ({ top, left }) => {
   return <div className={styles.cropMark} style={style}></div>
 }
 
-function hasChildren(demoProps: DemoProps): demoProps is DemoPropsWithChildren {
+function hasChildren<ValueType, DependenciesType extends DependencyMap>(
+  demoProps: DemoProps<ValueType, DependenciesType>
+): demoProps is DemoProps<ValueType, DependenciesType> & DemoPropsWithChildren {
   return Object.prototype.hasOwnProperty.call(demoProps, "children")
 }
 
-function isRenderable(
-  demoProps: DemoProps
-): demoProps is DemoPropsWithRenderFunction {
+function hasDependencies<ValueType, DependenciesType extends DependencyMap>(
+  demoProps: DemoProps<ValueType, DependenciesType>
+): demoProps is DemoProps<ValueType, DependenciesType> &
+  DemoPropsWithRenderFunction<ValueType, DependenciesType> {
+  return Object.prototype.hasOwnProperty.call(demoProps, "dependencies")
+}
+
+function isRenderable<ValueType, DependenciesType extends DependencyMap>(
+  demoProps: DemoProps<ValueType, DependenciesType>
+): demoProps is DemoProps<ValueType, DependenciesType> &
+  DemoPropsWithRenderFunction<ValueType, DependenciesType> {
   return (
     Object.prototype.hasOwnProperty.call(demoProps, "render") &&
     !Object.prototype.hasOwnProperty.call(demoProps, "props")

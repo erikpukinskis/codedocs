@@ -71,6 +71,14 @@ export const GlobalStyles = () => (
         margin-top: 2em;
       }
 
+      h3 {
+        font-size: 1.1em;
+        font-weight: 500;
+        margin-top: 0;
+        margin-bottom: 0.5em;
+        color: inherit;
+      }
+
       li {
         list-style-type: disc;
         margin-top: 1em;
