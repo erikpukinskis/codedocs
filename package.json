@@ -19,6 +19,7 @@
       "import": "./dist/lib.es.js",
       "require": "./dist/lib.umd.js"
     },
+    "./style.css": "./dist/style.css",
     "./macro": {
       "import": "./macro/index.js",
       "require": "./macro/index.js"

@@ -1,11 +1,13 @@
 import React from "react"
+import * as styles from "./ErrorBoundary.css"
 
-type ErrorBoundaryProps = { children: React.ReactNode }
+type ErrorBoundaryProps = { children: React.ReactNode; location?: "demo-area" }
 
 export class ErrorBoundary extends React.Component<ErrorBoundaryProps> {
   state: {
     hasError: boolean
     error?: Error
+    message?: string
   }
   constructor(props: ErrorBoundaryProps) {
     super(props)
@@ -14,20 +16,36 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps> {
 
   static getDerivedStateFromError(error: Error) {
     // Update state so the next render will show the fallback UI.
-    return { hasError: true, error }
+    return { hasError: true, error, message: error.message }
   }
 
   render() {
-    if (this.state.hasError) {
-      // You can render any custom fallback UI
-      return (
-        <>
-          <h1>Something went wrong</h1>
-          <p>Check the console for details</p>
-        </>
-      )
-    } else {
+    if (!this.state.hasError) {
       return this.props.children
     }
+
+    if (this.props.location === "demo-area") {
+      return (
+        <div className={styles.demoErrorContainer}>
+          <div className={styles.demoErrorHeading}>
+            Error rendering demo
+            {this.state.message && `: "${this.state.message}"`}
+          </div>
+          <div className={styles.demoErrorDetails}>
+            Check the console for details.
+          </div>
+        </div>
+      )
+    }
+
+    return (
+      <>
+        <h1>
+          this.state.message Something went wrong
+          {this.state.message && `: ${this.state.message}`}
+        </h1>
+        <p>Check the console for details.</p>
+      </>
+    )
   }
 }

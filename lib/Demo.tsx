@@ -1,8 +1,15 @@
 import prettier from "prettier"
 import parserTypescript from "prettier/parser-typescript"
-import React, { useEffect, useRef, useState } from "react"
+import React, {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react"
 import { Code } from "./Code"
 import * as styles from "./Demo.css"
+import { ErrorBoundary } from "./ErrorBoundary"
 import { EventLog, type CallbackEvent } from "./EventLog"
 
 type ReactChildren =
@@ -13,39 +20,49 @@ type ReactChildren =
 
 type DemoPropsWithChildren = {
   children: ReactChildren | Array<ReactChildren>
+  defaultValue?: never
   only?: boolean
   skip?: boolean
+  boundingSelectors?: string[]
 }
 
 type CallbackFactory = (name: string) => (...args: unknown[]) => void
 
 export type PropsLike = Record<string, unknown>
 
-export type DemoContext = {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type DemoContext<T = any> = {
+  value: T
+  setValue: (value: T) => void
   mock: {
     callback: CallbackFactory
   }
 }
 
-type DemoPropsWithRenderFunction = {
-  render: React.FC<DemoContext>
+type DemoPropsWithRenderFunction<T = unknown> = {
+  render: React.FC<DemoContext<T>>
+  defaultValue?: T
   only?: boolean
   skip?: boolean
+  boundingSelectors?: string[]
 }
 
-export type DemoProps = (
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type DemoProps<T = any> = (
   | DemoPropsWithChildren
-  | DemoPropsWithRenderFunction
+  | DemoPropsWithRenderFunction<T>
 ) & {
   source?: string
   inline?: boolean
 }
 
-export function Demo(props: DemoProps) {
+export function Demo<T>(props: DemoProps<T>) {
   const [formatted, setFormatted] = useState("")
   const [showCode, setShowCode] = useState(false)
   const [events, setEvents] = useState<CallbackEvent[]>([])
   const containerRef = useRef<HTMLDivElement>(null)
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  const [value, setValue] = useState(props.defaultValue)
 
   useEffect(() => {
     if (props.source) {
@@ -56,31 +73,27 @@ export function Demo(props: DemoProps) {
   }, [props.source])
 
   // Create the context object to pass to render functions
-  const demoContext: DemoContext = {
-    mock: {
-      callback: (name: string) => {
-        return (...args: unknown[]) => {
-          const event: CallbackEvent = {
-            id: Math.random().toString(36).slice(2, 10),
-            name,
-            args,
-            time: Date.now().valueOf(),
+  const demoContext = useMemo<DemoContext>(
+    () => ({
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+      value,
+      setValue,
+      mock: {
+        callback: (name: string) => {
+          return (...args: unknown[]) => {
+            const event: CallbackEvent = {
+              id: Math.random().toString(36).slice(2, 10),
+              name,
+              args,
+              time: Date.now().valueOf(),
+            }
+            setEvents((prev) => [event, ...prev])
           }
-          setEvents((prev) => [event, ...prev])
-        }
+        },
       },
-    },
-  }
-
-  let demoArea: JSX.Element
-
-  if (hasChildren(props)) {
-    demoArea = <>{props.children}</>
-  } else if (isRenderable(props)) {
-    demoArea = <props.render {...demoContext} />
-  } else {
-    throw new Error("not sure what type of demo this is")
-  }
+    }),
+    [value]
+  )
 
   if (!formatted) return null
 
@@ -96,16 +109,14 @@ export function Demo(props: DemoProps) {
         className={styles.demoContainer({ inline })}
         data-component="DemoContainer"
       >
-        {demoArea}
-        <HorizontalMark top left />
-        <HorizontalMark bottom left />
-        <HorizontalMark top right />
-        <HorizontalMark bottom right />
-
-        <VerticalMark top left />
-        <VerticalMark bottom left />
-        <VerticalMark top right />
-        <VerticalMark bottom right />
+        <ErrorBoundary location="demo-area">
+          <DemoArea
+            inline={inline}
+            props={props}
+            context={demoContext}
+            boundingSelectors={props.boundingSelectors}
+          />
+        </ErrorBoundary>
 
         <div className={styles.tabsContainer}>
           <div className={styles.tabs}>
@@ -120,7 +131,103 @@ export function Demo(props: DemoProps) {
         <EventLog events={events} />
       </div>
 
-      {showCode && <Code source={formatted} mode="tsx" />}
+      {showCode && (
+        <Code
+          source={formatted}
+          mode="tsx"
+          onClickClose={() => setShowCode(false)}
+        />
+      )}
+    </div>
+  )
+}
+
+type DemoAreaProps = {
+  props: DemoProps
+  context: DemoContext
+  boundingSelectors?: string[]
+  inline: boolean
+}
+
+const DemoArea: React.FC<DemoAreaProps> = ({
+  props,
+  context,
+  boundingSelectors,
+  inline,
+}: DemoAreaProps) => {
+  const areaRef = useRef<HTMLDivElement>(null)
+
+  useLayoutEffect(() => {
+    if (!areaRef.current || !boundingSelectors?.length) return
+
+    const container = areaRef.current
+    const containerRect = container.getBoundingClientRect()
+
+    let minX = 0
+    let minY = 0
+    let maxX = containerRect.width
+    let maxY = containerRect.height
+
+    for (const selector of boundingSelectors) {
+      const elements = Array.from(container.querySelectorAll(selector))
+      for (const el of elements) {
+        const rect = el.getBoundingClientRect()
+        minX = Math.min(minX, rect.left - containerRect.left)
+        minY = Math.min(minY, rect.top - containerRect.top)
+        maxX = Math.max(maxX, rect.right - containerRect.left)
+        maxY = Math.max(maxY, rect.bottom - containerRect.top)
+      }
+    }
+
+    // Apply padding to accommodate overflow
+    const paddingLeft = Math.abs(Math.min(0, minX))
+    const paddingTop = Math.abs(Math.min(0, minY))
+    const paddingRight = Math.max(0, maxX - containerRect.width)
+    const paddingBottom = Math.max(0, maxY - containerRect.height)
+
+    container.style.paddingLeft = `${paddingLeft}px`
+    container.style.paddingTop = `${paddingTop}px`
+    container.style.paddingRight = `${paddingRight}px`
+    container.style.paddingBottom = `${paddingBottom}px`
+  }, [boundingSelectors])
+
+  const ticks = (
+    <>
+      <HorizontalMark top left />
+      <HorizontalMark bottom left />
+      <HorizontalMark top right />
+      <HorizontalMark bottom right />
+
+      <VerticalMark top left />
+      <VerticalMark bottom left />
+      <VerticalMark top right />
+      <VerticalMark bottom right />
+    </>
+  )
+
+  const content = hasChildren(props) ? (
+    props.children
+  ) : isRenderable(props) ? (
+    <props.render {...context} />
+  ) : null
+
+  if (!content) {
+    throw new Error("not sure what type of demo this is")
+  }
+
+  return (
+    <div
+      ref={areaRef}
+      style={{
+        display: "inline-block",
+        width: inline ? "auto" : "100%",
+        maxWidth: "100%",
+      }}
+    >
+      <div style={{ position: "relative" }}>
+        {content}
+        {ticks}
+      </div>
     </div>
   )
 }

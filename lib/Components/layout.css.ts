@@ -11,10 +11,10 @@ export const columns = style({
   flexDirection: "row",
   minHeight: "100vh",
   position: "absolute",
-  overflow: "scroll-y",
   top: 0,
   left: 0,
   width: "100vw",
+  maxWidth: "100vw",
   height: "100vh",
 })
 
@@ -48,7 +48,9 @@ export const fixedTopHeader = style({
 export const leftColumn = style({
   marginTop: "var(--header-height)",
   borderRight: "1px solid #eee",
-  minWidth: "128px",
+  boxSizing: "border-box",
+  minWidth: "10em",
+  maxWidth: "10em",
   paddingLeft: 32,
   paddingTop: 32,
   paddingRight: 8,
@@ -58,8 +60,9 @@ export const mainColumn = style({
   marginTop: "var(--header-height)",
   padding: 32,
   paddingBottom: 256,
-  width: "90%",
-  maxWidth: "50em",
+  boxSizing: "border-box",
+  width: "40em",
+  maxWidth: "min(40em, calc(100vw - 10em))",
   position: "relative",
 })
 

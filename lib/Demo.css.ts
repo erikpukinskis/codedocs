@@ -16,6 +16,7 @@ export const demoContainer = recipe({
   base: {
     position: "relative",
     marginBottom: "calc(0.8em + 12px)",
+    maxWidth: "100%",
   },
   variants: {
     inline: {

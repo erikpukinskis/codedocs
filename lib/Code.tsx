@@ -12,13 +12,14 @@ import { useComponents } from "./ComponentContext"
 
 type CodeProps = EditorProps & {
   className?: string
+  onClickClose?: () => void
 }
 
-export const Code = ({ className, source, mode }: CodeProps) => (
+export const Code = ({ className, source, mode, onClickClose }: CodeProps) => (
   <div className={`${styles.codeContainer} ${className || ""}`}>
     <div className={styles.codeInnerContainer}>
       <Editor source={source} mode={mode} />
-      <CopyButton source={source} />
+      <Buttons source={source} onClickClose={onClickClose} />
     </div>
   </div>
 )
@@ -58,11 +59,12 @@ const randomNumber = () => {
   return number
 }
 
-type CopyButtonProps = {
+type ButtonsProps = {
   source: string
+  onClickClose?: () => void
 }
 
-const CopyButton = ({ source }: CopyButtonProps) => {
+const Buttons = ({ source, onClickClose }: ButtonsProps) => {
   const Components = useComponents()
   const [buttonText, setButtonText] = useState("Copy")
 
@@ -80,6 +82,11 @@ const CopyButton = ({ source }: CopyButtonProps) => {
       <Components.Button onClick={copy}>
         <FontAwesomeIcon icon="copy" /> {buttonText}
       </Components.Button>
+      {onClickClose && (
+        <Components.Button onClick={onClickClose} secondary>
+          <FontAwesomeIcon icon="close" />
+        </Components.Button>
+      )}
     </div>
   )
 }
