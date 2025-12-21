@@ -218,7 +218,11 @@ const DemoArea: React.FC<DemoAreaProps> = ({
   return (
     <div
       ref={areaRef}
-      style={{ display: "inline-block", width: inline ? "auto" : "100%" }}
+      style={{
+        display: "inline-block",
+        width: inline ? "auto" : "100%",
+        maxWidth: "100%",
+      }}
     >
       <div style={{ position: "relative" }}>
         {content}
