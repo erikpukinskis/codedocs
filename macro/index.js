@@ -1,5 +1,29 @@
 const { createMacro } = require("babel-plugin-macros")
 const { default: traverse } = require("@babel/traverse")
+const prettier = require("prettier")
+const parserTypescript = require("prettier/parser-typescript")
+
+/**
+ * Formats TypeScript/TSX source code using Prettier.
+ * @param {string} source - The source code to format
+ * @returns {string} The formatted source code
+ */
+function formatTypescript(source) {
+  try {
+    return prettier
+      .format(source, {
+        parser: "typescript",
+        plugins: [parserTypescript],
+        printWidth: 55,
+        semi: false,
+      })
+      .replace(/^;/, "")
+      .trim()
+  } catch (e) {
+    // If formatting fails, return the original source
+    return source
+  }
+}
 
 module.exports = createMacro(function Demo({ references, state, babel }) {
   const {
@@ -16,11 +40,12 @@ module.exports = createMacro(function Demo({ references, state, babel }) {
   )
 
   function setSourceAttribute(node, source) {
+    const formattedSource = formatTypescript(source)
     const newAttribute = babel.types.jsxAttribute(
       babel.types.jsxIdentifier("source"),
       babel.types.jsxExpressionContainer(
         babel.types.templateLiteral(
-          [babel.types.templateElement({ raw: source }, true)],
+          [babel.types.templateElement({ raw: formattedSource }, true)],
           []
         )
       )
@@ -77,10 +102,11 @@ module.exports = createMacro(function Demo({ references, state, babel }) {
         const valueSource = getSource(prop.value, code)
 
         // Build an AST node for: "ChildComponent": `() => { ... }`
+        const formattedValueSource = formatTypescript(valueSource)
         return babel.types.objectProperty(
           babel.types.stringLiteral(keyName),
           babel.types.templateLiteral(
-            [babel.types.templateElement({ raw: valueSource }, true)],
+            [babel.types.templateElement({ raw: formattedValueSource }, true)],
             []
           )
         )

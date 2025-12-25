@@ -1,6 +1,4 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import prettier from "prettier"
-import parserTypescript from "prettier/parser-typescript"
 import React, { useLayoutEffect, useMemo, useRef, useState } from "react"
 import { Code } from "./Code"
 import * as styles from "./Demo.css"
@@ -82,12 +80,12 @@ export function Demo<ValueType, DependenciesType extends DependencyMap>(
   const formattedSource = (() => {
     if (!showCode) return null
 
-    const rawSource =
+    const source =
       activeTab === "__source" ? props.source : dependencySources?.[activeTab]
 
-    if (!rawSource) return NO_MACRO_ERROR
+    if (!source) return NO_MACRO_ERROR
 
-    return formatTypescript(rawSource)
+    return source
   })()
 
   const dependencies = (
@@ -380,15 +378,3 @@ function isRenderable<ValueType, DependenciesType extends DependencyMap>(
 const NO_MACRO_ERROR = `// Source code unavailable
 // try installing babel-plugin-macros or vite-plugin-babel-macros and using:
 // import { Demo } from "codedocs/macro"`
-
-function formatTypescript(source: string) {
-  return prettier
-    .format(source, {
-      parser: "typescript",
-      plugins: [parserTypescript],
-      printWidth: 55,
-      semi: false,
-    })
-    .replace(/^;/, "")
-    .trim()
-}
