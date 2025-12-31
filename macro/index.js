@@ -183,7 +183,24 @@ module.exports = createMacro(function Demo({ references, state, babel }) {
           if (includeWrapperInSource && !noWrapperInSource) {
             source = getSource(demoIdentifier.parentPath.node, code)
           } else {
-            const body = path.node.expression.body
+            const expression = path.node.expression
+
+            // Only process arrow functions and function expressions
+            if (
+              expression.type !== "ArrowFunctionExpression" &&
+              expression.type !== "FunctionExpression"
+            ) {
+              // Skip non-function expressions (e.g., render={functionRef})
+              return
+            }
+
+            const body = expression.body
+
+            // Skip if body is undefined (shouldn't happen for functions, but be defensive)
+            if (!body) {
+              return
+            }
+
             const bodySource = getSource(body, code)
             const mockCallbacks = findMockCallbacks(body)
 

@@ -10,11 +10,11 @@ export const DocDocs = (
     <h2>Heading</h2>
     <h3>Subheading</h3>
     <Demo>
-      <Placeholder inline>This is a demo</Placeholder>
+      <Placeholder>This is a demo</Placeholder>
     </Demo>
     <h3>Subheading</h3>
     <Demo>
-      <Placeholder inline>This is a demo</Placeholder>
+      <Placeholder>This is a demo</Placeholder>
     </Demo>
   </Doc>
 )
