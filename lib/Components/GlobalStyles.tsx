@@ -55,13 +55,12 @@ export const GlobalStyles = () => (
 
       h1, h2, h3, h4 {
         font-weight: 500;
-        margin-top: 1em;
-        margin-bottom: 1em;
+        margin-block: 1em;
         color: #333;
       }
 
       h1 {
-        margin-top: 0.75em;
+        margin-block: 1em;
         font-size: 1.5em;
       }
 
@@ -72,11 +71,9 @@ export const GlobalStyles = () => (
       }
 
       h3 {
-        font-size: 1.1em;
-        font-weight: 500;
-        margin-top: 0;
-        margin-bottom: 0.5em;
-        color: inherit;
+        font-size: 1em;
+        font-weight: 400;
+        color: #555;
       }
 
       li {
