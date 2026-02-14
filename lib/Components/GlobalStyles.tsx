@@ -53,30 +53,27 @@ export const GlobalStyles = () => (
         font-size: 1em;
       }
 
-      h1, h2, h3, h4 {
+      h1, h2, h3 {
         font-weight: 500;
-        margin-top: 1em;
-        margin-bottom: 1em;
         color: #333;
       }
 
       h1 {
-        margin-top: 0.75em;
+        margin-block: 1em;
         font-size: 1.5em;
       }
 
       h2 {
         font-size: 1.1em;
         font-weight: 500;
-        margin-top: 2em;
+        margin-block: 1em;
       }
 
       h3 {
-        font-size: 1.1em;
-        font-weight: 500;
-        margin-top: 0;
-        margin-bottom: 0.5em;
-        color: inherit;
+        font-size: 1em;
+        font-weight: 400;
+        margin-block: 0;
+        color: #555;
       }
 
       li {

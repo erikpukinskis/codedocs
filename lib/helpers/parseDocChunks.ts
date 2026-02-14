@@ -69,5 +69,11 @@ export function filterChunks(chunks: DocChunk[]): DocChunk[] {
   const anyOnly = chunks.some(chunkHasOnly)
   if (!anyOnly) return chunks
 
-  return chunks.filter(chunkHasOnly)
+  return chunks.filter(chunkHasOnly).map((chunk) => ({
+    elements: chunk.elements.filter((element) => {
+      if (!React.isValidElement(element)) return true
+      if (!isDemo(element)) return true
+      return element.props.only
+    }),
+  }))
 }

@@ -1,5 +1,48 @@
 const { createMacro } = require("babel-plugin-macros")
 const { default: traverse } = require("@babel/traverse")
+const prettier = require("prettier")
+const parserTypescript = require("prettier/parser-typescript")
+
+/**
+ * Formats TypeScript/TSX source code using Prettier.
+ * @param {string} source - The source code to format
+ * @returns {string} The formatted source code
+ */
+function formatTypescript(source) {
+  try {
+    let sourceToFormat = source
+    let wrappedInFragment = false
+
+    // Quick heuristic: if we see JSX closing tags followed by opening tags, likely multiple roots
+    // This handles cases like: <h1>...</h1><p>...</p>
+    const hasMultipleRoots = /<\/\w+>\s*<\w+/.test(source)
+
+    if (hasMultipleRoots) {
+      sourceToFormat = `<>${source}</>`
+      wrappedInFragment = true
+    }
+
+    const formatted = prettier
+      .format(sourceToFormat, {
+        parser: "typescript",
+        plugins: [parserTypescript],
+        printWidth: 55,
+        semi: false,
+      })
+      .replace(/^;/, "")
+      .trim()
+
+    // Remove the fragment wrapper if we added it
+    if (wrappedInFragment) {
+      return formatted.slice(2, -3).trim() // Remove <>...</>
+    }
+
+    return formatted
+  } catch (e) {
+    // If formatting fails, return the original source
+    return source
+  }
+}
 
 module.exports = createMacro(function Demo({ references, state, babel }) {
   const {
@@ -16,11 +59,12 @@ module.exports = createMacro(function Demo({ references, state, babel }) {
   )
 
   function setSourceAttribute(node, source) {
+    const formattedSource = formatTypescript(source)
     const newAttribute = babel.types.jsxAttribute(
       babel.types.jsxIdentifier("source"),
       babel.types.jsxExpressionContainer(
         babel.types.templateLiteral(
-          [babel.types.templateElement({ raw: source }, true)],
+          [babel.types.templateElement({ raw: formattedSource }, true)],
           []
         )
       )
@@ -77,10 +121,11 @@ module.exports = createMacro(function Demo({ references, state, babel }) {
         const valueSource = getSource(prop.value, code)
 
         // Build an AST node for: "ChildComponent": `() => { ... }`
+        const formattedValueSource = formatTypescript(valueSource)
         return babel.types.objectProperty(
           babel.types.stringLiteral(keyName),
           babel.types.templateLiteral(
-            [babel.types.templateElement({ raw: valueSource }, true)],
+            [babel.types.templateElement({ raw: formattedValueSource }, true)],
             []
           )
         )
@@ -157,7 +202,24 @@ module.exports = createMacro(function Demo({ references, state, babel }) {
           if (includeWrapperInSource && !noWrapperInSource) {
             source = getSource(demoIdentifier.parentPath.node, code)
           } else {
-            const body = path.node.expression.body
+            const expression = path.node.expression
+
+            // Only process arrow functions and function expressions
+            if (
+              expression.type !== "ArrowFunctionExpression" &&
+              expression.type !== "FunctionExpression"
+            ) {
+              // Skip non-function expressions (e.g., render={functionRef})
+              return
+            }
+
+            const body = expression.body
+
+            // Skip if body is undefined (shouldn't happen for functions, but be defensive)
+            if (!body) {
+              return
+            }
+
             const bodySource = getSource(body, code)
             const mockCallbacks = findMockCallbacks(body)
 

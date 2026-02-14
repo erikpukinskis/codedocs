@@ -8,33 +8,29 @@ import { Code } from "~/Code"
 export const DemoDocs = (
   <Doc path="/Docs/Demos">
     <h2>Full Width</h2>
-    <Demo>
-      <Placeholder>By default, demos will be rendered full-width.</Placeholder>
-    </Demo>
-    <h2>Inline</h2>
-    <Demo inline>
-      <Placeholder style={{ width: "200px" }}>
-        Inline demos only grow to fit the content width.
+    <Demo width="full">
+      <Placeholder>
+        By default, demo will hug with with of their content, unless you set{" "}
+        <code>width="full"</code>.
       </Placeholder>
     </Demo>
-    <Demo inline>
-      <FontAwesomeIcon icon="check" />
-    </Demo>
-    <h2>Render Prop</h2>
-    <p>
-      If your demo needs state, or other hooks, you can provide a render prop
-      instead of children:
-    </p>
+    <h2>Variants</h2>
+    <p>Show multiple variations of the same demo at the same time.</p>
     <Demo
-      inline
-      render={() => {
-        const [count, setCount] = useState(0)
-        return (
-          <button onClick={() => setCount(count + 1)}>
-            Click me ({count})
-          </button>
-        )
-      }}
+      variants={["aqua", "bisque", "coral"]}
+      render={({ variant }) => (
+        <button
+          style={{
+            backgroundColor: variant,
+            border: "none",
+            borderRadius: 4,
+            padding: "4px 6px",
+            minWidth: 100,
+          }}
+        >
+          {variant}
+        </button>
+      )}
     />
     <h2>Mock Callbacks/Handlers</h2>
     <p>
@@ -42,7 +38,6 @@ export const DemoDocs = (
       For example, a mouse handler:
     </p>
     <Demo
-      inline
       render={({ mock }) => (
         <button onClick={mock.callback("handleClick")}>
           Fire a mouse event
@@ -51,7 +46,6 @@ export const DemoDocs = (
     />
     <p>Or a callback with some other arguments:</p>
     <Demo
-      inline
       render={({ mock }) => {
         const handleArgs = mock.callback("handleArgs")
 
@@ -72,7 +66,22 @@ export const DemoDocs = (
         )
       }}
     />
-    <h2>Basic State</h2>
+    <h2>Render Prop</h2>
+    <p>
+      If your demo needs state, or other hooks, you can provide a render prop
+      instead of children:
+    </p>
+    <Demo
+      render={() => {
+        const [count, setCount] = useState(0)
+        return (
+          <button onClick={() => setCount(count + 1)}>
+            Click me ({count})
+          </button>
+        )
+      }}
+    />
+    <h2>Simple State Helper</h2>
     <p>
       Your render function will also be provided with a very basic state setter
       and getter.
@@ -82,8 +91,7 @@ export const DemoDocs = (
       strict mode.
     </p>
     <Demo
-      inline
-      defaultValue={"" as string | undefined}
+      defaultValue=""
       render={({ value, setValue }) => (
         <input
           type="text"
@@ -92,6 +100,15 @@ export const DemoDocs = (
         />
       )}
     />
+    <h2>Inline</h2>
+    <Demo>
+      <Placeholder style={{ width: "200px" }}>
+        Inline demos only fit the width of the content.
+      </Placeholder>
+    </Demo>
+    <Demo>
+      <FontAwesomeIcon icon="check" />
+    </Demo>
     <h2>Multi-component demos</h2>
     <p>
       Sometimes you want to demonstrate something that requires some additional
@@ -120,8 +137,8 @@ export const DemoDocs = (
       Elements which are too wide to fit in the document content div are allowed
       to overflow, but you will see the crop marks where the overflow happens.
     </p>
-    <p>A fullscreen mode demos that need more space is coming soon.</p>
-    <Demo inline>
+    <p>A fullscreen mode for demos that need more space is coming soon.</p>
+    <Demo>
       <Placeholder style={{ whiteSpace: "nowrap" }}>
         Elements which are too wide to fit in the document content div are
         allowed to overflow, but you will see the crop marks where the overflow
@@ -131,6 +148,7 @@ export const DemoDocs = (
     <h2>Errors In Demos</h2>
     <p>When an error occurs in a demo, it will be caught and displayed:</p>
     <Demo
+      width="full"
       render={() => {
         throw new Error("This is a test error")
       }}
@@ -139,6 +157,7 @@ export const DemoDocs = (
     If you have a broken demo that you would like to ignore temporarily, you can
     add the <code>skip</code> prop:
     <Demo
+      width="full"
       skip
       render={() => {
         throw new Error("This component would crash")
@@ -151,13 +170,15 @@ export const DemoDocs = (
     </p>
     <Code
       mode="tsx"
-      source={`<h2>Focused demo</h2>
-<p>Additional elements back to the preceding heading will be shown.</p>
-<Demo only>This demo will be rendered</Demo>
+      source={`<Doc path="/">
+  <h2>Focused demo</h2>
+  <p>Additional elements back to the preceding heading will be shown.</p>
+  <Demo only>Only this demo will be rendered</Demo>
 
-<h2>Hidden demo</h2>
-<p>Content around the hidden demos is hidden too.</p>
-<Demo>This demo will be hidden</Demo>`}
+  <h2>Hidden demo</h2>
+  <p>Content around the hidden demos is hidden too.</p>
+  <Demo>This demo will be hidden</Demo>
+</Doc>`}
     />
     <h2>Absolute Positioned Content</h2>
     <p>
@@ -168,7 +189,7 @@ export const DemoDocs = (
       Note that this bounding box is only calculated once after the demo is
       mounted, not for updates.
     </p>
-    <Demo inline boundingSelectors={["#dropdown"]}>
+    <Demo boundingSelectors={["#dropdown"]}>
       <Placeholder style={{ position: "relative" }}>
         Selected
         <Placeholder
