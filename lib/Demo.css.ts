@@ -2,20 +2,26 @@ import { style } from "@vanilla-extract/css"
 import { recipe } from "@vanilla-extract/recipes"
 
 export const cropMark = style({
-  background: "rgba(0,0,0,0.25)",
+  background: "#ccc",
   width: 1,
   height: 1,
   position: "absolute",
 })
 
 export const demoWithCode = style({
-  marginTop: "1em",
+  /**
+   * The top margin is set to exactly 8px + 4px, for the crop mark length + the
+   * crop mark offset.
+   *
+   * This allows the crop marks from one variant to overlap the variant below
+   * precisely, so they can be packed a little tighter.
+   */
+  marginTop: 12,
 })
 
 export const demoContainer = recipe({
   base: {
     position: "relative",
-    paddingBottom: "calc(0.8em + 8px + 4px)",
     maxWidth: "100%",
   },
   variants: {
@@ -25,6 +31,11 @@ export const demoContainer = recipe({
       },
       false: {
         width: "100%",
+      },
+    },
+    hasPadding: {
+      true: {
+        paddingBottom: "calc(0.8em + 8px + 4px)",
       },
     },
   },

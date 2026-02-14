@@ -36,19 +36,23 @@ export type DependencyMap = Record<string, unknown>
 
 type DemoPropsWithRenderFunction<
   ValueType = unknown,
-  DependenciesType extends DependencyMap = DependencyMap
+  DependenciesType extends DependencyMap = DependencyMap,
+  VariantsType extends string = never
 > = {
-  render: React.FC<DemoContext<ValueType, DependenciesType>>
+  render: React.FC<
+    DemoContext<ValueType, DependenciesType> & { variant: VariantsType }
+  >
   defaultValue?: ValueType
 }
 
 export type DemoProps<
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ValueType,
-  DependenciesType extends DependencyMap = DependencyMap
+  DependenciesType extends DependencyMap = DependencyMap,
+  VariantsType extends string = never
 > = (
   | DemoPropsWithChildren
-  | DemoPropsWithRenderFunction<ValueType, DependenciesType>
+  | DemoPropsWithRenderFunction<ValueType, DependenciesType, VariantsType>
 ) & {
   source?: string
   inline?: boolean
@@ -58,11 +62,15 @@ export type DemoProps<
   dependencies?: DependenciesType
   dependencySources?: Record<string, string>
   noWrapperInSource?: boolean
+  width?: number
+  variants?: VariantsType[]
 }
 
-export function Demo<ValueType, DependenciesType extends DependencyMap>(
-  props: DemoProps<ValueType, DependenciesType>
-) {
+export function Demo<
+  ValueType,
+  DependenciesType extends DependencyMap,
+  VariantsType extends string = never
+>(props: DemoProps<ValueType, DependenciesType, VariantsType>) {
   const [activeTab, setActiveTab] = useState<string>("__source")
   const [showCode, setShowCode] = useState(false)
   const [events, setEvents] = useState<CallbackEvent[]>([])
@@ -115,81 +123,96 @@ export function Demo<ValueType, DependenciesType extends DependencyMap>(
     [value, dependencies]
   )
 
-  const { inline = false } = props
+  const { inline = false, variants } = props
+
+  const variantsToRender =
+    variants && variants.length > 0 ? variants : [undefined as never]
 
   return (
-    <div
-      ref={containerRef}
-      className={styles.demoWithCode}
-      data-component="DemoWithCode"
-    >
-      <div
-        className={styles.demoContainer({ inline })}
-        data-component="DemoContainer"
-      >
-        {props.skip ? (
-          <SkippedDemo />
-        ) : (
-          <ErrorBoundary location="demo-area">
-            <DemoArea
-              inline={inline}
-              props={props}
-              context={demoContext}
-              boundingSelectors={props.boundingSelectors}
-            />
-          </ErrorBoundary>
-        )}
+    <>
+      {variantsToRender.map((variant, i) => (
+        <div
+          key={variant}
+          ref={containerRef}
+          className={styles.demoWithCode}
+          data-component="DemoWithCode"
+          style={{ width: props.width }}
+        >
+          <div
+            className={styles.demoContainer({
+              inline,
+              hasPadding: i === variantsToRender.length - 1,
+            })}
+            data-component="DemoContainer"
+          >
+            {props.skip ? (
+              <SkippedDemo />
+            ) : (
+              <ErrorBoundary location="demo-area">
+                <DemoArea
+                  variant={variant}
+                  inline={inline}
+                  props={props}
+                  context={demoContext}
+                  boundingSelectors={props.boundingSelectors}
+                />
+              </ErrorBoundary>
+            )}
 
-        <div className={styles.tabsContainer}>
-          <div className={styles.tabs}>
-            <button
-              className={styles.tab({
-                active: showCode && activeTab === "__source",
-              })}
-              onClick={() => {
-                if (showCode && activeTab === "__source") {
-                  setShowCode(false)
-                } else {
-                  setActiveTab("__source")
-                  setShowCode(true)
-                }
-              }}
-            >
-              Source
-            </button>
-            {dependencyNames.map((name) => (
-              <button
-                key={name}
-                className={styles.tab({
-                  active: showCode && activeTab === name,
-                })}
-                onClick={() => {
-                  if (showCode && activeTab === name) {
-                    setShowCode(false)
-                  } else {
-                    setActiveTab(name)
-                    setShowCode(true)
-                  }
-                }}
-              >
-                {name}
-              </button>
-            ))}
+            {i === variantsToRender.length - 1 && (
+              <div className={styles.tabsContainer}>
+                <div className={styles.tabs}>
+                  <button
+                    className={styles.tab({
+                      active: showCode && activeTab === "__source",
+                    })}
+                    onClick={() => {
+                      if (showCode && activeTab === "__source") {
+                        setShowCode(false)
+                      } else {
+                        setActiveTab("__source")
+                        setShowCode(true)
+                      }
+                    }}
+                  >
+                    Source
+                  </button>
+                  {dependencyNames.map((name) => (
+                    <button
+                      key={name}
+                      className={styles.tab({
+                        active: showCode && activeTab === name,
+                      })}
+                      onClick={() => {
+                        if (showCode && activeTab === name) {
+                          setShowCode(false)
+                        } else {
+                          setActiveTab(name)
+                          setShowCode(true)
+                        }
+                      }}
+                    >
+                      {name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            <EventLog events={events} />
           </div>
-        </div>
-        <EventLog events={events} />
-      </div>
 
-      {formattedSource && (
-        <Code
-          // Set this key to force re-mount (stat reset) when we switch files:
-          key={activeTab}
-          source={formattedSource}
-          mode="tsx"
-          onClickClose={() => setShowCode(false)}
-        />
-      )}
-    </div>
+          {formattedSource && i === variantsToRender.length - 1 && (
+            <Code
+              // Set this key to force re-mount (stat reset) when we switch files:
+              key={activeTab}
+              source={formattedSource}
+              mode="tsx"
+              onClickClose={() => setShowCode(false)}
+            />
+          )}
+        </div>
+      ))}
+    </>
   )
 }
 
@@ -206,19 +229,29 @@ const SkippedDemo: React.FC = () => {
   )
 }
 
-type DemoAreaProps<ValueType, DependenciesType extends DependencyMap> = {
-  props: DemoProps<ValueType, DependenciesType>
+type DemoAreaProps<
+  ValueType,
+  DependenciesType extends DependencyMap,
+  VariantsType extends string
+> = {
+  props: DemoProps<ValueType, DependenciesType, VariantsType>
   context: DemoContext<ValueType, DependenciesType>
   boundingSelectors?: string[]
   inline: boolean
+  variant: VariantsType
 }
 
-function DemoArea<ValueType, DependenciesType extends DependencyMap>({
+function DemoArea<
+  ValueType,
+  DependenciesType extends DependencyMap,
+  VariantsType extends string
+>({
   props,
   context,
   boundingSelectors,
   inline,
-}: DemoAreaProps<ValueType, DependenciesType>) {
+  variant,
+}: DemoAreaProps<ValueType, DependenciesType, VariantsType>) {
   const areaRef = useRef<HTMLDivElement>(null)
 
   useLayoutEffect(() => {
@@ -272,7 +305,7 @@ function DemoArea<ValueType, DependenciesType extends DependencyMap>({
   const content = hasChildren(props) ? (
     props.children
   ) : isRenderable(props) ? (
-    <props.render {...context} />
+    <props.render {...context} variant={variant} />
   ) : null
 
   if (!content) {
@@ -352,23 +385,36 @@ const VerticalMark: React.FC<CropMarksProps> = ({ top, left }) => {
   return <div className={styles.cropMark} style={style}></div>
 }
 
-function hasChildren<ValueType, DependenciesType extends DependencyMap>(
-  demoProps: DemoProps<ValueType, DependenciesType>
-): demoProps is DemoProps<ValueType, DependenciesType> & DemoPropsWithChildren {
+function hasChildren<
+  ValueType,
+  DependenciesType extends DependencyMap,
+  VariantsType extends string
+>(
+  demoProps: DemoProps<ValueType, DependenciesType, VariantsType>
+): demoProps is DemoProps<ValueType, DependenciesType, VariantsType> &
+  DemoPropsWithChildren {
   return Object.prototype.hasOwnProperty.call(demoProps, "children")
 }
 
-function hasDependencies<ValueType, DependenciesType extends DependencyMap>(
-  demoProps: DemoProps<ValueType, DependenciesType>
-): demoProps is DemoProps<ValueType, DependenciesType> &
-  DemoPropsWithRenderFunction<ValueType, DependenciesType> {
+function hasDependencies<
+  ValueType,
+  DependenciesType extends DependencyMap,
+  VariantsType extends string
+>(
+  demoProps: DemoProps<ValueType, DependenciesType, VariantsType>
+): demoProps is DemoProps<ValueType, DependenciesType, VariantsType> &
+  DemoPropsWithRenderFunction<ValueType, DependenciesType, VariantsType> {
   return Object.prototype.hasOwnProperty.call(demoProps, "dependencies")
 }
 
-function isRenderable<ValueType, DependenciesType extends DependencyMap>(
-  demoProps: DemoProps<ValueType, DependenciesType>
-): demoProps is DemoProps<ValueType, DependenciesType> &
-  DemoPropsWithRenderFunction<ValueType, DependenciesType> {
+function isRenderable<
+  ValueType,
+  DependenciesType extends DependencyMap,
+  VariantsType extends string
+>(
+  demoProps: DemoProps<ValueType, DependenciesType, VariantsType>
+): demoProps is DemoProps<ValueType, DependenciesType, VariantsType> &
+  DemoPropsWithRenderFunction<ValueType, DependenciesType, VariantsType> {
   return (
     Object.prototype.hasOwnProperty.call(demoProps, "render") &&
     !Object.prototype.hasOwnProperty.call(demoProps, "props")

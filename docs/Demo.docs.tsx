@@ -14,7 +14,7 @@ export const DemoDocs = (
     <h2>Inline</h2>
     <Demo inline>
       <Placeholder style={{ width: "200px" }}>
-        Inline demos only grow to fit the content width.
+        Inline demos only fit the width of the content.
       </Placeholder>
     </Demo>
     <Demo inline>
@@ -92,6 +92,25 @@ export const DemoDocs = (
         />
       )}
     />
+    <h2>Variants</h2>
+    <p>Show multiple variations of the same demo at the same time.</p>
+    <Demo
+      inline
+      variants={["aqua", "bisque", "coral"]}
+      render={({ variant }) => (
+        <button
+          style={{
+            backgroundColor: variant,
+            border: "none",
+            borderRadius: 4,
+            padding: "4px 6px",
+            minWidth: 100,
+          }}
+        >
+          {variant}
+        </button>
+      )}
+    />
     <h2>Multi-component demos</h2>
     <p>
       Sometimes you want to demonstrate something that requires some additional
@@ -120,7 +139,7 @@ export const DemoDocs = (
       Elements which are too wide to fit in the document content div are allowed
       to overflow, but you will see the crop marks where the overflow happens.
     </p>
-    <p>A fullscreen mode demos that need more space is coming soon.</p>
+    <p>A fullscreen mode for demos that need more space is coming soon.</p>
     <Demo inline>
       <Placeholder style={{ whiteSpace: "nowrap" }}>
         Elements which are too wide to fit in the document content div are
