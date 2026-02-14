@@ -14,14 +14,13 @@ export const navHeading = style({
 
 export const navLink = style({
   display: "block",
-  lineHeight: "24px",
+  lineHeight: "20px",
 })
 
 export const navItem = style({
   padding: "none",
   margin: "none",
   marginLeft: "0 !important",
-  whiteSpace: "nowrap",
   color: "#444",
   listStyleType: "none",
 })

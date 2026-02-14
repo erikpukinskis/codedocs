@@ -53,9 +53,8 @@ export const GlobalStyles = () => (
         font-size: 1em;
       }
 
-      h1, h2, h3, h4 {
+      h1, h2, h3 {
         font-weight: 500;
-        margin-block: 1em;
         color: #333;
       }
 
@@ -73,6 +72,7 @@ export const GlobalStyles = () => (
       h3 {
         font-size: 1em;
         font-weight: 400;
+        margin-block: 0;
         color: #555;
       }
 
