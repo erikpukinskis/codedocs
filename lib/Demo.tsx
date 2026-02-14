@@ -55,14 +55,13 @@ export type DemoProps<
   | DemoPropsWithRenderFunction<ValueType, DependenciesType, VariantsType>
 ) & {
   source?: string
-  inline?: boolean
+  width?: "full" | number
   skip?: boolean
   only?: boolean
   boundingSelectors?: string[]
   dependencies?: DependenciesType
   dependencySources?: Record<string, string>
   noWrapperInSource?: boolean
-  width?: number
   variants?: VariantsType[]
 }
 
@@ -123,7 +122,7 @@ export function Demo<
     [value, dependencies]
   )
 
-  const { inline = false, variants } = props
+  const { width, variants } = props
 
   const variantsToRender =
     variants && variants.length > 0 ? variants : [undefined as never]
@@ -140,7 +139,7 @@ export function Demo<
         >
           <div
             className={styles.demoContainer({
-              inline,
+              inline: !width,
               hasPadding: i === variantsToRender.length - 1,
             })}
             data-component="DemoContainer"
@@ -151,7 +150,7 @@ export function Demo<
               <ErrorBoundary location="demo-area">
                 <DemoArea
                   variant={variant}
-                  inline={inline}
+                  inline={!width}
                   props={props}
                   context={demoContext}
                   boundingSelectors={props.boundingSelectors}

@@ -1,4 +1,4 @@
-[<img alt="screenshot" src="/screenshot.png" width="800" style="margin-bottom: -3em;"/>](https://codedocs.ambic.app/)
+[<img alt="screenshot" src="docs/screenshot.png" width="800" style="margin-bottom: -3em;"/>](https://codedocs.ambic.app/)
 
 **Codedocs** is a Storybook replacement that's designed for the professional application developer. It presumes you've already set up a React application build pipeline, that you're happy with it, and you just want to document your components.
 
@@ -15,19 +15,63 @@ If you're a beginner, you can still use Codedocs, but you may want to start with
 - [Future](#future)
 - [Inspiration](#inspiration)
 
+### Features
+
+Use unrestricted HTML to build your documentation. Codedocs looks great as a public-facing documentation site:
+
+<img alt="screenshot" src="docs/html.png" width="826" />
+
+Real demo code, taken directly from your source files:
+
+<img alt="screenshot" src="docs/source.png" width="422" />
+
+Variants:
+
+```tsx
+<Demo
+  inline
+  variants={["aqua", "bisque", "coral"]}
+  render={({ variant }) => /* ... */}
+/>
+```
+
+<img alt="screenshot" src="docs/variants.png" width="340" />
+
+Multi-component demos when you need to demonstrate hooks together with context providers:
+
+<img alt="screenshot" src="docs/multi-component-demos.png" width="410" />
+
+Simple state helper for demos that just need basic set/get functionality:
+
+```tsx
+<Demo
+  inline
+  defaultValue={""}
+  render={({ value, setValue }) => (
+    <input
+      type="text"
+      value={value}
+      onChange={(e) => setValue(e.target.value)}
+    />
+  )}
+/>
+```
+
+<img alt="screenshot" src="docs/state.gif" width="411" />
+
 ### Codedocs vs Storybook
 
 Design choices in Codedocs have been made to address some places where Storybook missed. Each of these issues has influenced Codedocs design:
 
-|     | Storybook                                                                                                               | Codedocs                                                                                                           |
-| --- | ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| 1   | Storybook error handling is atrocious. Stories just silently won't load                                                 | Codedocs uses your existing build pipeline                                                                         |
-| 2   | MDX files don't have type checking, and TSX files can't do proper prose documentation.                                  | Everything is in TSX files, fully typed. And you just drop your demos and API references into your prose JSX block |
-| 3   | Storybook has its own special build environment that's different from your app's. It adds a whole layer of debugging.   | It uses your existing build pipeline                                                                               |
-| 4   | The default Storybook layout is not very good for a public demonstration site.                                          | It's designed as public documentation site first                                                                   |
-| 5   | Your documentation uses Storybook's design system, not YOUR design system that you worked so hard to create.            | The UI is 100% swappable for your own                                                                              |
-| 6   | It's slow to start up and hot reloading is unreliable.                                                                  | Startup time is as fast as you can make your build pipeline go                                                     |
-| 6   | Adding types to your stories is... optional. Each new story is a new chance for someone to decide not to type anything. | Everything is in TSX files, fully typed                                                                            |
+|     | Storybook                                                                                                                          | Codedocs                                                                                                           |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| 1   | Storybook error handling is not great. Stories silently stop loading. The dev server frequently has to be restarted for no reason. | Codedocs uses your existing build pipeline                                                                         |
+| 2   | MDX files don't have type checking, and TSX files can't do proper prose documentation.                                             | Everything is in TSX files, fully typed. And you just drop your demos and API references into your prose JSX block |
+| 3   | Storybook has its own special build environment that's different from your app's. It adds a whole layer of debugging.              | It uses your existing build pipeline                                                                               |
+| 4   | The default Storybook layout is not very good for a public demonstration site.                                                     | It's designed as public documentation site first                                                                   |
+| 5   | Your documentation uses Storybook's design system, not YOUR design system that you worked so hard to create.                       | The UI is 100% swappable for your own                                                                              |
+| 6   | It's slow to start up and hot reloading is unreliable.                                                                             | Startup time is as fast as you can make your build pipeline go                                                     |
+| 6   | Adding types to your stories is... optional. Each new story is a new chance for someone to decide not to type anything.            | Everything is in TSX files, fully typed                                                                            |
 
 ### How it works
 

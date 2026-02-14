@@ -6,7 +6,6 @@ export const VeryLongDocumentPathDocs = (
     <p>...to test wrapping in the sidebar.</p>
     <h2>Two stateful demos in a row, to test the macro:</h2>
     <Demo
-      inline
       defaultValue={true}
       render={({ value }) => (
         <label id="x">
@@ -23,7 +22,6 @@ export const VeryLongDocumentPathDocs = (
       )}
     />
     <Demo
-      inline
       defaultValue={false}
       render={({ value, setValue }) => (
         <label>
