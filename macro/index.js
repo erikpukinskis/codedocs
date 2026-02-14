@@ -10,8 +10,20 @@ const parserTypescript = require("prettier/parser-typescript")
  */
 function formatTypescript(source) {
   try {
-    return prettier
-      .format(source, {
+    let sourceToFormat = source
+    let wrappedInFragment = false
+
+    // Quick heuristic: if we see JSX closing tags followed by opening tags, likely multiple roots
+    // This handles cases like: <h1>...</h1><p>...</p>
+    const hasMultipleRoots = /<\/\w+>\s*<\w+/.test(source)
+
+    if (hasMultipleRoots) {
+      sourceToFormat = `<>${source}</>`
+      wrappedInFragment = true
+    }
+
+    const formatted = prettier
+      .format(sourceToFormat, {
         parser: "typescript",
         plugins: [parserTypescript],
         printWidth: 55,
@@ -19,6 +31,13 @@ function formatTypescript(source) {
       })
       .replace(/^;/, "")
       .trim()
+
+    // Remove the fragment wrapper if we added it
+    if (wrappedInFragment) {
+      return formatted.slice(2, -3).trim() // Remove <>...</>
+    }
+
+    return formatted
   } catch (e) {
     // If formatting fails, return the original source
     return source
