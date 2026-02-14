@@ -1,9 +1,6 @@
 // @codedocs include-wrapper-in-source
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import React, { useState } from "react"
 // eslint-disable-next-line no-restricted-imports
 import { Demo, Doc, Placeholder } from "../macro"
-import { Code } from "~/Code"
 
 export const DocDocs = (
   <Doc path="/Docs/Doc">

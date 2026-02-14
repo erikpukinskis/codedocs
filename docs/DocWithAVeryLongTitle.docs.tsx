@@ -4,11 +4,11 @@ import { Demo, Doc } from "../macro"
 export const VeryLongDocumentPathDocs = (
   <Doc path="/Docs/DocWithAVeryLongTitle">
     <p>...to test wrapping in the sidebar.</p>
-    <h2>Two stateful demos in a row</h2>
+    <h2>Two stateful demos in a row, to test the macro:</h2>
     <Demo
       inline
       defaultValue={true}
-      render={({ value, setValue }) => (
+      render={({ value }) => (
         <label id="x">
           <input
             type="checkbox"
