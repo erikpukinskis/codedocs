@@ -10,8 +10,7 @@ export const DemoDocs = (
     <h2>Full Width</h2>
     <Demo width="full">
       <Placeholder>
-        By default, demo will hug with with of their content, unless you set{" "}
-        <code>width="full"</code>.
+        Demos will hug their content, unless you set <code>width="full"</code>.
       </Placeholder>
     </Demo>
     <h2>Variants</h2>

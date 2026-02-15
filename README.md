@@ -2,30 +2,36 @@
 
 **Codedocs** is a Storybook replacement that's designed for the professional application developer. It presumes you've already set up a React application build pipeline, that you're happy with it, and you just want to document your components.
 
-If you're a beginner, you can still use Codedocs, but you may want to start with a scaffold like [Confgen](https://github.com/ambic-js/confgen). Confgen can generate a React app for you with Codedocs preconfigured.
+## Table of contents
 
-### Table of contents
-
-- [Codedocs vs Storybook](#codedocs-vs-storybook)
+- [Features](#features)
 - [How it works](#how-it-works)
 - [What it doesn't do](#what-it-doesnt-do)
 - [Context Providers](#context-providers)
-- [Customizing](#customizing)
 - [Example](#example)
 - [Future](#future)
 - [Inspiration](#inspiration)
 
-### Features
+## Features
+
+### Public-facing documentation
 
 Use unrestricted HTML to build your documentation. Codedocs looks great as a public-facing documentation site:
 
 <img alt="screenshot" src="docs/html.png" width="826" />
 
-Real demo code, taken directly from your source files:
+### Real code samples
+
+Taken directly from the demos in your source files. These can be JSX, or full renderers including hooks and other boilerplate.
 
 <img alt="screenshot" src="docs/source.png" width="422" />
 
-Variants:
+You can even do demos that require multiple interacting parts, for example to demonstrate a context provider and a hook:
+
+<img alt="screenshot" src="docs/multi-component-demos.png" width="410" />
+
+
+### Variants
 
 ```tsx
 <Demo
@@ -37,43 +43,13 @@ Variants:
 
 <img alt="screenshot" src="docs/variants.png" width="340" />
 
-Multi-component demos when you need to demonstrate hooks together with context providers:
-
-<img alt="screenshot" src="docs/multi-component-demos.png" width="410" />
+### And more...
 
 Simple state helper for demos that just need basic set/get functionality:
 
-```tsx
-<Demo
-  inline
-  defaultValue={""}
-  render={({ value, setValue }) => (
-    <input
-      type="text"
-      value={value}
-      onChange={(e) => setValue(e.target.value)}
-    />
-  )}
-/>
-```
-
 <img alt="screenshot" src="docs/state.gif" width="411" />
 
-### Codedocs vs Storybook
-
-Design choices in Codedocs have been made to address some places where Storybook missed. Each of these issues has influenced Codedocs design:
-
-|     | Storybook                                                                                                                          | Codedocs                                                                                                           |
-| --- | ---------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| 1   | Storybook error handling is not great. Stories silently stop loading. The dev server frequently has to be restarted for no reason. | Codedocs uses your existing build pipeline                                                                         |
-| 2   | MDX files don't have type checking, and TSX files can't do proper prose documentation.                                             | Everything is in TSX files, fully typed. And you just drop your demos and API references into your prose JSX block |
-| 3   | Storybook has its own special build environment that's different from your app's. It adds a whole layer of debugging.              | It uses your existing build pipeline                                                                               |
-| 4   | The default Storybook layout is not very good for a public demonstration site.                                                     | It's designed as public documentation site first                                                                   |
-| 5   | Your documentation uses Storybook's design system, not YOUR design system that you worked so hard to create.                       | The UI is 100% swappable for your own                                                                              |
-| 6   | It's slow to start up and hot reloading is unreliable.                                                                             | Startup time is as fast as you can make your build pipeline go                                                     |
-| 6   | Adding types to your stories is... optional. Each new story is a new chance for someone to decide not to type anything.            | Everything is in TSX files, fully typed                                                                            |
-
-### How it works
+## How it works
 
 Your documentation files can still live alongside your code, but they just export JSX elements:
 
@@ -97,8 +73,9 @@ export const ButtonDocs = (
 )
 ```
 
-Then, you can go ahead and use create-react-app or install Vite and throw an index.html somewhere,
-that's up to you. To get the site working, all you need to do is render `<DocsApp>` in there:
+Then, you can go ahead and use Vite, or Bun, or whatever you already are using
+to build your app and throw an index.html somewhere. That's up to you. To get
+the site working, all you need to do is render `<DocsApp>` in there:
 
 ```tsx
 import { ButtonDocs } from "./Button.docs"
@@ -109,27 +86,11 @@ import { render } from "react-dom"
 render(<DocsApp docs={[ButtonDocs]} />, document.getElementById("root"))
 ```
 
-I can't instruct you on how to start that, because you can set up the build however you want. That's
-the point, you can just use the same build infrastructure you've surely already set up to build your
-Design System.
+You can set up the build however you want. That's the point, you can just use
+the same build infrastructure you've surely already set up to build your Design
+System.
 
-### What it doesn't do
-
-- **Doesn't** work with anything other than React and React Router. If you are using Svelte or Ember you're out of luck.
-- **Doesn't** provide interactive "knobs". Demos are just code samples. If you want to change the demo, you change the code.
-- **Doesn't** magically scan through your source tree and "analyze" it. Magic is great when it works, until it doesn't. Your Codedocs are _just a normal React component_. You build it right alongside your components, within the same build system.
-- **Doesn't** set up the devevelopment or deploy scripts for you. You are a
-- professional application developer. You've
-  probably already set up lots of infrastructure for deploying apps using your Design System. You
-  can keep doing that. The `codedocs` package provides some React components that make it easy to turn
-  documentation files into site.
-- **Doesn't** look good by default. You provide all the components that are used to render the site. That's the
-  point: document your Design System _in_ your Design System.
-
-The other thing is doesn't do is _have any dependencies_. You provide React and React Router as
-peerDependencies, and that's it.
-
-### Context Providers
+## Context Providers
 
 If you're maintaining a design system, or just a component library, you likely have:
 
@@ -162,30 +123,20 @@ import reset from 'emotion-reset';
 />
 ```
 
-### Customizing
+## What it doesn't do
 
-If you want to render the Codedocs UI yourself, within your own Design System, you may override any or all of its components. You can copy/paste the originals in [/lib/components](/lib/Components) to get started and make sure you're following the same API:
+- **Doesn't** work with anything other than React and React Router. If you are using Svelte or Ember you're out of luck.
+- **Doesn't** provide interactive "knobs". Demos are just code samples. If you want to change the demo, you change the code.
+- **Doesn't** magically scan through your source tree and "analyze" it. Magic is great when it works, until it doesn't. Your Codedocs are _just a normal React component_. You build it right alongside your components, within the same build system.
+- **Doesn't** set up the devevelopment or deploy scripts for you. You are a professional application developer. You've probably already set up lots of infrastructure for deploying apps using your Design System. You can keep doing that. The `codedocs` package provides some React components that make it easy to turn documentation files into site.
 
-```js
-<DocsApp
-  docs={...}
-  Columns={({ children }) => ...}
-  LeftColumn={({ children }) => ...}
-  MainColumn={({ children }) => ...}
-  NavList={({ children }) => ...}
-  NavHeading={({ children }) => ...}
-  NavItem={({ children }) => ...}
-  NavLink={({ children, to }) => ...}
-  PageHeading={({ children }) => ...}
-  DemoHeading={({ children }) => ...}
-/>
-```
+The other thing is doesn't do is _have any dependencies_. You provide React and React Router as peerDependencies, and that's it.
 
-### Example
+## Example
 
-For an example, check out Codedocs own docs in [/docs](/docs). You can see these running at https://codedocs.ambic.app.
+For an example, check out Codedocs own docs in [/docs](/docs). You can see these running by cloning this repo and running `npm run start:docs:dev`.
 
-### Future
+## Future
 
 The general philosophy of Codedocs is
 
@@ -204,7 +155,7 @@ Roadmap to 1.0
 - [x] Demos with state, hooks, etc
 - [x] Extract source vía macro
 - [x] Show events emitted from demos
-- [ ] Variant demos
+- [x] Variant demos
 - [ ] ApiReference
 - [ ] Dark mode
 - [ ] Contact sheet
@@ -213,7 +164,7 @@ Roadmap to 1.0
 - [ ] Visual tests
 - [ ] Fullscreen demos
 
-### Inspiration
+## Inspiration
 
 - https://wattenberger.com/blog/react-and-d3
 - https://stitches.dev/docs/variants
