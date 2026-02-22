@@ -63,16 +63,21 @@ export function Editor({ children }: EditorProps) {
     () => new Map<string, Record<string, unknown>>()
   )
 
+  /**
+   * Editor-specific:
+   */
   const [inputStyle, setInputStyle] = useState<
     React.CSSProperties | undefined
   >()
   const [editingProp, setEditingProp] = useState<string | undefined>()
-  const [hoveredProp, setHoveredProp] = useState<string | undefined>()
   const [currentSlotId, setCurrentSlotId] = useState<string | undefined>()
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const observerRef = useRef<ResizeObserver | null>(null)
-  const hoveredElementRef = useRef<HTMLElement | null>()
   const editorRef = useRef<HTMLDivElement | null>(null)
+
+  /** And specific to the hovered one */
+  const [hoveredProp, setHoveredProp] = useState<string | undefined>()
+  const hoveredElementRef = useRef<HTMLElement | null>()
 
   const registerSlot = (id: string, initialProps: Record<string, unknown>) => {
     setSlotPropsById((prev) => {
@@ -102,42 +107,6 @@ export function Editor({ children }: EditorProps) {
     })
   }
 
-  const findPropForElementText = (
-    element: HTMLElement,
-    slotPropsById: Map<string, Record<string, unknown>>
-  ): { prop?: string; slotId?: string } => {
-    const slotElement = element.closest("[data-slot-id]")
-
-    if (!slotElement) return {}
-
-    const slotId = slotElement.getAttribute("data-slot-id") ?? undefined
-
-    if (!slotId) return {}
-
-    const props = slotPropsById.get(slotId)
-
-    if (!props) return {}
-
-    let text: string | undefined
-    for (let i = 0; i < element.childNodes.length; i++) {
-      const { nodeType, textContent } = element.childNodes[i]
-      if (nodeType !== Node.TEXT_NODE) continue
-      text = textContent ?? undefined
-      break
-    }
-
-    if (!text) return {}
-
-    for (const prop in props) {
-      const value = props[prop]
-      if (typeof value !== "string") continue
-      if (value !== text) continue
-      return { prop, slotId }
-    }
-
-    return {}
-  }
-
   const syncEditorWithTarget = (target: HTMLElement) => {
     const editorElement = editorRef.current
     if (!editorElement) {
@@ -151,8 +120,6 @@ export function Editor({ children }: EditorProps) {
   }
 
   const handleTextareaFocus = () => {
-    console.debug("FOCUS")
-
     setEditingProp(hoveredProp)
     setHoveredProp(undefined)
 
@@ -166,10 +133,7 @@ export function Editor({ children }: EditorProps) {
     syncEditorWithTarget(target)
   }
 
-  console.debug({ hoveredProp, editingProp })
-
   const handleClickCapture = (event: React.MouseEvent) => {
-    console.debug("CLICK CAPTURE")
     event.stopPropagation()
 
     if (!(event.target instanceof HTMLElement)) return
@@ -196,8 +160,6 @@ export function Editor({ children }: EditorProps) {
 
     if (!prop) return
 
-    console.debug("over", slotId, prop)
-
     hoveredElementRef.current = target
     syncStyles(target, editorElement)
     setHoveredProp(prop)
@@ -211,7 +173,6 @@ export function Editor({ children }: EditorProps) {
     // If we're mousing out of the element onto another random element, we clear
     // the state. But if we're mousing onto the textarea, don't do anything:
     if (event.relatedTarget === inputRef.current) {
-      console.debug("headed for textarea, not clearing")
       return
     }
 
@@ -259,7 +220,6 @@ export function Editor({ children }: EditorProps) {
   }
 
   const handleValueChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-    console.debug("CHANGE")
     if (!editingProp) {
       throw new Error("Editing but there's no prop?")
     }
@@ -321,4 +281,64 @@ export function Editor({ children }: EditorProps) {
       </div>
     </SlotsContext.Provider>
   )
+}
+
+/**
+ * Figures out which slot and which prop corresponds to the text in an element. For example, if
+ *
+ * 1) The DOM looks like this:
+ *
+ *  ```
+ *      <button data-slot-id="123">
+ *        <svg />
+ *        <span>Save</span>
+ *      </button>
+ *  ```
+ *
+ * 2) The slot rendered:
+ *
+ * ```
+ *      <Button label="Save" icon="disk" />
+ * ```
+ *
+ * 3) You pass in the `<span>` element (because it was the click target)
+ *
+ * Then this function will return `{ prop: "label", slotId: "123" }`
+ */
+function findPropForElementText(
+  element: HTMLElement,
+  slotPropsById: Map<string, Record<string, unknown>>
+): { prop?: string; slotId?: string } {
+  const slotElement = element.closest("[data-slot-id]")
+
+  if (!slotElement) return {}
+
+  const slotId = slotElement.getAttribute("data-slot-id") ?? undefined
+
+  if (!slotId) return {}
+
+  const props = slotPropsById.get(slotId)
+
+  if (!props) return {}
+
+  const text = getTextContent(element)
+
+  if (!text) return {}
+
+  for (const prop in props) {
+    const value = props[prop]
+    if (typeof value !== "string") continue
+    if (value !== text) continue
+    return { prop, slotId }
+  }
+
+  return {}
+}
+
+function getTextContent(element: HTMLElement) {
+  for (let i = 0; i < element.childNodes.length; i++) {
+    const { nodeType, textContent } = element.childNodes[i]
+    if (nodeType !== Node.TEXT_NODE) continue
+    return textContent ?? undefined
+  }
 }
