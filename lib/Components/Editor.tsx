@@ -1,5 +1,5 @@
 import { produce } from "immer"
-import React, { useRef, useState } from "react"
+import React, { useCallback, useRef, useState } from "react"
 
 /**
  * Describes a node in the slot tree. The Editor receives a single root SlotDef.
@@ -355,22 +355,31 @@ export function Editor({ root: initialRoot }: EditorProps) {
   }
 
   /**
-   * Callback ref for each textarea. Stores the DOM element into EditableState
-   * so the mouse-out guard can check event.relatedTarget against it.
+   * Stable callback refs for each textarea. Must be stable (useCallback with
+   * empty deps) because React calls the old ref with null and the new ref with
+   * the element whenever the ref function identity changes — an unstable ref
+   * would write null back into state, trigger a re-render, and loop forever.
    */
-  const handleTextareaRef =
-    (index: 1 | 2) => (el: HTMLTextAreaElement | null) => {
-      // TODO: For this and all setEditables call, verify it wouldn't be simpler to use setEditable instead? Would we need to have setEditable take a Partial<EditableState>?
-      setEditables((prev) => {
-        const current = prev[index]
-        // The same-value guard prevents re-render loops (React calls callback
-        // refs on every render).
-        if (!current || current.textAreaElement === el) return prev
-        const next: Editables = [...prev]
-        next[index] = { ...current, textAreaElement: el }
-        return next
-      })
-    }
+  // TODO: For this and all setEditables call, verify it wouldn't be simpler to use setEditable instead? Would we need to have setEditable take a Partial<EditableState>?
+  const handleTextareaRef1 = useCallback((el: HTMLTextAreaElement | null) => {
+    setEditables((prev) => {
+      const current = prev[1]
+      if (!current || current.textAreaElement === el) return prev
+      const next: Editables = [...prev]
+      next[1] = { ...current, textAreaElement: el }
+      return next
+    })
+  }, [])
+
+  const handleTextareaRef2 = useCallback((el: HTMLTextAreaElement | null) => {
+    setEditables((prev) => {
+      const current = prev[2]
+      if (!current || current.textAreaElement === el) return prev
+      const next: Editables = [...prev]
+      next[2] = { ...current, textAreaElement: el }
+      return next
+    })
+  }, [])
 
   const getCurrentValue = (index: 1 | 2) => {
     const editable = editables[index]
@@ -421,7 +430,7 @@ export function Editor({ root: initialRoot }: EditorProps) {
       {editables[1] && (
         // TODO: Make this a component that takes in the editable state and renders the textarea.
         <textarea
-          ref={handleTextareaRef(1)}
+          ref={handleTextareaRef1}
           value={getCurrentValue(1)}
           onFocus={() => handleTextareaFocus(1)}
           onChange={handleValueChange(1)}
@@ -442,7 +451,7 @@ export function Editor({ root: initialRoot }: EditorProps) {
       )}
       {editables[2] && (
         <textarea
-          ref={handleTextareaRef(2)}
+          ref={handleTextareaRef2}
           value={getCurrentValue(2)}
           onFocus={() => handleTextareaFocus(2)}
           onChange={handleValueChange(2)}
@@ -496,7 +505,7 @@ function findPropForElementText(
 
   const pathString = slotElement.getAttribute("data-slot-path") ?? undefined
 
-  if (!pathString) return {}
+  if (pathString === undefined) return {}
 
   const slotPath = pathString === "" ? [] : pathString.split(".")
 
