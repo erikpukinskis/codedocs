@@ -5,6 +5,7 @@ import { DocsApp } from "../macro"
 import { DemoDocs } from "./Demo.docs"
 import { DocDocs } from "./Doc.docs"
 import { VeryLongDocumentPathDocs } from "./DocWithAVeryLongTitle.docs"
+import { EditorDocs } from "./Editor.docs"
 import { GettingStartedDocs } from "./GettingStarted.docs"
 import { HomePageDocs } from "./HomePage.docs"
 
@@ -14,10 +15,11 @@ render(
     icon="book"
     copyright="Copyright © 2022 Outerframe, Inc"
     docs={[
-      HomePageDocs,
-      GettingStartedDocs,
       DemoDocs,
       DocDocs,
+      EditorDocs,
+      GettingStartedDocs,
+      HomePageDocs,
       VeryLongDocumentPathDocs,
     ]}
     githubUrl="https://github.com/ambic-js/codedocs"
