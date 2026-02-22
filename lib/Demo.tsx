@@ -131,7 +131,7 @@ export function Demo<
     <>
       {variantsToRender.map((variant, i) => (
         <div
-          key={variant}
+          key={variant ?? "__default"}
           ref={containerRef}
           className={styles.demoWithCode}
           data-component="DemoWithCode"
