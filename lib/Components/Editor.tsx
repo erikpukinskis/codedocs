@@ -1,44 +1,63 @@
 import { produce } from "immer"
-import React, { memo, useRef, useState } from "react"
+import React, { useRef, useState } from "react"
 
+/**
+ * Describes a node in the slot tree. The Editor receives a single root SlotDef.
+ *
+ * The tree is stored in React state and updated via Immer's `produce`, which
+ * provides structural sharing: when a leaf prop changes, only the ancestor
+ * chain gets new object references. Combined with React.memo on SlotRenderer,
+ * this means only the changed branch re-renders — siblings are unaffected.
+ */
 export type SlotDef = {
   /**
-   * The component's props type should be the same as the props type, but I
-   * don't know that we can enforce that without making a pretty gnarly generic.
-   * If we want to punt on that, we can just cast the Component and props to the
-   * right state. If we do that, let's keep the component props type as unknown
-   * so we have to be explicit when we do that cast.
+   * The component's props type should be the same as the props type, but we
+   * can't enforce that without a pretty gnarly generic. The component prop type
+   * is `unknown` so call sites must cast explicitly.
    */
   component: React.FC<unknown>
   /**
-   * We may need to expand this props type union in the future, but for now strings
-   * and booleans are enough.
+   * Primitive props are passed through directly. Object-valued props are
+   * assumed to be nested SlotDefs and rendered recursively via SlotRenderer.
+   * If we ever need literal object props, we'll need a wrapper (e.g. a Slot
+   * class) to disambiguate.
    */
   props: Record<string, string | boolean | number | SlotDef>
 }
 
+/**
+ * Dot-separated keys representing the path from the root SlotDef to a
+ * particular slot. E.g. ["tag"] means root.props.tag, and ["sidebar", "header"]
+ * means root.props.sidebar.props.header.
+ */
 type SlotPath = string[]
 
-const SlotRenderer = memo(
-  // TODO: Split out SlotRendererProps type
-  ({ slotDef, path }: { slotDef: SlotDef; path: SlotPath }) => {
-    const Component = slotDef.component
-    const renderedProps: Record<string, unknown> = {}
+type SlotRendererProps = { slotDef: SlotDef; path: SlotPath }
 
-    for (const [key, value] of Object.entries(slotDef.props)) {
-      if (isSlotDef(value)) {
-        renderedProps[key] = (
-          <SlotRenderer slotDef={value} path={[...path, key]} />
-        )
-      } else {
-        renderedProps[key] = value
-      }
+/**
+ * Recursively renders a SlotDef tree. Memoized so that unchanged subtrees
+ * (identified by reference equality on `slotDef`) skip re-rendering. This is
+ * the key to the performance model — Immer's structural sharing ensures
+ * unchanged branches keep their references, and memo bails them out.
+ */
+const SlotRenderer = React.memo(({ slotDef, path }: SlotRendererProps) => {
+  const Component = slotDef.component
+  const renderedProps: Record<string, unknown> = {}
+
+  for (const [key, value] of Object.entries(slotDef.props)) {
+    if (isSlotDef(value)) {
+      renderedProps[key] = (
+        <SlotRenderer slotDef={value} path={[...path, key]} />
+      )
+    } else {
+      renderedProps[key] = value
     }
-
-    // TODO: Do we need the full path here? Or could we just use the key and somehow scope to the right slot by using bubbling?
-    return <Component data-slot-path={path.join(".")} {...renderedProps} />
   }
-)
+
+  // TODO: Do we need the full path here? Or could we just use the key and
+  // somehow scope to the right slot by using bubbling?
+  return <Component data-slot-path={path.join(".")} {...renderedProps} />
+})
 
 SlotRenderer.displayName = "SlotRenderer"
 
@@ -51,6 +70,53 @@ function isSlotDef(value: unknown): value is SlotDef {
   )
 }
 
+/**
+ * State for a single editable textarea overlay. The Editor maintains two of
+ * these (indexed 1 and 2, using 1-based indexing so we can use falsiness
+ * checks on the index). One is for the element being edited, the other for
+ * the element being hovered. This allows both textareas to exist simultaneously
+ * so a user can be editing one prop while hovering another, and click directly
+ * into the hovered textarea without a remount.
+ */
+type EditableState = {
+  /**
+   * The prop name within the slot being edited, e.g. "children" or "label"
+   */
+  prop: string
+  /**
+   * E.g. ["sidebar", "header"] means the slot is at root.props.sidebar.props.header
+   */
+  slotPath: SlotPath
+  /**
+   * Positioning and typography styles for the textarea overlay. These are
+   * synced with the element being edited, so that the textarea lines up exactly
+   * with it. This allows the textarea have a transparent background making it
+   * look like you're just editing the element directly.
+   *
+   * NOTE: This kind of works OK, but is brittle, and we may eventually want to
+   * just make the textarea more like a popover with an opaque background. In
+   * particular, we know this setup will not work for ellipsized text.
+   */
+  inputStyle: React.CSSProperties
+  /**
+   * The element whose text content is being "edited"
+   */
+  targetElement: HTMLElement
+  /**
+   * The corresponding textarea element. Null initially because the editable is created
+   * in state before the textarea mounts — populated via callback ref on the
+   * next render.
+   */
+  textAreaElement: HTMLTextAreaElement | null
+  /**
+   * Watches the target element for size changes so the textarea can reposition.
+   * Only active when the editable is in editing mode (undefined in hovered mode).
+   */
+  observer?: ResizeObserver
+}
+
+type Editables = [never, EditableState | undefined, EditableState | undefined]
+
 type EditorProps = {
   root: SlotDef
 }
@@ -58,24 +124,18 @@ type EditorProps = {
 export function Editor({ root: initialRoot }: EditorProps) {
   const [slotTree, setSlotTree] = useState(initialRoot)
 
-  /**
-   * Editor-specific:
-   */
-  const [inputStyle, setInputStyle] = useState<
-    React.CSSProperties | undefined
-  >()
-  const [editingProp, setEditingProp] = useState<string | undefined>()
-  const [currentSlotPath, setCurrentSlotPath] = useState<SlotPath | undefined>()
-  const inputRef = useRef<HTMLTextAreaElement>(null)
-  const observerRef = useRef<ResizeObserver | null>(null)
+  const [editables, setEditables] = useState<Editables>([
+    undefined as never,
+    undefined,
+    undefined,
+  ])
+  const [editing, setEditing] = useState<1 | 2 | undefined>()
+  const [hovered, setHovered] = useState<1 | 2 | undefined>()
+
   const editorRef = useRef<HTMLDivElement | null>(null)
 
-  /** And specific to the hovered one */
-  const [hoveredProp, setHoveredProp] = useState<string | undefined>()
-  const hoveredElementRef = useRef<HTMLElement | null>()
-
   const updateSlotProp = (path: SlotPath, propName: string, value: unknown) => {
-    // TODO: Why not get tree from renderer slope?
+    // TODO: Why not get tree from renderer scope?
     setSlotTree((tree) =>
       produce(tree, (draft) => {
         let current: SlotDef = draft
@@ -91,93 +151,15 @@ export function Editor({ root: initialRoot }: EditorProps) {
     )
   }
 
-  const syncEditorWithTarget = (target: HTMLElement) => {
-    const editorElement = editorRef.current
-    if (!editorElement) {
-      throw new Error("Focused textarea but editor ref never appeared?")
-    }
-
-    observerRef.current = new ResizeObserver(() => {
-      syncStyles(target, editorElement)
-    })
-    observerRef.current.observe(target)
-  }
-
-  const handleTextareaFocus = () => {
-    setEditingProp(hoveredProp)
-    setHoveredProp(undefined)
-
-    inputRef.current?.focus()
-
-    const target = hoveredElementRef.current
-    if (!target) {
-      throw new Error("Focused textarea but no element was hovered?")
-    }
-
-    syncEditorWithTarget(target)
-  }
-
-  const handleClickCapture = (event: React.MouseEvent) => {
-    event.stopPropagation()
-
-    if (!(event.target instanceof HTMLElement)) return
-
-    const { prop, slotPath } = findPropForElementText(event.target, slotTree)
-
-    setEditingProp(prop)
-    // TODO: I think we actually need two textareas. One for the thing being
-    // hovered and one for the thing being edited. Otherwise it's awkward to try
-    // to click out of one element into another.
-    setCurrentSlotPath(slotPath)
-    syncEditorWithTarget(event.target)
-  }
-
-  const handleMouseOverCapture = (event: React.MouseEvent) => {
-    if (editingProp) return
-
-    const { target, currentTarget: editorElement } = event
-
-    if (!(target instanceof HTMLElement)) return
-    if (!(editorElement instanceof HTMLElement)) return
-
-    const { prop, slotPath } = findPropForElementText(target, slotTree)
-
-    if (!prop) return
-
-    hoveredElementRef.current = target
-    syncStyles(target, editorElement)
-    setHoveredProp(prop)
-    setCurrentSlotPath(slotPath)
-  }
-
-  const handleMouseOutCapture = (event: React.MouseEvent) => {
-    if (editingProp) return
-    if (!(event.target instanceof HTMLElement)) return
-
-    // If we're mousing out of the element onto another random element, we clear
-    // the state. But if we're mousing onto the textarea, don't do anything:
-    if (event.relatedTarget === inputRef.current) {
-      return
-    }
-
-    setInputStyle(undefined)
-    setCurrentSlotPath(undefined)
-  }
-
-  const finishEditing = () => {
-    observerRef.current?.disconnect()
-    observerRef.current = null
-    setInputStyle(undefined)
-    setEditingProp(undefined)
-    setCurrentSlotPath(undefined)
-  }
-
-  const syncStyles = (target: HTMLElement, editorElement: HTMLElement) => {
+  const calculateInputStyle = (
+    target: HTMLElement,
+    editorElement: HTMLElement
+  ): React.CSSProperties => {
     const rect = target.getBoundingClientRect()
     const editorRect = editorElement.getBoundingClientRect()
     const style = window.getComputedStyle(target)
 
-    setInputStyle({
+    return {
       top: rect.top - editorRect.top,
       left: rect.left - editorRect.left,
       width: rect.width,
@@ -190,41 +172,236 @@ export function Editor({ root: initialRoot }: EditorProps) {
       fontStyle: style.fontStyle,
       color: style.color,
       outline: "1px solid gray",
+    }
+  }
+
+  /**
+   * Creates or updates an editable slot at the specified index with the given
+   * prop name, slot path, and target element. Calculates positioning styles for
+   * the textarea overlay based on the target element's position and styles.
+   * Initializes textAreaElement to null (populated later via callback ref).
+   *
+   * TODO: Is it really that beneficial to split up these arguments? What would
+   * it look like if we just had: setEditable(index: 1 | 2, editable:
+   * EditableState | undefined)? Or even Partial<Editable> | undefined? We could
+   * then get rid of the clearEditable function. And I think it would be even
+   * more obvious what this function does.
+   */
+  const setEditable = (
+    index: 1 | 2,
+    prop: string,
+    slotPath: SlotPath,
+    targetElement: HTMLElement
+  ) => {
+    const editorElement = editorRef.current
+    if (!editorElement) {
+      throw new Error(
+        "How are we setting an editable if there's no editor element?"
+      )
+    }
+
+    const inputStyle = calculateInputStyle(targetElement, editorElement)
+
+    // TODO: Why not use prev from scope?
+    setEditables((prev) => {
+      const next: Editables = [...prev]
+      next[index] = {
+        prop,
+        slotPath,
+        inputStyle,
+        targetElement,
+        textAreaElement: null,
+      }
+      return next
     })
   }
 
-  // Get the current value for the editing prop
-  const getCurrentValue = () => {
-    if (!currentSlotPath) return
-    const prop = editingProp ?? hoveredProp
-    if (!prop) return
+  const clearEditable = (index: 1 | 2) => {
+    setEditables((prev) => {
+      const next: Editables = [...prev]
+      const editable = prev[index]
+      if (editable?.observer) {
+        editable.observer.disconnect()
+      }
+      next[index] = undefined
+      return next
+    })
+  }
+
+  const startObserving = (index: 1 | 2) => {
+    const editable = editables[index]
+    if (!editable) {
+      throw new Error(
+        `Why are we trying to observe editable ${index} before it exists?`
+      )
+    }
+
+    const editorElement = editorRef.current
+    if (!editorElement) {
+      throw new Error("Cannot observe before editor ref is available")
+    }
+
+    // Recalculate textarea positioning whenever the target element resizes
+    // (e.g. content changes from editing could cause reflows)
+    const observer = new ResizeObserver(() => {
+      const inputStyle = calculateInputStyle(
+        editable.targetElement,
+        editorElement
+      )
+      setEditables((prev) => {
+        const next: Editables = [...prev]
+        const current = next[index]
+        if (current) {
+          next[index] = { ...current, inputStyle, observer }
+        }
+        return next
+      })
+    })
+
+    observer.observe(editable.targetElement)
+
+    setEditables((prev) => {
+      const next: Editables = [...prev]
+      const current = next[index]
+      if (current) {
+        next[index] = { ...current, observer }
+      }
+      return next
+    })
+  }
+
+  const handleClickCapture = (event: React.MouseEvent) => {
+    event.stopPropagation()
+
+    if (!(event.target instanceof HTMLElement)) return
+
+    const { prop, slotPath } = findPropForElementText(event.target, slotTree)
+
+    // TODO: Verify we don't want to throw here instead of returning.
+    if (!prop || !slotPath) return
+    if (editing) {
+      // Use the other slot for the new edit location
+      const newEditingIndex: 1 | 2 = editing === 1 ? 2 : 1
+      setEditable(newEditingIndex, prop, slotPath, event.target)
+      setEditing(newEditingIndex)
+      startObserving(newEditingIndex)
+    } else if (hovered) {
+      // Transition hovered to editing
+      setEditing(hovered)
+      startObserving(hovered)
+    } else {
+      // Start fresh at slot 1
+      setEditable(1, prop, slotPath, event.target)
+      setEditing(1)
+      startObserving(1)
+    }
+  }
+
+  const handleMouseOverCapture = (event: React.MouseEvent) => {
+    const { target, currentTarget: editorElement } = event
+
+    if (!(target instanceof HTMLElement)) return
+    if (!(editorElement instanceof HTMLElement)) return
+
+    const { prop, slotPath } = findPropForElementText(target, slotTree)
+    // TODO: Verify we don't want to throw here instead of returning.
+    if (!prop || !slotPath) return
+
+    // Determine which slot to use for hover
+    // If editing is in slot 1, use slot 2 for hover (and vice versa)
+    const hoverIndex: 1 | 2 = editing === 1 ? 2 : 1
+
+    setEditable(hoverIndex, prop, slotPath, target)
+    setHovered(hoverIndex)
+  }
+
+  const handleMouseOutCapture = (event: React.MouseEvent) => {
+    if (!(event.target instanceof HTMLElement)) return
+
+    // Don't clear hover if we're mousing onto either textarea — the user may
+    // be moving their cursor to click into it
+    if (
+      // TODO: Verify 1) it doesn't matter if the editable is undefined, 2) we
+      // are sure we're properly clearing the editables always, and 3) we can't
+      // simplify this logic using the editing or hovered variables.
+      event.relatedTarget === editables[1]?.textAreaElement ||
+      event.relatedTarget === editables[2]?.textAreaElement
+    ) {
+      return
+    }
+
+    if (hovered) {
+      clearEditable(hovered)
+      // TODO: Would it make sense to add this logic directly to clearEditable? (or setEditable if we update it to accept undefined?)
+      setHovered(undefined)
+    }
+  }
+
+  const handleTextareaFocus = (index: 1 | 2) => {
+    // When focusing a textarea, it becomes the editing one
+    setEditing(index)
+    if (hovered === index) {
+      setHovered(undefined)
+    }
+    startObserving(index)
+  }
+
+  const handleTextareaBlur = (index: 1 | 2) => {
+    // When blurring, clear editing state
+    if (editing === index) {
+      clearEditable(index)
+      setEditing(undefined)
+    }
+  }
+
+  /**
+   * Callback ref for each textarea. Stores the DOM element into EditableState
+   * so the mouse-out guard can check event.relatedTarget against it.
+   */
+  const handleTextareaRef =
+    (index: 1 | 2) => (el: HTMLTextAreaElement | null) => {
+      // TODO: For this and all setEditables call, verify it wouldn't be simpler to use setEditable instead? Would we need to have setEditable take a Partial<EditableState>?
+      setEditables((prev) => {
+        const current = prev[index]
+        // The same-value guard prevents re-render loops (React calls callback
+        // refs on every render).
+        if (!current || current.textAreaElement === el) return prev
+        const next: Editables = [...prev]
+        next[index] = { ...current, textAreaElement: el }
+        return next
+      })
+    }
+
+  const getCurrentValue = (index: 1 | 2) => {
+    const editable = editables[index]
+    if (!editable) return ""
 
     let current: SlotDef = slotTree
-    for (const key of currentSlotPath) {
+    for (const key of editable.slotPath) {
       const nextValue = current.props[key]
       if (!isSlotDef(nextValue)) {
-        throw new Error(`Expected SlotDef at path ${currentSlotPath.join(".")}`)
+        throw new Error(
+          `Expected SlotDef at path ${editable.slotPath.join(".")}`
+        )
       }
       current = nextValue
     }
-    return current.props[prop] as string
+    return current.props[editable.prop] as string
   }
 
-  const handleValueChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
-    if (!editingProp) {
-      throw new Error("Editing but there's no prop?")
-    }
+  const handleValueChange =
+    (index: 1 | 2) => (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+      const editable = editables[index]
+      if (!editable) {
+        throw new Error(`Value changed but editable ${index} doesn't exist?`)
+      }
 
-    if (!currentSlotPath) {
-      throw new Error("Editing but there's no slot?")
+      updateSlotProp(
+        editable.slotPath,
+        editable.prop,
+        event.target.value.replace(/ +$/, "\u00A0")
+      )
     }
-
-    updateSlotProp(
-      currentSlotPath,
-      editingProp,
-      event.target.value.replace(/ +$/, "\u00A0")
-    )
-  }
 
   return (
     <div style={{ position: "relative" }}>
@@ -241,23 +418,45 @@ export function Editor({ root: initialRoot }: EditorProps) {
       >
         <SlotRenderer slotDef={slotTree} path={[]} />
       </div>
-      {inputStyle && (
+      {editables[1] && (
+        // TODO: Make this a component that takes in the editable state and renders the textarea.
         <textarea
-          value={getCurrentValue()}
-          onFocus={handleTextareaFocus}
-          onChange={handleValueChange}
-          onBlur={finishEditing}
+          ref={handleTextareaRef(1)}
+          value={getCurrentValue(1)}
+          onFocus={() => handleTextareaFocus(1)}
+          onChange={handleValueChange(1)}
+          onBlur={() => handleTextareaBlur(1)}
           onMouseOut={handleMouseOutCapture}
-          ref={inputRef}
+          // TODO: Replace all of these inline styles with vanilla extract.
           style={{
             position: "absolute",
             zIndex: 1,
             background: "transparent",
             border: "none",
-            outline: editingProp ? undefined : "1px solid gray",
+            outline: editing === 1 ? undefined : "1px solid gray",
             boxSizing: "border-box",
             resize: "none",
-            ...inputStyle,
+            ...editables[1].inputStyle,
+          }}
+        />
+      )}
+      {editables[2] && (
+        <textarea
+          ref={handleTextareaRef(2)}
+          value={getCurrentValue(2)}
+          onFocus={() => handleTextareaFocus(2)}
+          onChange={handleValueChange(2)}
+          onBlur={() => handleTextareaBlur(2)}
+          onMouseOut={handleMouseOutCapture}
+          style={{
+            position: "absolute",
+            zIndex: 1,
+            background: "transparent",
+            border: "none",
+            outline: editing === 2 ? undefined : "1px solid gray",
+            boxSizing: "border-box",
+            resize: "none",
+            ...editables[2].inputStyle,
           }}
         />
       )}
@@ -323,6 +522,17 @@ function findPropForElementText(
   return {}
 }
 
+/**
+ * Returns the first text node's content within an element, ignoring non-text
+ * children. Used to match DOM text back to slot props for editing.
+ *
+ * NOTE: This is obviously somewhat brittle. It only works for components that
+ * pass through text content, unchanged, to a single element. Long term, we may
+ * need to make this more explicit (at least optionally) by putting a
+ * data-prop-name attribute onto elements to connect them back to a specific
+ * prop. But that requires fairly invasive component changes. Would be good to
+ * avoid those, or at least keep them optional.
+ */
 function getTextContent(element: HTMLElement) {
   for (let i = 0; i < element.childNodes.length; i++) {
     const { nodeType, textContent } = element.childNodes[i]
