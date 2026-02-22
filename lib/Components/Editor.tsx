@@ -54,8 +54,6 @@ const SlotRenderer = React.memo(({ slotDef, path }: SlotRendererProps) => {
     }
   }
 
-  // TODO: Do we need the full path here? Or could we just use the key and
-  // somehow scope to the right slot by using bubbling?
   return <Component data-slot-path={path.join(".")} {...renderedProps} />
 })
 
@@ -135,9 +133,8 @@ export function Editor({ root: initialRoot }: EditorProps) {
   const editorRef = useRef<HTMLDivElement | null>(null)
 
   const updateSlotProp = (path: SlotPath, propName: string, value: unknown) => {
-    // TODO: Why not get tree from renderer scope?
-    setSlotTree((tree) =>
-      produce(tree, (draft) => {
+    setSlotTree(
+      produce(slotTree, (draft) => {
         let current: SlotDef = draft
         for (const key of path) {
           const nextValue = current.props[key]
@@ -176,56 +173,14 @@ export function Editor({ root: initialRoot }: EditorProps) {
   }
 
   /**
-   * Creates or updates an editable slot at the specified index with the given
-   * prop name, slot path, and target element. Calculates positioning styles for
-   * the textarea overlay based on the target element's position and styles.
-   * Initializes textAreaElement to null (populated later via callback ref).
-   *
-   * TODO: Is it really that beneficial to split up these arguments? What would
-   * it look like if we just had: setEditable(index: 1 | 2, editable:
-   * EditableState | undefined)? Or even Partial<Editable> | undefined? We could
-   * then get rid of the clearEditable function. And I think it would be even
-   * more obvious what this function does.
+   * Sets or clears the editable at the given index. Pass `undefined` to clear,
+   * which also disconnects any active ResizeObserver.
    */
-  const setEditable = (
-    index: 1 | 2,
-    prop: string,
-    slotPath: SlotPath,
-    targetElement: HTMLElement
-  ) => {
-    const editorElement = editorRef.current
-    if (!editorElement) {
-      throw new Error(
-        "How are we setting an editable if there's no editor element?"
-      )
-    }
-
-    const inputStyle = calculateInputStyle(targetElement, editorElement)
-
-    // TODO: Why not use prev from scope?
-    setEditables((prev) => {
-      const next: Editables = [...prev]
-      next[index] = {
-        prop,
-        slotPath,
-        inputStyle,
-        targetElement,
-        textAreaElement: null,
-      }
-      return next
-    })
-  }
-
-  const clearEditable = (index: 1 | 2) => {
-    setEditables((prev) => {
-      const next: Editables = [...prev]
-      const editable = prev[index]
-      if (editable?.observer) {
-        editable.observer.disconnect()
-      }
-      next[index] = undefined
-      return next
-    })
+  const setEditable = (index: 1 | 2, editable: EditableState | undefined) => {
+    editables[index]?.observer?.disconnect()
+    const next: Editables = [...editables]
+    next[index] = editable
+    setEditables(next)
   }
 
   const startObserving = (index: 1 | 2) => {
@@ -275,14 +230,26 @@ export function Editor({ root: initialRoot }: EditorProps) {
 
     if (!(event.target instanceof HTMLElement)) return
 
+    const editorElement = editorRef.current
+    if (!editorElement) return
+
     const { prop, slotPath } = findPropForElementText(event.target, slotTree)
 
-    // TODO: Verify we don't want to throw here instead of returning.
+    // findPropForElementText returns empty when: the element has no slot
+    // ancestor, the element has no direct text node, or text was found but no
+    // prop matches it (e.g. the component transforms the prop before rendering).
     if (!prop || !slotPath) return
+
     if (editing) {
       // Use the other slot for the new edit location
       const newEditingIndex: 1 | 2 = editing === 1 ? 2 : 1
-      setEditable(newEditingIndex, prop, slotPath, event.target)
+      setEditable(newEditingIndex, {
+        prop,
+        slotPath,
+        inputStyle: calculateInputStyle(event.target, editorElement),
+        targetElement: event.target,
+        textAreaElement: null,
+      })
       setEditing(newEditingIndex)
       startObserving(newEditingIndex)
     } else if (hovered) {
@@ -291,7 +258,13 @@ export function Editor({ root: initialRoot }: EditorProps) {
       startObserving(hovered)
     } else {
       // Start fresh at slot 1
-      setEditable(1, prop, slotPath, event.target)
+      setEditable(1, {
+        prop,
+        slotPath,
+        inputStyle: calculateInputStyle(event.target, editorElement),
+        targetElement: event.target,
+        textAreaElement: null,
+      })
       setEditing(1)
       startObserving(1)
     }
@@ -304,14 +277,19 @@ export function Editor({ root: initialRoot }: EditorProps) {
     if (!(editorElement instanceof HTMLElement)) return
 
     const { prop, slotPath } = findPropForElementText(target, slotTree)
-    // TODO: Verify we don't want to throw here instead of returning.
     if (!prop || !slotPath) return
 
     // Determine which slot to use for hover
     // If editing is in slot 1, use slot 2 for hover (and vice versa)
     const hoverIndex: 1 | 2 = editing === 1 ? 2 : 1
 
-    setEditable(hoverIndex, prop, slotPath, target)
+    setEditable(hoverIndex, {
+      prop,
+      slotPath,
+      inputStyle: calculateInputStyle(target, editorElement),
+      targetElement: target,
+      textAreaElement: null,
+    })
     setHovered(hoverIndex)
   }
 
@@ -321,9 +299,6 @@ export function Editor({ root: initialRoot }: EditorProps) {
     // Don't clear hover if we're mousing onto either textarea — the user may
     // be moving their cursor to click into it
     if (
-      // TODO: Verify 1) it doesn't matter if the editable is undefined, 2) we
-      // are sure we're properly clearing the editables always, and 3) we can't
-      // simplify this logic using the editing or hovered variables.
       event.relatedTarget === editables[1]?.textAreaElement ||
       event.relatedTarget === editables[2]?.textAreaElement
     ) {
@@ -331,8 +306,7 @@ export function Editor({ root: initialRoot }: EditorProps) {
     }
 
     if (hovered) {
-      clearEditable(hovered)
-      // TODO: Would it make sense to add this logic directly to clearEditable? (or setEditable if we update it to accept undefined?)
+      setEditable(hovered, undefined)
       setHovered(undefined)
     }
   }
@@ -349,7 +323,7 @@ export function Editor({ root: initialRoot }: EditorProps) {
   const handleTextareaBlur = (index: 1 | 2) => {
     // When blurring, clear editing state
     if (editing === index) {
-      clearEditable(index)
+      setEditable(index, undefined)
       setEditing(undefined)
     }
   }
@@ -360,7 +334,6 @@ export function Editor({ root: initialRoot }: EditorProps) {
    * the element whenever the ref function identity changes — an unstable ref
    * would write null back into state, trigger a re-render, and loop forever.
    */
-  // TODO: For this and all setEditables call, verify it wouldn't be simpler to use setEditable instead? Would we need to have setEditable take a Partial<EditableState>?
   const handleTextareaRef1 = useCallback((el: HTMLTextAreaElement | null) => {
     setEditables((prev) => {
       const current = prev[1]
