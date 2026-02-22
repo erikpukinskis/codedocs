@@ -36,6 +36,7 @@
     "body-scroll-lock": "^4.0.0-beta.0",
     "copy-text-to-clipboard": "^3.0.1",
     "highlight-words": "^1.2.1",
+    "immer": "^11.1.4",
     "lodash": "^4.17.21",
     "minisearch": "^5.0.0",
     "react-ace": "^10.1.0",

@@ -1,7 +1,7 @@
 import { useState } from "react"
 // eslint-disable-next-line no-restricted-imports
 import { Demo, Doc } from "../macro"
-import { Editor, Slot } from "~/Components/Editor"
+import { Editor } from "~/Components/Editor"
 
 type TagProps = {
   children?: React.ReactNode
@@ -63,15 +63,20 @@ export const EditorDocs = (
   <Doc path="/Components/Editor">
     <h2>Editor</h2>
     <Demo>
-      <Editor>
-        <Slot
-          component={Button}
-          props={{
+      <Editor
+        root={{
+          component: Button,
+          props: {
             children: "Hello",
-            tag: <Slot component={Tag} props={{ children: "+1" }} />,
-          }}
-        />
-      </Editor>
+            tag: {
+              component: Tag,
+              props: {
+                children: "+1",
+              },
+            },
+          },
+        }}
+      />
     </Demo>
   </Doc>
 )
