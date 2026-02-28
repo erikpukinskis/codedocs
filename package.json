@@ -28,6 +28,7 @@
     }
   },
   "dependencies": {
+    "@dnd-kit/react": "^0.3.2",
     "@fortawesome/fontawesome-free-solid": "^5.0.13",
     "@fortawesome/fontawesome-svg-core": "^6.2.1",
     "@fortawesome/free-solid-svg-icons": "^6.2.1",

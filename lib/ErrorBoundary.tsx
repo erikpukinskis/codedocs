@@ -44,7 +44,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps> {
     return (
       <>
         <h1>
-          this.state.message Something went wrong
+          Something went wrong
           {this.state.message && `: ${this.state.message}`}
         </h1>
         <p>Check the console for details.</p>

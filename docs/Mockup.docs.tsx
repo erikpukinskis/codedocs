@@ -1,36 +1,37 @@
 import { useState } from "react"
 // eslint-disable-next-line no-restricted-imports
 import { Demo, Doc } from "../macro"
-import { Editor } from "~/Components/Editor"
+import { Mockup } from "~/Components/Mockup"
 
 type TagProps = {
-  children?: React.ReactNode
+  label?: string
   [key: `data-${string}`]: unknown
 }
 
-const Tag: React.FC<TagProps> = ({ children, ...rest }) => (
+export const Tag: React.FC<TagProps> = ({ label, ...rest }) => (
   <div
     data-component="Tag"
     style={{
       backgroundColor: "#e000ff",
       color: "white",
-      padding: "2px 4px",
+      padding: "0px 4px",
       borderRadius: 999,
       fontSize: 12,
+      display: "inline-block",
     }}
     {...rest}
   >
-    {children}
+    {label}
   </div>
 )
 
 type ButtonProps = {
-  children?: React.ReactNode
+  label: string
   tag?: React.ReactNode
   [key: `data-${string}`]: unknown
 }
 
-const Button: React.FC<ButtonProps> = ({ children, tag, ...rest }) => {
+export const Button: React.FC<ButtonProps> = ({ label, tag, ...rest }) => {
   const [clicked, setClicked] = useState(false)
 
   return (
@@ -50,7 +51,7 @@ const Button: React.FC<ButtonProps> = ({ children, tag, ...rest }) => {
         onClick={() => setClicked(true)}
         {...rest}
       >
-        {children}
+        {label}
         {tag && (
           <div style={{ position: "absolute", right: -8, top: -8 }}>{tag}</div>
         )}
@@ -59,15 +60,15 @@ const Button: React.FC<ButtonProps> = ({ children, tag, ...rest }) => {
   )
 }
 
-export const EditorDocs = (
-  <Doc path="/Components/Editor">
-    <h2>Editor</h2>
+export const MockupDocs = (
+  <Doc path="/Docs/Mockups">
+    <h2>Mockup</h2>
     <Demo>
-      <Editor
+      <Mockup
         root={{
           component: Button,
           props: {
-            children: "Hello",
+            label: "Hello",
             tag: {
               component: Tag,
               props: {

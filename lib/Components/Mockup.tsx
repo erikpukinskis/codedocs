@@ -1,125 +1,12 @@
 import { produce } from "immer"
 import React, { useCallback, useRef, useState } from "react"
+import type { SlotDef } from "~/helpers/componentTypes"
 
-/**
- * Describes a node in the slot tree. The Editor receives a single root SlotDef.
- *
- * The tree is stored in React state and updated via Immer's `produce`, which
- * provides structural sharing: when a leaf prop changes, only the ancestor
- * chain gets new object references. Combined with React.memo on SlotRenderer,
- * this means only the changed branch re-renders — siblings are unaffected.
- */
-export type SlotDef = {
-  /**
-   * The component's props type should be the same as the props type, but we
-   * can't enforce that without a pretty gnarly generic. The component prop type
-   * is `unknown` so call sites must cast explicitly.
-   */
-  component: React.FC<unknown>
-  /**
-   * Primitive props are passed through directly. Object-valued props are
-   * assumed to be nested SlotDefs and rendered recursively via SlotRenderer.
-   * If we ever need literal object props, we'll need a wrapper (e.g. a Slot
-   * class) to disambiguate.
-   */
-  props: Record<string, string | boolean | number | SlotDef>
-}
-
-/**
- * Dot-separated keys representing the path from the root SlotDef to a
- * particular slot. E.g. ["tag"] means root.props.tag, and ["sidebar", "header"]
- * means root.props.sidebar.props.header.
- */
-type SlotPath = string[]
-
-type SlotRendererProps = { slotDef: SlotDef; path: SlotPath }
-
-/**
- * Recursively renders a SlotDef tree. Memoized so that unchanged subtrees
- * (identified by reference equality on `slotDef`) skip re-rendering. This is
- * the key to the performance model — Immer's structural sharing ensures
- * unchanged branches keep their references, and memo bails them out.
- */
-const SlotRenderer = React.memo(({ slotDef, path }: SlotRendererProps) => {
-  const Component = slotDef.component
-  const renderedProps: Record<string, unknown> = {}
-
-  for (const [key, value] of Object.entries(slotDef.props)) {
-    if (isSlotDef(value)) {
-      renderedProps[key] = (
-        <SlotRenderer slotDef={value} path={[...path, key]} />
-      )
-    } else {
-      renderedProps[key] = value
-    }
-  }
-
-  return <Component data-slot-path={path.join(".")} {...renderedProps} />
-})
-
-SlotRenderer.displayName = "SlotRenderer"
-
-function isSlotDef(value: unknown): value is SlotDef {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    "component" in value &&
-    "props" in value
-  )
-}
-
-/**
- * State for a single editable textarea overlay. The Editor maintains two of
- * these (indexed 1 and 2, using 1-based indexing so we can use falsiness
- * checks on the index). One is for the element being edited, the other for
- * the element being hovered. This allows both textareas to exist simultaneously
- * so a user can be editing one prop while hovering another, and click directly
- * into the hovered textarea without a remount.
- */
-type EditableState = {
-  /**
-   * The prop name within the slot being edited, e.g. "children" or "label"
-   */
-  prop: string
-  /**
-   * E.g. ["sidebar", "header"] means the slot is at root.props.sidebar.props.header
-   */
-  slotPath: SlotPath
-  /**
-   * Positioning and typography styles for the textarea overlay. These are
-   * synced with the element being edited, so that the textarea lines up exactly
-   * with it. This allows the textarea have a transparent background making it
-   * look like you're just editing the element directly.
-   *
-   * NOTE: This kind of works OK, but is brittle, and we may eventually want to
-   * just make the textarea more like a popover with an opaque background. In
-   * particular, we know this setup will not work for ellipsized text.
-   */
-  inputStyle: React.CSSProperties
-  /**
-   * The element whose text content is being "edited"
-   */
-  targetElement: HTMLElement
-  /**
-   * The corresponding textarea element. Null initially because the editable is created
-   * in state before the textarea mounts — populated via callback ref on the
-   * next render.
-   */
-  textAreaElement: HTMLTextAreaElement | null
-  /**
-   * Watches the target element for size changes so the textarea can reposition.
-   * Only active when the editable is in editing mode (undefined in hovered mode).
-   */
-  observer?: ResizeObserver
-}
-
-type Editables = [never, EditableState | undefined, EditableState | undefined]
-
-type EditorProps = {
+type MockupProps = {
   root: SlotDef
 }
 
-export function Editor({ root: initialRoot }: EditorProps) {
+export function Mockup({ root: initialRoot }: MockupProps) {
   const [slotTree, setSlotTree] = useState(initialRoot)
 
   const [editables, setEditables] = useState<Editables>([
@@ -445,6 +332,96 @@ export function Editor({ root: initialRoot }: EditorProps) {
     </div>
   )
 }
+
+/**
+ * Dot-separated keys representing the path from the root SlotDef to a
+ * particular slot. E.g. ["tag"] means root.props.tag, and ["sidebar", "header"]
+ * means root.props.sidebar.props.header.
+ */
+type SlotPath = string[]
+
+type SlotRendererProps = { slotDef: SlotDef; path: SlotPath }
+
+/**
+ * Recursively renders a SlotDef tree. Memoized so that unchanged subtrees
+ * (identified by reference equality on `slotDef`) skip re-rendering. This is
+ * the key to the performance model — Immer's structural sharing ensures
+ * unchanged branches keep their references, and memo bails them out.
+ */
+const SlotRenderer = React.memo(({ slotDef, path }: SlotRendererProps) => {
+  const Component = slotDef.component
+  const renderedProps: Record<string, unknown> = {}
+
+  for (const [key, value] of Object.entries(slotDef.props)) {
+    if (isSlotDef(value)) {
+      renderedProps[key] = (
+        <SlotRenderer slotDef={value} path={[...path, key]} />
+      )
+    } else {
+      renderedProps[key] = value
+    }
+  }
+
+  return <Component data-slot-path={path.join(".")} {...renderedProps} />
+})
+
+SlotRenderer.displayName = "SlotRenderer"
+
+function isSlotDef(value: unknown): value is SlotDef {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "component" in value &&
+    "props" in value
+  )
+}
+
+/**
+ * State for a single editable textarea overlay. The Editor maintains two of
+ * these (indexed 1 and 2, using 1-based indexing so we can use falsiness
+ * checks on the index). One is for the element being edited, the other for
+ * the element being hovered. This allows both textareas to exist simultaneously
+ * so a user can be editing one prop while hovering another, and click directly
+ * into the hovered textarea without a remount.
+ */
+type EditableState = {
+  /**
+   * The prop name within the slot being edited, e.g. "children" or "label"
+   */
+  prop: string
+  /**
+   * E.g. ["sidebar", "header"] means the slot is at root.props.sidebar.props.header
+   */
+  slotPath: SlotPath
+  /**
+   * Positioning and typography styles for the textarea overlay. These are
+   * synced with the element being edited, so that the textarea lines up exactly
+   * with it. This allows the textarea have a transparent background making it
+   * look like you're just editing the element directly.
+   *
+   * NOTE: This kind of works OK, but is brittle, and we may eventually want to
+   * just make the textarea more like a popover with an opaque background. In
+   * particular, we know this setup will not work for ellipsized text.
+   */
+  inputStyle: React.CSSProperties
+  /**
+   * The element whose text content is being "edited"
+   */
+  targetElement: HTMLElement
+  /**
+   * The corresponding textarea element. Null initially because the editable is created
+   * in state before the textarea mounts — populated via callback ref on the
+   * next render.
+   */
+  textAreaElement: HTMLTextAreaElement | null
+  /**
+   * Watches the target element for size changes so the textarea can reposition.
+   * Only active when the editable is in editing mode (undefined in hovered mode).
+   */
+  observer?: ResizeObserver
+}
+
+type Editables = [never, EditableState | undefined, EditableState | undefined]
 
 /**
  * Figures out which slot and which prop corresponds to the text in an element. For example, if
