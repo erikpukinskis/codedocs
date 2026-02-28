@@ -1,4 +1,5 @@
-export type AllowedPropTypes = string | React.ReactNode
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type AllowedPropTypes = any
 
 type PropDef =
   | {
@@ -17,7 +18,8 @@ type PropDefLookup<PropsType extends Record<string, AllowedPropTypes>> = {
 }
 
 export type ComponentDef<PropsType extends Record<string, AllowedPropTypes>> = {
-  component: React.FC<PropsType>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  component: React.FC<AllowedPropTypes>
   props: PropDefLookup<PropsType>
 }
 

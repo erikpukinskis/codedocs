@@ -1,5 +1,5 @@
 import React from "react"
-import { render } from "react-dom"
+import { createRoot } from "react-dom/client"
 // eslint-disable-next-line no-restricted-imports
 import { DocsApp } from "../macro"
 import { CanvasDocs } from "./Canvas.docs"
@@ -10,7 +10,7 @@ import { GettingStartedDocs } from "./GettingStarted.docs"
 import { HomePageDocs } from "./HomePage.docs"
 import { MockupDocs } from "./Mockup.docs"
 
-render(
+createRoot(document.getElementById("root")!).render(
   <DocsApp
     logo="Codedocs"
     icon="book"
@@ -25,6 +25,5 @@ render(
       VeryLongDocumentPathDocs,
     ]}
     githubUrl="https://github.com/ambic-js/codedocs"
-  />,
-  document.getElementById("root")
+  />
 )

@@ -21,6 +21,16 @@ type PaletteProviderProps<ComponentDefs extends ComponentDefLookup> = {
     [key in keyof ComponentDefs]: ComponentDef<ComponentDefs[key]>
   }
 }
+
+// const foo: ComponentDef<{ foo: string }> = {
+//   component: ({ foo }) => <div>{foo}</div>,
+//   props: {
+//     foo: { type: "string", default: "foo" },
+//   },
+// }
+
+// console.log(foo)
+
 export function PaletteProvider<ComponentDefs extends ComponentDefLookup>({
   children,
   palette,
@@ -77,8 +87,6 @@ function PaletteProviderInner<ComponentDefs extends ComponentDefLookup>({
   )
 }
 
-type PropsOf<T> = T extends React.FC<infer P> ? P : never
-
 type ComponentSourceProps<PropsType extends Record<string, AllowedPropTypes>> =
   { name: string; componentDef: ComponentDef<PropsType> }
 
@@ -96,7 +104,7 @@ function ComponentSource<PropsType extends Record<string, AllowedPropTypes>>({
       ...acc,
       [key]: value.default,
     }),
-    {} as PropsOf<typeof Component>
+    {} as PropsType
   )
 
   return (
@@ -115,7 +123,7 @@ function OverlayComponent<PropsType extends Record<string, AllowedPropTypes>>({
 }) {
   const defaultProps = Object.entries(propDefLookup).reduce(
     (acc, [key, value]) => ({ ...acc, [key]: value.default }),
-    {} as PropsOf<typeof Component>
+    {} as PropsType
   )
   return (
     <div className={styles.componentWrapper}>
