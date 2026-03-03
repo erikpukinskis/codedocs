@@ -1,4 +1,3 @@
-import { keyBy } from "lodash"
 import React, {
   createContext,
   useCallback,
@@ -8,11 +7,12 @@ import React, {
 } from "react"
 import * as styles from "./Palette.css"
 import { useDroppableSlot } from "./PaletteProvider"
-import { isSlotId, type SlotDef } from "~/helpers/componentTypes"
+import type { SlotDefLookup } from "~/helpers/componentTypes"
+import { isSlotId } from "~/helpers/componentTypes"
 import { makeUninitializedContext } from "~/helpers/makeUninitializedContext"
 
-type MockupContextValue = {
-  slotsById: Record<string, SlotDef>
+type MockupContextValue<SlotDefs extends SlotDefLookup> = {
+  slotsById: SlotDefs
 }
 
 export function useSlot(id: string) {
@@ -28,23 +28,21 @@ export function useSlot(id: string) {
 }
 
 const MockupContext = createContext(
-  makeUninitializedContext<MockupContextValue>(
+  makeUninitializedContext<MockupContextValue<SlotDefLookup>>(
     "Cannot use MockupContext outside of a MockupProvider"
   )
 )
 
-type MockupProviderProps = {
+type MockupProviderProps<SlotDefs extends SlotDefLookup> = {
   children: React.ReactNode
-  slots: SlotDef[]
+  slots: SlotDefs
 }
 
-export const MockupProvider: React.FC<MockupProviderProps> = ({
+export function MockupProvider<SlotDefs extends SlotDefLookup>({
   children,
   slots,
-}) => {
-  const [slotsById, setSlotsById] = useState<Record<string, SlotDef>>(() =>
-    keyBy(slots, "id")
-  )
+}: MockupProviderProps<SlotDefs>) {
+  const [slotsById, setSlotsById] = useState<SlotDefs>(slots)
 
   const [editables, setEditables] = useState<Editables>([
     undefined as never,
@@ -56,7 +54,11 @@ export const MockupProvider: React.FC<MockupProviderProps> = ({
 
   const editorRef = useRef<HTMLDivElement | null>(null)
 
-  const updateSlotProp = (slotId: string, propName: string, value: unknown) => {
+  const updateSlotProp = (
+    slotId: keyof SlotDefs,
+    propName: string,
+    value: unknown
+  ) => {
     setSlotsById((prev) => {
       const next = { ...prev }
       next[slotId] = { ...next[slotId], [propName]: value }
@@ -280,6 +282,7 @@ export const MockupProvider: React.FC<MockupProviderProps> = ({
       throw new Error(`Slot with id ${editable.slotId} not found?`)
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const value = slotDef.props[editable.prop]
 
     if (typeof value !== "string") {
@@ -471,9 +474,9 @@ type Editables = [never, EditableState | undefined, EditableState | undefined]
  *
  * Then this function will return `{ prop: "label", slotId: "abc123" }`
  */
-function findPropForElementText(
+function findPropForElementText<SlotDefs extends SlotDefLookup>(
   element: HTMLElement,
-  slotsById: Record<string, SlotDef>
+  slotsById: SlotDefs
 ): { prop?: string; slotId?: string } {
   // TODO: Reimplement this using the flat slotsById structure
   const slotElement = element.closest("[data-slot-id]")
@@ -499,6 +502,7 @@ function findPropForElementText(
   }
 
   for (const prop in slotDef.props) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const value = slotDef.props[prop]
     if (typeof value !== "string") continue
     if (value !== text) continue

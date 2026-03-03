@@ -66,23 +66,23 @@ export const MockupDocs = (
     <h2>Mockup</h2>
     <Demo>
       <MockupProvider
-        slots={[
-          {
-            id: "btn1",
-            component: Button,
-            props: {
-              label: "Hello",
-              tag: slotId("tag1"),
-            },
-          },
-          {
+        slots={{
+          // btn1: {
+          //   id: "btn1",
+          //   component: Button,
+          //   props: {
+          //     label: "Hello",
+          //     tag: slotId("tag1"),
+          //   },
+          // },
+          tag1: {
             id: "tag1",
             component: Tag,
             props: {
               label: "+1",
             },
           },
-        ]}
+        }}
       >
         <Slot id="btn1" />
       </MockupProvider>

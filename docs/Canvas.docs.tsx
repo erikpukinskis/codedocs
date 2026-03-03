@@ -24,7 +24,7 @@ export const CanvasDocs = (
       }}
     >
       <MockupProvider
-        slots={[
+        slotsById={[
           { id: "abc123", component: EmptySlot, props: { id: "abc123" } },
         ]}
       >

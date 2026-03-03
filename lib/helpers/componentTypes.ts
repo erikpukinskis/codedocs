@@ -36,7 +36,7 @@ export type ComponentDefLookup = Record<
  * chain gets new object references. Combined with React.memo on SlotRenderer,
  * this means only the changed branch re-renders — siblings are unaffected.
  */
-export type SlotDef = {
+export type SlotDef<PropsType extends Record<string, AllowedPropTypes>> = {
   /** A unique identifier */
   id: string
   /**
@@ -49,15 +49,20 @@ export type SlotDef = {
    * ... that forces inference at the definition site.
    */
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  component: React.FC<any>
+  component: React.FC<PropsType>
   /**
    * Primitive props are passed through directly. Object-valued props are
    * assumed to be nested SlotDefs and rendered recursively via SlotRenderer.
    * If we ever need literal object props, we'll need a wrapper (e.g. a Slot
    * class) to disambiguate.
    */
-  props: Record<string, BasicPropValue>
+  props: PropsType
 }
+
+export type SlotDefLookup = Record<
+  string,
+  SlotDef<Record<string, AllowedPropTypes>>
+>
 
 export type BasicPropValue = string | boolean | number | SlotId
 
