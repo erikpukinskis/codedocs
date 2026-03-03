@@ -25,10 +25,10 @@ type FocusGroupOptions = {
 
 export const useFocusGroup = ({ onFocus, onBlur }: FocusGroupOptions) => {
   const elementsByIdRef = useRef<Record<string, HTMLElement>>({})
-  const focusedElementRef = useRef<HTMLElement | undefined>()
-  const callbackTimeoutRef = useRef<NodeJS.Timeout | undefined>()
+  const focusedElementRef = useRef<HTMLElement | undefined>(undefined)
+  const callbackTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
   const lastReportedStateRef = useRef<"focused" | "blurred">("blurred")
-  const cleanupTimeoutRef = useRef<NodeJS.Timeout | undefined>()
+  const cleanupTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
 
   const focusGroupProps = useMemo(
     () => ({

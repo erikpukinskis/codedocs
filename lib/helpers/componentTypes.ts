@@ -37,6 +37,8 @@ export type ComponentDefLookup = Record<
  * this means only the changed branch re-renders — siblings are unaffected.
  */
 export type SlotDef = {
+  /** A unique identifier */
+  id: string
   /**
    * The component's props type should be the same as the props type, but we
    * can't enforce that without a pretty gnarly generic. If we ever want this to
@@ -54,5 +56,18 @@ export type SlotDef = {
    * If we ever need literal object props, we'll need a wrapper (e.g. a Slot
    * class) to disambiguate.
    */
-  props: Record<string, string | boolean | number | SlotDef>
+  props: Record<string, BasicPropValue>
+}
+
+export type BasicPropValue = string | boolean | number | SlotId
+
+export type SlotId = { __slotId: string }
+
+export function slotId(id: string): SlotId {
+  return { __slotId: id }
+}
+
+export function isSlotId(value: unknown): value is SlotId {
+  if (!value) return false
+  return typeof (value as SlotId).__slotId === "string"
 }

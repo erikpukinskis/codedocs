@@ -5,11 +5,7 @@ import * as styles from "./Demo.css"
 import { ErrorBoundary } from "./ErrorBoundary"
 import { EventLog, type CallbackEvent } from "./EventLog"
 
-type ReactChildren =
-  | React.ReactElement
-  | React.ReactText
-  | React.ReactPortal
-  | string
+type ReactChildren = React.ReactElement | React.ReactPortal | string
 
 type DemoPropsWithChildren = {
   children: ReactChildren | Array<ReactChildren>

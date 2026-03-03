@@ -1,13 +1,50 @@
-import { produce } from "immer"
-import React, { useCallback, useRef, useState } from "react"
-import type { SlotDef } from "~/helpers/componentTypes"
+import { keyBy } from "lodash"
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useRef,
+  useState,
+} from "react"
+import * as styles from "./Palette.css"
+import { useDroppableSlot } from "./PaletteProvider"
+import { isSlotId, type SlotDef } from "~/helpers/componentTypes"
+import { makeUninitializedContext } from "~/helpers/makeUninitializedContext"
 
-type MockupProps = {
-  root: SlotDef
+type MockupContextValue = {
+  slotsById: Record<string, SlotDef>
 }
 
-export function Mockup({ root: initialRoot }: MockupProps) {
-  const [slotTree, setSlotTree] = useState(initialRoot)
+export function useSlot(id: string) {
+  const { slotsById } = useContext(MockupContext)
+
+  const slot = slotsById[id]
+
+  if (!slot) {
+    throw new Error(`Slot ${id} not found`)
+  }
+
+  return slot
+}
+
+const MockupContext = createContext(
+  makeUninitializedContext<MockupContextValue>(
+    "Cannot use MockupContext outside of a MockupProvider"
+  )
+)
+
+type MockupProviderProps = {
+  children: React.ReactNode
+  slots: SlotDef[]
+}
+
+export const MockupProvider: React.FC<MockupProviderProps> = ({
+  children,
+  slots,
+}) => {
+  const [slotsById, setSlotsById] = useState<Record<string, SlotDef>>(() =>
+    keyBy(slots, "id")
+  )
 
   const [editables, setEditables] = useState<Editables>([
     undefined as never,
@@ -19,20 +56,12 @@ export function Mockup({ root: initialRoot }: MockupProps) {
 
   const editorRef = useRef<HTMLDivElement | null>(null)
 
-  const updateSlotProp = (path: SlotPath, propName: string, value: unknown) => {
-    setSlotTree(
-      produce(slotTree, (draft) => {
-        let current: SlotDef = draft
-        for (const key of path) {
-          const nextValue = current.props[key]
-          if (!isSlotDef(nextValue)) {
-            throw new Error(`Expected SlotDef at path ${path.join(".")}`)
-          }
-          current = nextValue
-        }
-        current.props[propName] = value as string | boolean | number | SlotDef
-      })
-    )
+  const updateSlotProp = (slotId: string, propName: string, value: unknown) => {
+    setSlotsById((prev) => {
+      const next = { ...prev }
+      next[slotId] = { ...next[slotId], [propName]: value }
+      return next
+    })
   }
 
   const calculateInputStyle = (
@@ -120,19 +149,19 @@ export function Mockup({ root: initialRoot }: MockupProps) {
     const editorElement = editorRef.current
     if (!editorElement) return
 
-    const { prop, slotPath } = findPropForElementText(event.target, slotTree)
+    const { prop, slotId } = findPropForElementText(event.target, slotsById)
 
     // findPropForElementText returns empty when: the element has no slot
     // ancestor, the element has no direct text node, or text was found but no
     // prop matches it (e.g. the component transforms the prop before rendering).
-    if (!prop || !slotPath) return
+    if (!prop || !slotId) return
 
     if (editing) {
       // Use the other slot for the new edit location
       const newEditingIndex: 1 | 2 = editing === 1 ? 2 : 1
       setEditable(newEditingIndex, {
         prop,
-        slotPath,
+        slotId: slotId,
         inputStyle: calculateInputStyle(event.target, editorElement),
         targetElement: event.target,
         textAreaElement: null,
@@ -147,7 +176,7 @@ export function Mockup({ root: initialRoot }: MockupProps) {
       // Start fresh at slot 1
       setEditable(1, {
         prop,
-        slotPath,
+        slotId,
         inputStyle: calculateInputStyle(event.target, editorElement),
         targetElement: event.target,
         textAreaElement: null,
@@ -163,8 +192,8 @@ export function Mockup({ root: initialRoot }: MockupProps) {
     if (!(target instanceof HTMLElement)) return
     if (!(editorElement instanceof HTMLElement)) return
 
-    const { prop, slotPath } = findPropForElementText(target, slotTree)
-    if (!prop || !slotPath) return
+    const { prop, slotId } = findPropForElementText(target, slotsById)
+    if (!prop || !slotId) return
 
     // Determine which slot to use for hover
     // If editing is in slot 1, use slot 2 for hover (and vice versa)
@@ -172,7 +201,7 @@ export function Mockup({ root: initialRoot }: MockupProps) {
 
     setEditable(hoverIndex, {
       prop,
-      slotPath,
+      slotId,
       inputStyle: calculateInputStyle(target, editorElement),
       targetElement: target,
       textAreaElement: null,
@@ -243,19 +272,25 @@ export function Mockup({ root: initialRoot }: MockupProps) {
 
   const getCurrentValue = (index: 1 | 2) => {
     const editable = editables[index]
+
     if (!editable) return ""
 
-    let current: SlotDef = slotTree
-    for (const key of editable.slotPath) {
-      const nextValue = current.props[key]
-      if (!isSlotDef(nextValue)) {
-        throw new Error(
-          `Expected SlotDef at path ${editable.slotPath.join(".")}`
-        )
-      }
-      current = nextValue
+    const slotDef = slotsById[editable.slotId]
+    if (!slotDef) {
+      throw new Error(`Slot with id ${editable.slotId} not found?`)
     }
-    return current.props[editable.prop] as string
+
+    const value = slotDef.props[editable.prop]
+
+    if (typeof value !== "string") {
+      throw new Error(
+        `Expected string value for prop ${editable.prop} in slot ${
+          editable.slotId
+        } but got ${typeof value}`
+      )
+    }
+
+    return value
   }
 
   const handleValueChange =
@@ -266,7 +301,7 @@ export function Mockup({ root: initialRoot }: MockupProps) {
       }
 
       updateSlotProp(
-        editable.slotPath,
+        editable.slotId,
         editable.prop,
         event.target.value.replace(/ +$/, "\u00A0")
       )
@@ -285,7 +320,7 @@ export function Mockup({ root: initialRoot }: MockupProps) {
         onMouseOutCapture={handleMouseOutCapture}
         style={{ isolation: "isolate", zIndex: 0 }}
       >
-        <SlotRenderer slotDef={slotTree} path={[]} />
+        <MockupContext value={{ slotsById }}>{children}</MockupContext>
       </div>
       {editables[1] && (
         // TODO: Make this a component that takes in the editable state and renders the textarea.
@@ -333,48 +368,39 @@ export function Mockup({ root: initialRoot }: MockupProps) {
   )
 }
 
-/**
- * Dot-separated keys representing the path from the root SlotDef to a
- * particular slot. E.g. ["tag"] means root.props.tag, and ["sidebar", "header"]
- * means root.props.sidebar.props.header.
- */
-type SlotPath = string[]
+type SlotProps = { id: string }
 
-type SlotRendererProps = { slotDef: SlotDef; path: SlotPath }
-
+let counter = 0
 /**
  * Recursively renders a SlotDef tree. Memoized so that unchanged subtrees
  * (identified by reference equality on `slotDef`) skip re-rendering. This is
  * the key to the performance model — Immer's structural sharing ensures
  * unchanged branches keep their references, and memo bails them out.
  */
-const SlotRenderer = React.memo(({ slotDef, path }: SlotRendererProps) => {
+export const Slot = React.memo(({ id }: SlotProps) => {
+  counter++
+
+  if (counter > 100) {
+    throw new Error("Too many slots")
+  }
+
+  const slotDef = useSlot(id)
+
   const Component = slotDef.component
   const renderedProps: Record<string, unknown> = {}
 
   for (const [key, value] of Object.entries(slotDef.props)) {
-    if (isSlotDef(value)) {
-      renderedProps[key] = (
-        <SlotRenderer slotDef={value} path={[...path, key]} />
-      )
+    if (isSlotId(value)) {
+      renderedProps[key] = <Slot id={value.__slotId} />
     } else {
       renderedProps[key] = value
     }
   }
 
-  return <Component data-slot-path={path.join(".")} {...renderedProps} />
+  return <Component data-slot-id={id} {...renderedProps} />
 })
 
-SlotRenderer.displayName = "SlotRenderer"
-
-function isSlotDef(value: unknown): value is SlotDef {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    "component" in value &&
-    "props" in value
-  )
-}
+Slot.displayName = "SlotRenderer"
 
 /**
  * State for a single editable textarea overlay. The Editor maintains two of
@@ -392,7 +418,7 @@ type EditableState = {
   /**
    * E.g. ["sidebar", "header"] means the slot is at root.props.sidebar.props.header
    */
-  slotPath: SlotPath
+  slotId: string
   /**
    * Positioning and typography styles for the textarea overlay. These are
    * synced with the element being edited, so that the textarea lines up exactly
@@ -429,7 +455,7 @@ type Editables = [never, EditableState | undefined, EditableState | undefined]
  * 1) The DOM looks like this:
  *
  *  ```
- *      <button data-slot-path="tag">
+ *      <button data-slot-id="abc123">
  *        <svg />
  *        <span>Save</span>
  *      </button>
@@ -443,39 +469,40 @@ type Editables = [never, EditableState | undefined, EditableState | undefined]
  *
  * 3) You pass in the `<span>` element (because it was the click target)
  *
- * Then this function will return `{ prop: "label", slotPath: ["tag"] }`
+ * Then this function will return `{ prop: "label", slotId: "abc123" }`
  */
 function findPropForElementText(
   element: HTMLElement,
-  slotTree: SlotDef
-): { prop?: string; slotPath?: SlotPath } {
-  const slotElement = element.closest("[data-slot-path]")
+  slotsById: Record<string, SlotDef>
+): { prop?: string; slotId?: string } {
+  // TODO: Reimplement this using the flat slotsById structure
+  const slotElement = element.closest("[data-slot-id]")
 
   if (!slotElement) return {}
 
-  const pathString = slotElement.getAttribute("data-slot-path") ?? undefined
+  const slotId = slotElement.getAttribute("data-slot-id") ?? undefined
 
-  if (pathString === undefined) return {}
-
-  const slotPath = pathString === "" ? [] : pathString.split(".")
-
-  // Navigate to the slot in the tree
-  let current: SlotDef = slotTree
-  for (const key of slotPath) {
-    const value = current.props[key]
-    if (!isSlotDef(value)) return {}
-    current = value
+  if (slotId === undefined) {
+    throw new Error(
+      "Found the closest slot element with a data-slot-id but then it was undefined?"
+    )
   }
 
   const text = getTextContent(element)
 
   if (!text) return {}
 
-  for (const prop in current.props) {
-    const value = current.props[prop]
+  const slotDef = slotsById[slotId]
+
+  if (!slotDef) {
+    throw new Error(`Slot with id ${slotId} not found?`)
+  }
+
+  for (const prop in slotDef.props) {
+    const value = slotDef.props[prop]
     if (typeof value !== "string") continue
     if (value !== text) continue
-    return { prop, slotPath }
+    return { prop, slotId }
   }
 
   return {}
@@ -498,4 +525,20 @@ function getTextContent(element: HTMLElement) {
     if (nodeType !== Node.TEXT_NODE) continue
     return textContent ?? undefined
   }
+}
+
+type EmptySlotProps = {
+  id: string
+}
+
+export const EmptySlot: React.FC<EmptySlotProps> = ({ id }) => {
+  const { ref, isDropTarget, isDragging } = useDroppableSlot(id)
+
+  return (
+    <div
+      ref={ref}
+      data-slot-id={id}
+      className={styles.slot({ isDropTarget, isDragging })}
+    />
+  )
 }

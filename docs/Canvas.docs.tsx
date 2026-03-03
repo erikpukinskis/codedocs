@@ -1,6 +1,7 @@
 import React from "react"
 import { Button, Tag } from "./Mockup.docs"
-import { Canvas, PaletteProvider } from "~/Components/PaletteProvider"
+import { EmptySlot, MockupProvider, Slot } from "~/Components/Mockup"
+import { PaletteProvider } from "~/Components/PaletteProvider"
 import { Doc } from "~/Doc"
 
 export const CanvasDocs = (
@@ -22,7 +23,13 @@ export const CanvasDocs = (
         },
       }}
     >
-      <Canvas />
+      <MockupProvider
+        slots={[
+          { id: "abc123", component: EmptySlot, props: { id: "abc123" } },
+        ]}
+      >
+        <Slot id="abc123" />
+      </MockupProvider>
     </PaletteProvider>
   </Doc>
 )

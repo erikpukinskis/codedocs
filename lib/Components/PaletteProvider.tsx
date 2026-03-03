@@ -1,9 +1,11 @@
+import { configure } from "@dnd-kit/abstract"
+import { Cursor, Feedback } from "@dnd-kit/dom"
 import {
-  DragOverlay,
   useDraggable,
   useDroppable,
   useDragDropMonitor,
   DragDropProvider,
+  useDragOperation,
 } from "@dnd-kit/react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import React, { useState } from "react"
@@ -14,6 +16,7 @@ import type {
   ComponentDef,
   ComponentDefLookup,
 } from "~/helpers/componentTypes"
+import { getDraggingComponentTransform } from "~/helpers/getDraggingComponentTransform"
 
 type PaletteProviderProps<ComponentDefs extends ComponentDefLookup> = {
   children: React.ReactNode
@@ -36,10 +39,44 @@ export function PaletteProvider<ComponentDefs extends ComponentDefLookup>({
   palette,
 }: PaletteProviderProps<ComponentDefs>) {
   return (
-    <DragDropProvider>
+    <DragDropProvider
+      plugins={(defaults) => [
+        ...defaults,
+        configure(Cursor, { cursor: "default" }),
+        configure(Feedback, { dropAnimation: null }),
+      ]}
+      onDragEnd={(event) => {
+        if (event.canceled) return
+
+        // We dropped outside of a slot
+        if (!event.operation.target) return
+
+        if (!event.operation.source) {
+          throw new Error("Received drag operation with no source?")
+        }
+
+        const componentName = event.operation.source.id
+        const slotId = event.operation.target.id
+      }}
+    >
       <PaletteProviderInner palette={palette}>{children}</PaletteProviderInner>
     </DragDropProvider>
   )
+}
+
+type PointerOperation = {
+  activatorEvent: PointerEvent
+  source: { element: Element; id: string }
+}
+
+function isPointerOperation(operation: {
+  activatorEvent: Event | null
+  source: unknown
+}): operation is PointerOperation {
+  if (!(operation.activatorEvent instanceof PointerEvent)) return false
+  const source = operation.source as PointerOperation["source"]
+  if (typeof source.id !== "string") return false
+  return source.element instanceof Element
 }
 
 function PaletteProviderInner<ComponentDefs extends ComponentDefLookup>({
@@ -47,30 +84,24 @@ function PaletteProviderInner<ComponentDefs extends ComponentDefLookup>({
   palette,
 }: PaletteProviderProps<ComponentDefs>) {
   const [isOpen, setOpen] = useState(true)
-  const [activeKey, setActiveKey] = useState<string | null>(null)
 
   useDragDropMonitor({
     onDragStart: (event) => {
-      const id = event.operation.source?.id as string | undefined
-      setActiveKey(id?.replace("component-", "") ?? null)
-    },
-    onDragEnd: () => {
-      setActiveKey(null)
+      if (!isPointerOperation(event.operation)) return
+
+      const { tx, ty } = getDraggingComponentTransform(
+        event.operation.source.element.getBoundingClientRect(),
+        event.operation.activatorEvent
+      )
+
+      document.documentElement.style.setProperty("--drag-tx", `${tx}px`)
+      document.documentElement.style.setProperty("--drag-ty", `${ty}px`)
     },
   })
-
-  const activeComponentDef = activeKey ? palette[activeKey] : null
 
   return (
     <>
       {children}
-      <DragOverlay>
-        {activeComponentDef && (
-          <div style={{ transform: "scale(0.5)", transformOrigin: "top left" }}>
-            <OverlayComponent componentDef={activeComponentDef} />
-          </div>
-        )}
-      </DragOverlay>
       <div className={styles.componentsTrigger}>
         <Button onClick={() => setOpen(true)}>Show Components</Button>
       </div>
@@ -95,20 +126,20 @@ function ComponentSource<PropsType extends Record<string, AllowedPropTypes>>({
   componentDef: { component: Component, props: propDefLookup },
 }: ComponentSourceProps<PropsType>) {
   const { ref } = useDraggable({
-    id: `component-${name}`,
+    id: name,
     feedback: "clone",
   })
 
   const defaultProps = Object.entries(propDefLookup).reduce(
-    (acc, [key, value]) => ({
+    (acc, [key, propDef]) => ({
       ...acc,
-      [key]: value.default,
+      [key]: propDef.default,
     }),
     {} as PropsType
   )
 
   return (
-    <div ref={ref}>
+    <div ref={ref} className={styles.draggableComponent}>
       <div className={styles.componentWrapper}>
         <Component {...defaultProps} />
       </div>
@@ -116,28 +147,13 @@ function ComponentSource<PropsType extends Record<string, AllowedPropTypes>>({
   )
 }
 
-function OverlayComponent<PropsType extends Record<string, AllowedPropTypes>>({
-  componentDef: { component: Component, props: propDefLookup },
-}: {
-  componentDef: ComponentDef<PropsType>
-}) {
-  const defaultProps = Object.entries(propDefLookup).reduce(
-    (acc, [key, value]) => ({ ...acc, [key]: value.default }),
-    {} as PropsType
-  )
-  return (
-    <div className={styles.componentWrapper}>
-      <Component {...defaultProps} />
-    </div>
-  )
-}
-
-type CanvasProps = {}
-
-export const Canvas: React.FC<CanvasProps> = ({}) => {
-  const { ref } = useDroppable({
-    id: "canvas",
+export function useDroppableSlot(id: string) {
+  const { ref, isDropTarget } = useDroppable({
+    id,
   })
 
-  return <div ref={ref} className={styles.slot}></div>
+  const { source } = useDragOperation()
+  const isDragging = source !== null
+
+  return { isDragging, isDropTarget, ref }
 }
