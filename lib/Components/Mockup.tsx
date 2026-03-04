@@ -5,8 +5,6 @@ import React, {
   useRef,
   useState,
 } from "react"
-import * as styles from "./Palette.css"
-import { useDroppableSlot } from "./PaletteProvider"
 import type {
   PropsLookup,
   SlotDef,
@@ -17,18 +15,24 @@ import { makeUninitializedContext } from "~/helpers/makeUninitializedContext"
 
 type MockupContextValue<SlotDefs extends SlotDefLookup> = {
   slotsById: SlotDefs
+  setSlotDef: (id: string) => (def: SlotDef<Record<string, unknown>>) => void
 }
 
-export function useSlot(id: string) {
-  const { slotsById } = useContext(MockupContext)
+export function useSlot<PropsType extends Record<string, unknown>>(
+  id: string
+): [SlotDef<PropsType>, (slotDef: SlotDef<PropsType>) => void] {
+  const { slotsById, setSlotDef } = useContext(MockupContext)
 
-  const slot = slotsById[id]
+  const slotDef = slotsById[id]
 
-  if (!slot) {
+  if (!slotDef) {
     throw new Error(`Slot ${id} not found`)
   }
 
-  return slot
+  return [
+    slotDef as SlotDef<PropsType>,
+    setSlotDef(id) as (slotDef: SlotDef<PropsType>) => void,
+  ]
 }
 
 const MockupContext = createContext(
@@ -331,6 +335,9 @@ export function MockupProvider<Lookup extends PropsLookup>({
         <MockupContext
           value={{
             slotsById: slotsById as SlotDefLookup, // React contexts can't be generic, so we have to cast
+            setSlotDef: (id: string) => (def) => {
+              setSlotsById((prev) => ({ ...prev, [id]: def }))
+            },
           }}
         >
           {children}
@@ -398,7 +405,7 @@ export const Slot = React.memo(({ id }: SlotProps) => {
     throw new Error("Too many slots")
   }
 
-  const slotDef = useSlot(id)
+  const [slotDef] = useSlot(id)
 
   const Component = slotDef.component
   const renderedProps: Record<string, unknown> = {}
@@ -491,7 +498,6 @@ function findPropForElementText<Lookup extends PropsLookup>(
     [key in keyof Lookup]: SlotDef<Lookup[key]>
   }
 ): { prop?: string; slotId?: string } {
-  // TODO: Reimplement this using the flat slotsById structure
   const slotElement = element.closest("[data-slot-id]")
 
   if (!slotElement) return {}
@@ -542,20 +548,4 @@ function getTextContent(element: HTMLElement) {
     if (nodeType !== Node.TEXT_NODE) continue
     return textContent ?? undefined
   }
-}
-
-type EmptySlotProps = {
-  id: string
-}
-
-export const EmptySlot: React.FC<EmptySlotProps> = ({ id }) => {
-  const { ref, isDropTarget, isDragging } = useDroppableSlot(id)
-
-  return (
-    <div
-      ref={ref}
-      data-slot-id={id}
-      className={styles.slot({ isDropTarget, isDragging })}
-    />
-  )
 }

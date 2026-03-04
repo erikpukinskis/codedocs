@@ -13,14 +13,23 @@ type PropDef =
       optional?: boolean
     }
 
-type PropDefLookup<PropsType extends Record<string, AllowedPropTypes>> = {
-  [key in keyof PropsType]: PropDef
-}
+export type PropDefLookup<PropsType extends Record<string, AllowedPropTypes>> =
+  {
+    [key in keyof PropsType]: PropDef
+  }
 
 export type ComponentDef<PropsType extends Record<string, AllowedPropTypes>> = {
   component: React.FC<PropsType>
   props: PropDefLookup<PropsType>
 }
+
+/**
+ * Generic component map, for contexts where we don't know the exact component types.
+ */
+export type ComponentDefLookup = Record<
+  string,
+  ComponentDef<Record<string, unknown>>
+>
 
 /**
  * Constraint type for used in generics (<Props extends PropsLookup>). Not

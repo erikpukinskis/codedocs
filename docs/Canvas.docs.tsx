@@ -1,7 +1,8 @@
 import React from "react"
 import { Button, Tag } from "./Mockup.docs"
-import { EmptySlot, MockupProvider, Slot } from "~/Components/Mockup"
+import { MockupProvider, Slot } from "~/Components/Mockup"
 import { PaletteProvider } from "~/Components/PaletteProvider"
+import { EmptySlot } from "~/Components/Slot"
 import { Doc } from "~/Doc"
 
 export const CanvasDocs = (
@@ -24,6 +25,7 @@ export const CanvasDocs = (
       }}
     >
       <MockupProvider
+        // How should MockupProvider find out when
         slots={{
           abc123: {
             id: "abc123",

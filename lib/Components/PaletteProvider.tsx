@@ -2,21 +2,37 @@ import { configure } from "@dnd-kit/abstract"
 import { Cursor, Feedback } from "@dnd-kit/dom"
 import {
   useDraggable,
-  useDroppable,
   useDragDropMonitor,
   DragDropProvider,
-  useDragOperation,
 } from "@dnd-kit/react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import React, { useState } from "react"
+import React, { createContext, useContext, useState } from "react"
 import { Button } from "./Button"
 import * as styles from "./Palette.css"
 import type {
   AllowedPropTypes,
   ComponentDef,
+  ComponentDefLookup,
+  PropDefLookup,
   PropsLookup,
 } from "~/helpers/componentTypes"
 import { getDraggingComponentTransform } from "~/helpers/getDraggingComponentTransform"
+import { makeUninitializedContext } from "~/helpers/makeUninitializedContext"
+
+export function useComponentPalette() {
+  const { palette } = useContext(PaletteContext)
+
+  return palette
+}
+type PaletteContextValue = {
+  palette: ComponentDefLookup
+}
+
+const PaletteContext = createContext(
+  makeUninitializedContext<PaletteContextValue>(
+    "Cannot use PaletteContext outside of a PaletteProvider"
+  )
+)
 
 type PaletteProviderProps<Lookup extends PropsLookup> = {
   children: React.ReactNode
@@ -36,21 +52,16 @@ export function PaletteProvider<ComponentDefs extends PropsLookup>({
         configure(Cursor, { cursor: "default" }),
         configure(Feedback, { dropAnimation: null }),
       ]}
-      onDragEnd={(event) => {
-        if (event.canceled) return
-
-        // We dropped outside of a slot
-        if (!event.operation.target) return
-
-        if (!event.operation.source) {
-          throw new Error("Received drag operation with no source?")
-        }
-
-        // const componentName = event.operation.source.id
-        // const slotId = event.operation.target.id
-      }}
     >
-      <PaletteProviderInner palette={palette}>{children}</PaletteProviderInner>
+      <PaletteContext
+        value={{
+          palette: palette as ComponentDefLookup, // Casting since React contexts can't be generic
+        }}
+      >
+        <PaletteProviderInner palette={palette}>
+          {children}
+        </PaletteProviderInner>
+      </PaletteContext>
     </DragDropProvider>
   )
 }
@@ -121,30 +132,23 @@ function ComponentSource<PropsType extends Record<string, AllowedPropTypes>>({
     feedback: "clone",
   })
 
-  const defaultProps = Object.entries(propDefLookup).reduce(
+  return (
+    <div ref={ref} className={styles.draggableComponent}>
+      <div className={styles.componentWrapper}>
+        <Component {...getDefaultProps(propDefLookup)} />
+      </div>
+    </div>
+  )
+}
+
+export function getDefaultProps<
+  PropsType extends Record<string, AllowedPropTypes>
+>(propDefLookup: PropDefLookup<PropsType>) {
+  return Object.entries(propDefLookup).reduce(
     (acc, [key, propDef]) => ({
       ...acc,
       [key]: propDef.default,
     }),
     {} as PropsType
   )
-
-  return (
-    <div ref={ref} className={styles.draggableComponent}>
-      <div className={styles.componentWrapper}>
-        <Component {...defaultProps} />
-      </div>
-    </div>
-  )
-}
-
-export function useDroppableSlot(id: string) {
-  const { ref, isDropTarget } = useDroppable({
-    id,
-  })
-
-  const { source } = useDragOperation()
-  const isDragging = source !== null
-
-  return { isDragging, isDropTarget, ref }
 }
