@@ -11,10 +11,10 @@ import { Button } from "./Button"
 import * as styles from "./Palette.css"
 import type {
   AllowedPropTypes,
-  ComponentDef,
-  ComponentDefLookup,
+  SlotDefLookup,
   PropDefLookup,
   PropsLookup,
+  SlotDef,
 } from "~/helpers/componentTypes"
 import { getDraggingComponentTransform } from "~/helpers/getDraggingComponentTransform"
 import { makeUninitializedContext } from "~/helpers/makeUninitializedContext"
@@ -25,7 +25,7 @@ export function useComponentPalette() {
   return palette
 }
 type PaletteContextValue = {
-  palette: ComponentDefLookup
+  palette: SlotDefLookup
 }
 
 const PaletteContext = createContext(
@@ -37,7 +37,7 @@ const PaletteContext = createContext(
 type PaletteProviderProps<Lookup extends PropsLookup> = {
   children: React.ReactNode
   palette: {
-    [key in keyof Lookup]: ComponentDef<Lookup[key]>
+    [key in keyof Lookup]: SlotDef<Lookup[key]>
   }
 }
 
@@ -55,7 +55,7 @@ export function PaletteProvider<ComponentDefs extends PropsLookup>({
     >
       <PaletteContext
         value={{
-          palette: palette as ComponentDefLookup, // Casting since React contexts can't be generic
+          palette: palette as SlotDefLookup, // Casting since React contexts can't be generic
         }}
       >
         <PaletteProviderInner palette={palette}>
@@ -113,7 +113,7 @@ function PaletteProviderInner<ComponentDefs extends PropsLookup>({
           <FontAwesomeIcon icon="xmark" />
         </button>
         {Object.keys(palette).map((key) => (
-          <ComponentSource key={key} name={key} componentDef={palette[key]} />
+          <ComponentSource key={key} name={key} slotDef={palette[key]} />
         ))}
       </div>
     </>
@@ -121,11 +121,11 @@ function PaletteProviderInner<ComponentDefs extends PropsLookup>({
 }
 
 type ComponentSourceProps<PropsType extends Record<string, AllowedPropTypes>> =
-  { name: string; componentDef: ComponentDef<PropsType> }
+  { name: string; slotDef: SlotDef<PropsType> }
 
 function ComponentSource<PropsType extends Record<string, AllowedPropTypes>>({
   name,
-  componentDef: { component: Component, props: propDefLookup },
+  slotDef: { component: Component, props: propDefLookup },
 }: ComponentSourceProps<PropsType>) {
   const { ref } = useDraggable({
     id: name,
@@ -135,19 +135,19 @@ function ComponentSource<PropsType extends Record<string, AllowedPropTypes>>({
   return (
     <div ref={ref} className={styles.draggableComponent}>
       <div className={styles.componentWrapper}>
-        <Component {...getDefaultProps(propDefLookup)} />
+        <Component {...getPropValues(propDefLookup)} />
       </div>
     </div>
   )
 }
 
-export function getDefaultProps<
+export function getPropValues<
   PropsType extends Record<string, AllowedPropTypes>
 >(propDefLookup: PropDefLookup<PropsType>) {
   return Object.entries(propDefLookup).reduce(
     (acc, [key, propDef]) => ({
       ...acc,
-      [key]: propDef.default,
+      [key]: propDef.value,
     }),
     {} as PropsType
   )

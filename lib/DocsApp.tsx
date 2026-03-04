@@ -81,7 +81,9 @@ const _DocsApp = ({
       <link rel="icon" href={favicon} type="image/svg+xml" />
       <DesignSystemProvider>
         <ComponentContextProvider Components={components}>
-          <BrowserRouter>
+          <BrowserRouter
+            future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+          >
             <Defaults.LayoutContainer>
               <Routes>
                 <Route

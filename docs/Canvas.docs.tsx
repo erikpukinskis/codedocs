@@ -1,8 +1,8 @@
 import React from "react"
 import { Button, Tag } from "./Mockup.docs"
-import { MockupProvider, Slot } from "~/Components/Mockup"
+import { MockupProvider } from "~/Components/Mockup"
 import { PaletteProvider } from "~/Components/PaletteProvider"
-import { EmptySlot } from "~/Components/Slot"
+import { EmptySlot, Slot } from "~/Components/Slot"
 import { Doc } from "~/Doc"
 
 export const CanvasDocs = (
@@ -10,27 +10,30 @@ export const CanvasDocs = (
     <PaletteProvider
       palette={{
         Button: {
+          id: "Button",
           component: Button,
           props: {
-            label: { type: "string", default: "Button" },
-            tag: { type: "slot", optional: true, default: undefined },
+            label: { type: "string", value: "Button" },
+            tag: { type: "slot", value: undefined },
           },
         },
         Tag: {
+          id: "Tag",
           component: Tag,
           props: {
-            label: { type: "string", default: "+1" },
+            label: { type: "string", value: "+1" },
           },
         },
       }}
     >
       <MockupProvider
-        // How should MockupProvider find out when
         slots={{
           abc123: {
             id: "abc123",
             component: EmptySlot,
-            props: { id: "abc123" },
+            props: {
+              id: { type: "string", value: "abc123" },
+            },
           },
         }}
       >

@@ -10,7 +10,6 @@ import type {
   SlotDef,
   SlotDefLookup,
 } from "~/helpers/componentTypes"
-import { isSlotId } from "~/helpers/componentTypes"
 import { makeUninitializedContext } from "~/helpers/makeUninitializedContext"
 
 type MockupContextValue<SlotDefs extends SlotDefLookup> = {
@@ -70,8 +69,19 @@ export function MockupProvider<Lookup extends PropsLookup>({
     value: unknown
   ) => {
     setSlotsById((prev) => {
+      // TODO: Use immer to make this more concise
       const next = { ...prev }
-      next[slotId] = { ...next[slotId], [propName]: value }
+      const slotDef = next[slotId]
+      next[slotId] = {
+        ...slotDef,
+        props: {
+          ...slotDef.props,
+          [propName]: {
+            ...slotDef.props[propName],
+            value,
+          },
+        },
+      }
       return next
     })
   }
@@ -292,7 +302,15 @@ export function MockupProvider<Lookup extends PropsLookup>({
       throw new Error(`Slot with id ${editable.slotId} not found?`)
     }
 
-    const value = slotDef.props[editable.prop]
+    const propDef = slotDef.props[editable.prop]
+
+    if (!propDef) {
+      throw new Error(
+        `Prop ${editable.prop} not found in slot ${editable.slotId}`
+      )
+    }
+
+    const value = propDef.value
 
     if (typeof value !== "string") {
       throw new Error(
@@ -302,7 +320,7 @@ export function MockupProvider<Lookup extends PropsLookup>({
       )
     }
 
-    return value as string
+    return value
   }
 
   const handleValueChange =
@@ -388,40 +406,6 @@ export function MockupProvider<Lookup extends PropsLookup>({
     </div>
   )
 }
-
-type SlotProps = { id: string }
-
-let counter = 0
-/**
- * Recursively renders a SlotDef tree. Memoized so that unchanged subtrees
- * (identified by reference equality on `slotDef`) skip re-rendering. This is
- * the key to the performance model — Immer's structural sharing ensures
- * unchanged branches keep their references, and memo bails them out.
- */
-export const Slot = React.memo(({ id }: SlotProps) => {
-  counter++
-
-  if (counter > 100) {
-    throw new Error("Too many slots")
-  }
-
-  const [slotDef] = useSlot(id)
-
-  const Component = slotDef.component
-  const renderedProps: Record<string, unknown> = {}
-
-  for (const [key, value] of Object.entries(slotDef.props)) {
-    if (isSlotId(value)) {
-      renderedProps[key] = <Slot id={value.__slotId} />
-    } else {
-      renderedProps[key] = value
-    }
-  }
-
-  return <Component data-slot-id={id} {...renderedProps} />
-})
-
-Slot.displayName = "SlotRenderer"
 
 /**
  * State for a single editable textarea overlay. The Editor maintains two of
@@ -522,7 +506,7 @@ function findPropForElementText<Lookup extends PropsLookup>(
 
   for (const prop in slotDef.props) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const value = slotDef.props[prop]
+    const value = slotDef.props[prop].value
     if (typeof value !== "string") continue
     if (value !== text) continue
     return { prop, slotId }

@@ -1,7 +1,8 @@
 import { useState } from "react"
 // eslint-disable-next-line no-restricted-imports
 import { Demo, Doc } from "../macro"
-import { MockupProvider, Slot } from "~/Components/Mockup"
+import { MockupProvider } from "~/Components/Mockup"
+import { Slot } from "~/Components/Slot"
 import { slotId } from "~/helpers/componentTypes"
 
 type TagProps = {
@@ -71,15 +72,15 @@ export const MockupDocs = (
             id: "btn1",
             component: Button,
             props: {
-              label: "Hello",
-              tag: slotId("tag1"),
+              label: { type: "string", value: "Hello" },
+              tag: { type: "slot", value: slotId("tag1") },
             },
           },
           tag1: {
             id: "tag1",
             component: Tag,
             props: {
-              label: "+1",
+              label: { type: "string", value: "+1" },
             },
           },
         }}
