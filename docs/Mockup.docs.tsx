@@ -5,7 +5,7 @@ import { MockupProvider, Slot } from "~/Components/Mockup"
 import { slotId } from "~/helpers/componentTypes"
 
 type TagProps = {
-  label?: string
+  label: string
   [key: `data-${string}`]: unknown
 }
 
@@ -67,14 +67,14 @@ export const MockupDocs = (
     <Demo>
       <MockupProvider
         slots={{
-          // btn1: {
-          //   id: "btn1",
-          //   component: Button,
-          //   props: {
-          //     label: "Hello",
-          //     tag: slotId("tag1"),
-          //   },
-          // },
+          btn1: {
+            id: "btn1",
+            component: Button,
+            props: {
+              label: "Hello",
+              tag: slotId("tag1"),
+            },
+          },
           tag1: {
             id: "tag1",
             component: Tag,

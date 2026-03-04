@@ -14,27 +14,18 @@ import * as styles from "./Palette.css"
 import type {
   AllowedPropTypes,
   ComponentDef,
-  ComponentDefLookup,
+  PropsLookup,
 } from "~/helpers/componentTypes"
 import { getDraggingComponentTransform } from "~/helpers/getDraggingComponentTransform"
 
-type PaletteProviderProps<ComponentDefs extends ComponentDefLookup> = {
+type PaletteProviderProps<Lookup extends PropsLookup> = {
   children: React.ReactNode
   palette: {
-    [key in keyof ComponentDefs]: ComponentDef<ComponentDefs[key]>
+    [key in keyof Lookup]: ComponentDef<Lookup[key]>
   }
 }
 
-// const foo: ComponentDef<{ foo: string }> = {
-//   component: ({ foo }) => <div>{foo}</div>,
-//   props: {
-//     foo: { type: "string", default: "foo" },
-//   },
-// }
-
-// console.log(foo)
-
-export function PaletteProvider<ComponentDefs extends ComponentDefLookup>({
+export function PaletteProvider<ComponentDefs extends PropsLookup>({
   children,
   palette,
 }: PaletteProviderProps<ComponentDefs>) {
@@ -55,8 +46,8 @@ export function PaletteProvider<ComponentDefs extends ComponentDefLookup>({
           throw new Error("Received drag operation with no source?")
         }
 
-        const componentName = event.operation.source.id
-        const slotId = event.operation.target.id
+        // const componentName = event.operation.source.id
+        // const slotId = event.operation.target.id
       }}
     >
       <PaletteProviderInner palette={palette}>{children}</PaletteProviderInner>
@@ -79,7 +70,7 @@ function isPointerOperation(operation: {
   return source.element instanceof Element
 }
 
-function PaletteProviderInner<ComponentDefs extends ComponentDefLookup>({
+function PaletteProviderInner<ComponentDefs extends PropsLookup>({
   children,
   palette,
 }: PaletteProviderProps<ComponentDefs>) {

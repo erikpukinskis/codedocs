@@ -7,7 +7,11 @@ import React, {
 } from "react"
 import * as styles from "./Palette.css"
 import { useDroppableSlot } from "./PaletteProvider"
-import type { SlotDefLookup } from "~/helpers/componentTypes"
+import type {
+  PropsLookup,
+  SlotDef,
+  SlotDefLookup,
+} from "~/helpers/componentTypes"
 import { isSlotId } from "~/helpers/componentTypes"
 import { makeUninitializedContext } from "~/helpers/makeUninitializedContext"
 
@@ -33,16 +37,18 @@ const MockupContext = createContext(
   )
 )
 
-type MockupProviderProps<SlotDefs extends SlotDefLookup> = {
+type MockupProviderProps<Lookup extends PropsLookup> = {
   children: React.ReactNode
-  slots: SlotDefs
+  slots: {
+    [key in keyof Lookup]: SlotDef<Lookup[key]>
+  }
 }
 
-export function MockupProvider<SlotDefs extends SlotDefLookup>({
+export function MockupProvider<Lookup extends PropsLookup>({
   children,
   slots,
-}: MockupProviderProps<SlotDefs>) {
-  const [slotsById, setSlotsById] = useState<SlotDefs>(slots)
+}: MockupProviderProps<Lookup>) {
+  const [slotsById, setSlotsById] = useState(slots)
 
   const [editables, setEditables] = useState<Editables>([
     undefined as never,
@@ -55,7 +61,7 @@ export function MockupProvider<SlotDefs extends SlotDefLookup>({
   const editorRef = useRef<HTMLDivElement | null>(null)
 
   const updateSlotProp = (
-    slotId: keyof SlotDefs,
+    slotId: keyof Lookup,
     propName: string,
     value: unknown
   ) => {
@@ -282,7 +288,6 @@ export function MockupProvider<SlotDefs extends SlotDefLookup>({
       throw new Error(`Slot with id ${editable.slotId} not found?`)
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const value = slotDef.props[editable.prop]
 
     if (typeof value !== "string") {
@@ -293,7 +298,7 @@ export function MockupProvider<SlotDefs extends SlotDefLookup>({
       )
     }
 
-    return value
+    return value as string
   }
 
   const handleValueChange =
@@ -323,7 +328,13 @@ export function MockupProvider<SlotDefs extends SlotDefLookup>({
         onMouseOutCapture={handleMouseOutCapture}
         style={{ isolation: "isolate", zIndex: 0 }}
       >
-        <MockupContext value={{ slotsById }}>{children}</MockupContext>
+        <MockupContext
+          value={{
+            slotsById: slotsById as SlotDefLookup, // React contexts can't be generic, so we have to cast
+          }}
+        >
+          {children}
+        </MockupContext>
       </div>
       {editables[1] && (
         // TODO: Make this a component that takes in the editable state and renders the textarea.
@@ -474,9 +485,11 @@ type Editables = [never, EditableState | undefined, EditableState | undefined]
  *
  * Then this function will return `{ prop: "label", slotId: "abc123" }`
  */
-function findPropForElementText<SlotDefs extends SlotDefLookup>(
+function findPropForElementText<Lookup extends PropsLookup>(
   element: HTMLElement,
-  slotsById: SlotDefs
+  slotsById: {
+    [key in keyof Lookup]: SlotDef<Lookup[key]>
+  }
 ): { prop?: string; slotId?: string } {
   // TODO: Reimplement this using the flat slotsById structure
   const slotElement = element.closest("[data-slot-id]")

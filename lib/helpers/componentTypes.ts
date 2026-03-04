@@ -18,15 +18,15 @@ type PropDefLookup<PropsType extends Record<string, AllowedPropTypes>> = {
 }
 
 export type ComponentDef<PropsType extends Record<string, AllowedPropTypes>> = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  component: React.FC<AllowedPropTypes>
+  component: React.FC<PropsType>
   props: PropDefLookup<PropsType>
 }
 
-export type ComponentDefLookup = Record<
-  string,
-  Record<string, AllowedPropTypes>
->
+/**
+ * Constraint type for used in generics (<Props extends PropsLookup>). Not
+ * intended to be used directly.
+ */
+export type PropsLookup = Record<string, Record<string, AllowedPropTypes>>
 
 /**
  * Describes a node in the slot tree. The Editor receives a single root SlotDef.
@@ -37,7 +37,9 @@ export type ComponentDefLookup = Record<
  * this means only the changed branch re-renders — siblings are unaffected.
  */
 export type SlotDef<PropsType extends Record<string, AllowedPropTypes>> = {
-  /** A unique identifier */
+  /**
+   * A unique identifier
+   */
   id: string
   /**
    * The component's props type should be the same as the props type, but we
@@ -48,17 +50,24 @@ export type SlotDef<PropsType extends Record<string, AllowedPropTypes>> = {
    *
    * ... that forces inference at the definition site.
    */
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   component: React.FC<PropsType>
   /**
-   * Primitive props are passed through directly. Object-valued props are
-   * assumed to be nested SlotDefs and rendered recursively via SlotRenderer.
-   * If we ever need literal object props, we'll need a wrapper (e.g. a Slot
-   * class) to disambiguate.
+   * Primitive props below are passed through to the component directly. Slots
+   * (props of type React.ReactNode) can also be assigned a SlotId. When
+   * rendering a Mockup, we'll detect these slot IDs and swap them out for the
+   * actual rendered slot contents that we look up in the MockupContext.
    */
-  props: PropsType
+  props: {
+    [key in keyof PropsType]: React.ReactNode extends PropsType[key]
+      ? React.ReactNode | SlotId
+      : PropsType[key]
+  }
 }
 
+/**
+ * Constraint type for used in generics (<SlotDefs extends SlotDefLookup>). Not
+ * intended to be used directly.
+ */
 export type SlotDefLookup = Record<
   string,
   SlotDef<Record<string, AllowedPropTypes>>
