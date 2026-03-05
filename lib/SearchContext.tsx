@@ -6,6 +6,7 @@ import React, {
   useContext,
   useState,
   type ReactNode,
+  type JSX,
 } from "react"
 import { reactNodeToText } from "./helpers/reactNodeToText"
 import { isHomePage, isPage, type PageOrParent } from "~/helpers/buildSiteTree"

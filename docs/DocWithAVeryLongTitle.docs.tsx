@@ -7,15 +7,13 @@ export const VeryLongDocumentPathDocs = (
     <h2>Two stateful demos in a row, to test the macro:</h2>
     <Demo
       defaultValue={true}
-      render={({ value }) => (
+      render={({ value, mock }) => (
         <label id="x">
           <input
             type="checkbox"
             id="x"
             checked={value}
-            onChange={(event) => {
-              console.debug("checked?", event.target.checked)
-            }}
+            onChange={mock.callback("onChange")}
           />
           label
         </label>

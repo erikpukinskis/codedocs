@@ -1,6 +1,7 @@
 import { type IconName } from "@fortawesome/fontawesome-common-types"
 import type { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import type React from "react"
+import { type JSX } from "react"
 import { type Link } from "react-router-dom"
 import type { SiteSection } from "~/helpers/buildSiteTree"
 

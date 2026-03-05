@@ -1,15 +1,12 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import React, { useLayoutEffect, useMemo, useRef, useState } from "react"
 import { Code } from "./Code"
+import { CropMarks } from "./CropMarks"
 import * as styles from "./Demo.css"
 import { ErrorBoundary } from "./ErrorBoundary"
 import { EventLog, type CallbackEvent } from "./EventLog"
 
-type ReactChildren =
-  | React.ReactElement
-  | React.ReactText
-  | React.ReactPortal
-  | string
+type ReactChildren = React.ReactElement | React.ReactPortal | string
 
 type DemoPropsWithChildren = {
   children: ReactChildren | Array<ReactChildren>
@@ -131,7 +128,7 @@ export function Demo<
     <>
       {variantsToRender.map((variant, i) => (
         <div
-          key={variant}
+          key={variant ?? "__default"}
           ref={containerRef}
           className={styles.demoWithCode}
           data-component="DemoWithCode"
@@ -287,20 +284,6 @@ function DemoArea<
     container.style.paddingBottom = `${paddingBottom}px`
   }, [boundingSelectors])
 
-  const ticks = (
-    <>
-      <HorizontalMark top left />
-      <HorizontalMark bottom left />
-      <HorizontalMark top right />
-      <HorizontalMark bottom right />
-
-      <VerticalMark top left />
-      <VerticalMark bottom left />
-      <VerticalMark top right />
-      <VerticalMark bottom right />
-    </>
-  )
-
   const content = hasChildren(props) ? (
     props.children
   ) : isRenderable(props) ? (
@@ -314,6 +297,7 @@ function DemoArea<
   return (
     <div
       ref={areaRef}
+      data-component="DemoArea"
       style={{
         display: "inline-block",
         width: inline ? "auto" : "100%",
@@ -321,67 +305,29 @@ function DemoArea<
       }}
     >
       <div style={{ position: "relative" }}>
-        {content}
-        {ticks}
+        <div
+          data-description="content wrapper"
+          style={{ isolation: "isolate", position: "relative", zIndex: 1 }}
+        >
+          {content}
+        </div>
+        <div
+          data-description="crop marks wrapper"
+          style={{
+            zIndex: 0,
+            isolation: "isolate",
+            position: "absolute",
+            left: 0,
+            top: 0,
+            bottom: 0,
+            right: 0,
+          }}
+        >
+          <CropMarks />
+        </div>
       </div>
     </div>
   )
-}
-
-type CropMarksProps = {
-  top?: boolean
-  bottom?: boolean
-  left?: boolean
-  right?: boolean
-}
-
-const MARK_LENGTH = 6
-const MARK_OFFSET = 3
-
-const HorizontalMark: React.FC<CropMarksProps> = ({ top, left }) => {
-  const style: React.CSSProperties = {
-    width: MARK_LENGTH,
-  }
-
-  if (left) {
-    style.left = -1 * MARK_LENGTH - MARK_OFFSET
-  } else {
-    style.right = -1 * MARK_LENGTH - MARK_OFFSET
-  }
-
-  if (top) {
-    style.top = 0
-  } else {
-    style.bottom = 0
-  }
-
-  return (
-    <div
-      className={styles.cropMark}
-      data-component="CropMark"
-      style={style}
-    ></div>
-  )
-}
-
-const VerticalMark: React.FC<CropMarksProps> = ({ top, left }) => {
-  const style: React.CSSProperties = {
-    height: MARK_LENGTH,
-  }
-
-  if (left) {
-    style.left = 0
-  } else {
-    style.right = 0
-  }
-
-  if (top) {
-    style.top = -1 * MARK_LENGTH - MARK_OFFSET
-  } else {
-    style.bottom = -1 * MARK_LENGTH - MARK_OFFSET
-  }
-
-  return <div className={styles.cropMark} style={style}></div>
 }
 
 function hasChildren<

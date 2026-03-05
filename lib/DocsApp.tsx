@@ -1,7 +1,6 @@
 import { type IconName } from "@fortawesome/fontawesome-common-types"
 import omit from "lodash/omit"
 import React, { useEffect, useMemo, type ReactNode } from "react"
-import { Helmet } from "react-helmet"
 import type { Location } from "react-router-dom"
 import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom"
 import { ErrorBoundary } from "./ErrorBoundary"
@@ -79,12 +78,12 @@ const _DocsApp = ({
 
   return (
     <SearchContextProvider pagesByPath={pagesByPath}>
-      <Helmet>
-        <link rel="icon" href={favicon} type="image/svg+xml" />
-      </Helmet>
+      <link rel="icon" href={favicon} type="image/svg+xml" />
       <DesignSystemProvider>
         <ComponentContextProvider Components={components}>
-          <BrowserRouter>
+          <BrowserRouter
+            future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+          >
             <Defaults.LayoutContainer>
               <Routes>
                 <Route

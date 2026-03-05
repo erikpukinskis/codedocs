@@ -1,13 +1,6 @@
 import { style } from "@vanilla-extract/css"
 import { recipe } from "@vanilla-extract/recipes"
 
-export const cropMark = style({
-  background: "#ccc",
-  width: 1,
-  height: 1,
-  position: "absolute",
-})
-
 export const demoWithCode = style({
   /**
    * The top margin is set to exactly 8px + 4px, for the crop mark length + the
