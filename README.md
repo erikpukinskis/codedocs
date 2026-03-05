@@ -1,6 +1,6 @@
 [<img alt="screenshot" src="docs/screenshot.png" width="800" style="margin-bottom: -3em;"/>](https://codedocs.ambic.app/)
 
-**Codedocs** is a Storybook replacement that's designed for the professional application developer. It presumes you've already set up a React application build pipeline, that you're happy with it, and you just want to document your components.
+**Codedocs** is a Storybook replacement that's designed for professionals maintaining React component libraries. **It doesn't have its own build pipeline**. In order to avoid having to configure things twice, it presumes you've already set up a build pipeline for your component library, that you're happy with it, and that you can use it to build your playground/documentation site.
 
 ## Table of contents
 
@@ -22,13 +22,13 @@ Use unrestricted HTML to build your documentation. Codedocs looks great as a pub
 
 ### Real code samples
 
-Taken directly from the demos in your source files. These can be JSX, or full renderers including hooks and other boilerplate.
+Code samples are taken directly from your source. These can be JSX, or full renderers including hooks and other boilerplate.
 
 <img alt="screenshot" src="docs/source.png" width="422" />
 
 You can even do demos that require multiple interacting parts, for example to demonstrate a context provider and a hook:
 
-<img alt="screenshot" src="docs/multi-component-demos.png" width="410" />
+<img alt="screenshot" src="docs/multi-component-demos.gif" width="415" />
 
 ### Variants
 
