@@ -17,7 +17,7 @@ describe("getDraggingComponentTransform", () => {
 
     const result = getDraggingComponentTransform(rect, event)
 
-    expect(result).toBe("scale(0.5) translateX(-40px) translateY(-8px)")
+    expect(result).toEqual({ tx: -40, ty: -8 })
   })
 
   it("should stay dead center when dragging from the center", () => {
@@ -35,7 +35,7 @@ describe("getDraggingComponentTransform", () => {
 
     const result = getDraggingComponentTransform(rect, event)
 
-    expect(result).toBe("scale(0.5) translateX(0px) translateY(0px)")
+    expect(result).toEqual({ tx: 0, ty: 0 })
   })
 
   it("should move right when dragging from the right side", () => {
@@ -53,6 +53,6 @@ describe("getDraggingComponentTransform", () => {
 
     const result = getDraggingComponentTransform(rect, event)
 
-    expect(result).toBe("scale(0.5) translateX(40px) translateY(8px)")
+    expect(result).toEqual({ tx: 40, ty: 8 })
   })
 })
