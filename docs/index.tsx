@@ -10,7 +10,13 @@ import { GettingStartedDocs } from "./GettingStarted.docs"
 import { HomePageDocs } from "./HomePage.docs"
 import { MockupDocs } from "./Mockup.docs"
 
-createRoot(document.getElementById("root")!).render(
+const root = document.getElementById("root")
+
+if (!root) {
+  throw new Error("#root element not found in index.html")
+}
+
+createRoot(root).render(
   <DocsApp
     logo="Codedocs"
     icon="book"

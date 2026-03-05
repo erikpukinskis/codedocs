@@ -2,7 +2,6 @@ import { useState } from "react"
 // eslint-disable-next-line no-restricted-imports
 import { Demo, Doc } from "../macro"
 import { MockupProvider } from "~/Components/Mockup"
-import { Slot } from "~/Components/Slot"
 import { slotId } from "~/helpers/componentTypes"
 
 type TagProps = {
@@ -67,6 +66,7 @@ export const MockupDocs = (
     <h2>Mockup</h2>
     <Demo>
       <MockupProvider
+        rootSlotId="btn1"
         slots={{
           btn1: {
             id: "btn1",
@@ -84,9 +84,7 @@ export const MockupDocs = (
             },
           },
         }}
-      >
-        <Slot id="btn1" />
-      </MockupProvider>
+      />
     </Demo>
   </Doc>
 )

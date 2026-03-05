@@ -14,7 +14,7 @@ export function isSlotId(value: unknown): value is SlotId {
   return typeof (value as SlotId).__slotId === "string"
 }
 
-type PropDef =
+export type PropDef =
   | {
       type: "string"
       value: string

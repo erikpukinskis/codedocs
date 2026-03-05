@@ -30,7 +30,6 @@ You can even do demos that require multiple interacting parts, for example to de
 
 <img alt="screenshot" src="docs/multi-component-demos.png" width="410" />
 
-
 ### Variants
 
 ```tsx

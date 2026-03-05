@@ -63,6 +63,7 @@ export const mainColumn = style({
   width: "40em",
   maxWidth: "min(40em, calc(100vw - 10em))",
   position: "relative",
+  // background: "red",
 })
 
 export const centerColumn = style({

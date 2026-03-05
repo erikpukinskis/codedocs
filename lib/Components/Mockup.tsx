@@ -5,7 +5,9 @@ import React, {
   useRef,
   useState,
 } from "react"
+import { EmptySlot, Slot } from "./Slot"
 import type {
+  PropDef,
   PropsLookup,
   SlotDef,
   SlotDefLookup,
@@ -14,24 +16,52 @@ import { makeUninitializedContext } from "~/helpers/makeUninitializedContext"
 
 type MockupContextValue<SlotDefs extends SlotDefLookup> = {
   slotsById: SlotDefs
+  rootSlotId: string | undefined
   setSlotDef: (id: string) => (def: SlotDef<Record<string, unknown>>) => void
+  setRootSlotId: (id: string) => void
 }
 
 export function useSlot<PropsType extends Record<string, unknown>>(
   id: string
-): [SlotDef<PropsType>, (slotDef: SlotDef<PropsType>) => void] {
+): [SlotDef<PropsType> | undefined, (slotDef: SlotDef<PropsType>) => void] {
   const { slotsById, setSlotDef } = useContext(MockupContext)
 
   const slotDef = slotsById[id]
 
-  if (!slotDef) {
-    throw new Error(`Slot ${id} not found`)
-  }
-
   return [
-    slotDef as SlotDef<PropsType>,
+    slotDef as SlotDef<PropsType> | undefined,
     setSlotDef(id) as (slotDef: SlotDef<PropsType>) => void,
   ]
+}
+
+export function useSetRootSlotId() {
+  const { setRootSlotId } = useContext(MockupContext)
+  return setRootSlotId
+}
+
+type SetPropArgs = { slotId: string; propName: string; value: unknown }
+
+export function useSetProp() {
+  const { slotsById, setSlotDef } = useContext(MockupContext)
+
+  return ({ slotId, propName, value }: SetPropArgs) => {
+    const existing = slotsById[slotId]
+
+    if (!existing) {
+      throw new Error(`Can't set prop on a slot that hasn't been defined`)
+    }
+
+    setSlotDef(slotId)({
+      ...existing,
+      props: {
+        ...existing.props,
+        [propName]: {
+          ...existing.props[propName],
+          value,
+        } as PropDef,
+      },
+    })
+  }
 }
 
 const MockupContext = createContext(
@@ -41,18 +71,18 @@ const MockupContext = createContext(
 )
 
 type MockupProviderProps<Lookup extends PropsLookup> = {
-  children: React.ReactNode
+  rootSlotId?: string
   slots: {
     [key in keyof Lookup]: SlotDef<Lookup[key]>
   }
 }
 
 export function MockupProvider<Lookup extends PropsLookup>({
-  children,
+  rootSlotId: initialRootSlotId,
   slots,
 }: MockupProviderProps<Lookup>) {
   const [slotsById, setSlotsById] = useState(slots)
-
+  const [rootSlotId, setRootSlotId] = useState(initialRootSlotId)
   const [editables, setEditables] = useState<Editables>([
     undefined as never,
     undefined,
@@ -338,27 +368,28 @@ export function MockupProvider<Lookup extends PropsLookup>({
     }
 
   return (
-    <div style={{ position: "relative" }}>
-      {/* <style>{`[data-component="Editor"] * { cursor: ${
-        cursor ?? "default"
-      } !important; }`}</style> */}
+    <div style={{ position: "relative" }} data-component="Mockup">
       <div
-        data-component="Editor"
         ref={editorRef}
         onClickCapture={handleClickCapture}
         onMouseOverCapture={handleMouseOverCapture}
         onMouseOutCapture={handleMouseOutCapture}
-        style={{ isolation: "isolate", zIndex: 0 }}
       >
         <MockupContext
           value={{
             slotsById: slotsById as SlotDefLookup, // React contexts can't be generic, so we have to cast
+            rootSlotId,
+            setRootSlotId,
             setSlotDef: (id: string) => (def) => {
               setSlotsById((prev) => ({ ...prev, [id]: def }))
             },
           }}
         >
-          {children}
+          {rootSlotId ? (
+            <Slot id={rootSlotId} />
+          ) : (
+            <EmptySlot location="root" />
+          )}
         </MockupContext>
       </div>
       {editables[1] && (

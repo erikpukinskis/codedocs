@@ -3,11 +3,12 @@ import {
   useDragOperation,
   useDroppable,
 } from "@dnd-kit/react"
-import React from "react"
-import { useSlot } from "./Mockup"
-import * as styles from "./Palette.css"
+import React, { useState } from "react"
+import { generate } from "short-uuid"
+import { useSetProp, useSetRootSlotId, useSlot } from "./Mockup"
 import { useComponentPalette } from "./PaletteProvider"
-import { isEmptySlot, isSlotId } from "~/helpers/componentTypes"
+import * as styles from "./Slot.css"
+import { isEmptySlot, isSlotId, slotId } from "~/helpers/componentTypes"
 
 type SlotProps = { id: string }
 
@@ -30,16 +31,22 @@ export const Slot = React.memo(function Slot({ id }: SlotProps) {
 
   const [slotDef] = useSlot(id)
 
+  if (!slotDef) {
+    throw new Error(`Cannot use Slot to render empty slots`)
+  }
+
   const Component = slotDef.component
   const renderedProps: Record<string, unknown> = {}
 
-  for (const [key, propDef] of Object.entries(slotDef.props)) {
+  for (const [propName, propDef] of Object.entries(slotDef.props)) {
     if (isSlotId(propDef.value)) {
-      renderedProps[key] = <Slot id={propDef.value.__slotId} />
-    } else if (isDragging && isEmptySlot(slotDef, key)) {
-      renderedProps[key] = <EmptySlot id="??" />
+      renderedProps[propName] = <Slot id={propDef.value.__slotId} />
+    } else if (isDragging && isEmptySlot(slotDef, propName)) {
+      renderedProps[propName] = (
+        <EmptySlot location={{ parentSlotId: id, propName }} />
+      )
     } else {
-      renderedProps[key] = propDef.value
+      renderedProps[propName] = propDef.value
     }
   }
 
@@ -47,11 +54,11 @@ export const Slot = React.memo(function Slot({ id }: SlotProps) {
 })
 
 type EmptySlotProps = {
-  id: string
+  location: { parentSlotId: string; propName: string } | "root"
 }
 
-export const EmptySlot: React.FC<EmptySlotProps> = ({ id }) => {
-  const { ref, isDropTarget, isDragging } = useDroppableSlot(id)
+export const EmptySlot: React.FC<EmptySlotProps> = ({ location }) => {
+  const { ref, isDropTarget, isDragging, id } = useDroppableSlot({ location })
 
   return (
     <div
@@ -62,7 +69,15 @@ export const EmptySlot: React.FC<EmptySlotProps> = ({ id }) => {
   )
 }
 
-export function useDroppableSlot(id: string) {
+type UseDroppableSlotArgs = {
+  location: { parentSlotId: string; propName: string } | "root"
+}
+
+export function useDroppableSlot({ location }: UseDroppableSlotArgs) {
+  const [id] = useState(generate)
+  const setRootSlot = useSetRootSlotId()
+  const setProp = useSetProp()
+
   const { ref, isDropTarget } = useDroppable({
     id,
   })
@@ -97,11 +112,24 @@ export function useDroppableSlot(id: string) {
         component: componentDef.component,
         props: componentDef.props,
       })
+
+      if (location === "root") {
+        setRootSlot(id)
+      } else {
+        setProp({
+          slotId: location.parentSlotId,
+          propName: location.propName,
+          value: slotId(id),
+        })
+      }
+
+      // We also need to take this id and set it as either the root slot id in
+      // the mockup, or stick it into the correct prop of the parent.
     },
   })
 
   const { source } = useDragOperation()
   const isDragging = source !== null
 
-  return { isDragging, isDropTarget, ref }
+  return { isDragging, isDropTarget, ref, id }
 }
