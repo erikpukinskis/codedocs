@@ -3,6 +3,7 @@ import { style } from "@vanilla-extract/css"
 export const layoutContainer = style({
   vars: {
     "--header-height": "84px",
+    "--left-column-width": "10em",
   },
 })
 
@@ -45,18 +46,18 @@ export const fixedTopHeader = style({
 })
 
 export const leftColumn = style({
-  marginTop: "var(--header-height)",
+  top: "var(--header-height)",
+  bottom: 0,
+  position: "fixed",
   borderRight: "1px solid #eee",
   boxSizing: "border-box",
-  minWidth: "10em",
-  maxWidth: "10em",
-  paddingLeft: 32,
-  paddingTop: 32,
-  paddingRight: 8,
+  minWidth: "var(--left-column-width)",
+  maxWidth: "var(--left-column-width)",
 })
 
 export const mainColumn = style({
   marginTop: "var(--header-height)",
+  marginLeft: "var(--left-column-width)",
   padding: 32,
   paddingBottom: 256,
   boxSizing: "border-box",

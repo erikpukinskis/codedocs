@@ -5,10 +5,9 @@ import {
   useDragDropMonitor,
   DragDropProvider,
 } from "@dnd-kit/react"
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import React, { createContext, useContext, useState } from "react"
-import { Button } from "./Button"
+import React, { createContext, useContext } from "react"
 import * as styles from "./Palette.css"
+import { Panel } from "./Panel"
 import type {
   AllowedPropTypes,
   SlotDefLookup,
@@ -58,9 +57,8 @@ export function PaletteProvider<ComponentDefs extends PropsLookup>({
           palette: palette as SlotDefLookup, // Casting since React contexts can't be generic
         }}
       >
-        <PaletteProviderInner palette={palette}>
-          {children}
-        </PaletteProviderInner>
+        {children}
+        <Palette palette={palette} />
       </PaletteContext>
     </DragDropProvider>
   )
@@ -81,12 +79,15 @@ function isPointerOperation(operation: {
   return source.element instanceof Element
 }
 
-function PaletteProviderInner<ComponentDefs extends PropsLookup>({
-  children,
-  palette,
-}: PaletteProviderProps<ComponentDefs>) {
-  const [isOpen, setOpen] = useState(true)
+type PaletteProps<Lookup extends PropsLookup> = {
+  palette: {
+    [key in keyof Lookup]: SlotDef<Lookup[key]>
+  }
+}
 
+function Palette<ComponentDefs extends PropsLookup>({
+  palette,
+}: PaletteProps<ComponentDefs>) {
   useDragDropMonitor({
     onDragStart: (event) => {
       if (!isPointerOperation(event.operation)) return
@@ -102,21 +103,13 @@ function PaletteProviderInner<ComponentDefs extends PropsLookup>({
   })
 
   return (
-    <>
-      {children}
-      <div className={styles.componentsTrigger}>
-        <Button onClick={() => setOpen(true)}>Show Components</Button>
-      </div>
-
-      <div className={styles.paletteContainer({ isOpen })}>
-        <button className={styles.closeButton} onClick={() => setOpen(false)}>
-          <FontAwesomeIcon icon="xmark" />
-        </button>
+    <Panel panel="left" title="Components">
+      <div className={styles.componentGroup}>
         {Object.keys(palette).map((key) => (
           <ComponentSource key={key} name={key} slotDef={palette[key]} />
         ))}
       </div>
-    </>
+    </Panel>
   )
 }
 

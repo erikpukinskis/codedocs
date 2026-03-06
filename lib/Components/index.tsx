@@ -13,6 +13,7 @@ export * from "./Social"
 export * from "./layout"
 export * from "./Footer"
 export * from "./Button"
+export * from "./Panel"
 
 export const Link = _Link
 
