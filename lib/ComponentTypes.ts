@@ -35,7 +35,23 @@ export type HeaderProps = {
   currentSection?: SiteSection
 }
 
-export type Container = React.FC<{ children: React.ReactNode }>
+export type ContainerProps = {
+  children: React.ReactNode
+  role?: React.AriaRole
+  id?: string
+  [key: `data-${string}`]: string
+}
+
+export type Container = React.FC<ContainerProps>
+
+export type BaseButtonProps = {
+  "aria-label"?: string
+  "aria-controls"?: string
+  "aria-expanded"?: boolean
+  disabled?: boolean
+  onClick?: (event: React.MouseEvent) => void
+  children: React.ReactNode
+}
 
 export type PopoverProps = {
   target: JSX.Element
@@ -51,11 +67,13 @@ export type CardProps = {
 
 export type LogoIconProps = Parameters<typeof FontAwesomeIcon>[0]
 
-export type ButtonProps = {
+export type ButtonProps = BaseButtonProps & {
   secondary?: boolean
-  onClick?(event: React.MouseEvent): void
-  children: React.ReactNode
 }
+
+export type PanelHeaderProps = BaseButtonProps & { isOpen: boolean | undefined }
+
+export type PanelProps = ContainerProps & { hasNeighbors: boolean }
 
 export type LinkButtonProps = {
   onClick?(event: React.MouseEvent): void
@@ -80,6 +98,8 @@ export type Components = {
   NavList: Container
   NavHeading: Container
   NavItem: Container
+  Panel: React.FC<PanelProps>
+  PanelHeader: React.FC<PanelHeaderProps>
   PageHeading: Container
   DemoHeading: Container
   Link: React.FC<LinkProps>

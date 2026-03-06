@@ -42,12 +42,19 @@ export const componentsTrigger = style({
   left: 10,
 })
 
+export const draggableComponent = style({})
+
 export const componentWrapper = style({
   pointerEvents: "none",
+  marginTop: 8,
 })
 
-export const draggableComponent = style({
-  // display: "inline-flex",
+export const componentGroup = style({
+  display: "flex",
+  flexWrap: "wrap",
+  flexDirection: "row",
+  gap: 8,
+  alignItems: "center",
 })
 
 globalStyle("[data-dnd-dragging]", {

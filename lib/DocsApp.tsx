@@ -5,6 +5,7 @@ import type { Location } from "react-router-dom"
 import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom"
 import { ErrorBoundary } from "./ErrorBoundary"
 import favicon from "./favicon.svg"
+import { Panel, PanelOutlet, PanelProvider } from "./Panel"
 import { ComponentContextProvider, useComponents } from "~/ComponentContext"
 import * as Defaults from "~/Components"
 import {
@@ -80,31 +81,33 @@ const _DocsApp = ({
     <SearchContextProvider pagesByPath={pagesByPath}>
       <link rel="icon" href={favicon} type="image/svg+xml" />
       <DesignSystemProvider>
-        <ComponentContextProvider Components={components}>
-          <BrowserRouter
-            future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-          >
-            <Defaults.LayoutContainer>
-              <Routes>
-                <Route
-                  path="*"
-                  element={
-                    <WildcardRoute
-                      pagesByPath={pagesByPath}
-                      copyright={copyright}
-                    />
-                  }
+        <PanelProvider>
+          <ComponentContextProvider Components={components}>
+            <BrowserRouter
+              future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
+            >
+              <Defaults.LayoutContainer>
+                <Routes>
+                  <Route
+                    path="*"
+                    element={
+                      <WildcardRoute
+                        pagesByPath={pagesByPath}
+                        copyright={copyright}
+                      />
+                    }
+                  />
+                </Routes>
+                <Header
+                  pagesByPath={pagesByPath}
+                  logo={logo}
+                  icon={icon}
+                  socialProps={socialProps}
                 />
-              </Routes>
-              <Header
-                pagesByPath={pagesByPath}
-                logo={logo}
-                icon={icon}
-                socialProps={socialProps}
-              />
-            </Defaults.LayoutContainer>
-          </BrowserRouter>
-        </ComponentContextProvider>
+              </Defaults.LayoutContainer>
+            </BrowserRouter>
+          </ComponentContextProvider>
+        </PanelProvider>
       </DesignSystemProvider>
     </SearchContextProvider>
   )
@@ -224,16 +227,19 @@ const PageComponent = ({ page, copyright }: PageComponentProps) => {
   return (
     <Components.Columns>
       <Components.LeftColumn>
-        <SideNav
-          {...{
-            categories,
-            currentCategory,
-            subCategories,
-            currentSubCategory,
-            pages,
-            currentPage: page,
-          }}
-        />
+        <PanelOutlet panel="left" />
+        <Panel panel="left" title={page.parent.name}>
+          <SideNav
+            {...{
+              categories,
+              currentCategory,
+              subCategories,
+              currentSubCategory,
+              pages,
+              currentPage: page,
+            }}
+          />
+        </Panel>
       </Components.LeftColumn>
       <Components.MainColumn>
         <PageContent page={page} />

@@ -1,8 +1,9 @@
 import { useState } from "react"
 // eslint-disable-next-line no-restricted-imports
 import { Demo, Doc } from "../macro"
-import { MockupProvider } from "~/Components/Mockup"
 import { slotId } from "~/helpers/componentTypes"
+import { MockupProvider } from "~/Mockup"
+import { PaletteProvider } from "~/PaletteProvider"
 
 type TagProps = {
   label: string
@@ -63,7 +64,12 @@ export const Button: React.FC<ButtonProps> = ({ label, tag, ...rest }) => {
 
 export const MockupDocs = (
   <Doc path="/Docs/Mockups">
-    <h2>Mockup</h2>
+    <h2>Editable Text</h2>
+    <p>
+      The basic <code>Mockup</code> component allows you to edit text elements
+      in any slot.The element text has to match the exact value of one of the
+      props for the editor to make the association.
+    </p>
     <Demo>
       <MockupProvider
         rootSlotId="btn1"
@@ -85,6 +91,38 @@ export const MockupDocs = (
           },
         }}
       />
+    </Demo>
+
+    <h2>Slots</h2>
+
+    <p>
+      By wrapping your <code>MockupProvider</code> in a{" "}
+      <code>PaletteProvider</code>, you can provide a set of components that can
+      be dragged into any slot.
+    </p>
+
+    <Demo>
+      <PaletteProvider
+        palette={{
+          Button: {
+            id: "Button",
+            component: Button,
+            props: {
+              label: { type: "string", value: "Button" },
+              tag: { type: "slot", value: undefined },
+            },
+          },
+          Tag: {
+            id: "Tag",
+            component: Tag,
+            props: {
+              label: { type: "string", value: "+1" },
+            },
+          },
+        }}
+      >
+        <MockupProvider slots={{}} />
+      </PaletteProvider>
     </Demo>
   </Doc>
 )

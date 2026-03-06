@@ -374,6 +374,11 @@ export function MockupProvider<Lookup extends PropsLookup>({
         onClickCapture={handleClickCapture}
         onMouseOverCapture={handleMouseOverCapture}
         onMouseOutCapture={handleMouseOutCapture}
+        data-description="mockup editor"
+        // TODO: Can we unify this div with the one above it? And maybe get rid
+        // of this lineHeight issue? It's currently needed to allow slot height
+        // to be less than the default line height.
+        style={{ lineHeight: 0 }}
       >
         <MockupContext
           value={{
