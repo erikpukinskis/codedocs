@@ -63,6 +63,10 @@ export const GlobalStyles = () => (
         font-size: 1.5em;
       }
 
+      *:focus-visible {
+        outline: 2px solid #434fff33;
+      }
+
       h2 {
         font-size: 1.1em;
         font-weight: 500;

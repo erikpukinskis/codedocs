@@ -86,7 +86,14 @@ const _DocsApp = ({
             <BrowserRouter
               future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
             >
+              {/* TODO: Add a wrapper so we can use LayoutContainer from the theme */}
               <Defaults.LayoutContainer>
+                <Header
+                  pagesByPath={pagesByPath}
+                  logo={logo}
+                  icon={icon}
+                  socialProps={socialProps}
+                />
                 <Routes>
                   <Route
                     path="*"
@@ -98,12 +105,6 @@ const _DocsApp = ({
                     }
                   />
                 </Routes>
-                <Header
-                  pagesByPath={pagesByPath}
-                  logo={logo}
-                  icon={icon}
-                  socialProps={socialProps}
-                />
               </Defaults.LayoutContainer>
             </BrowserRouter>
           </ComponentContextProvider>

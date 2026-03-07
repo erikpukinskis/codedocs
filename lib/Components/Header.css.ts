@@ -3,10 +3,11 @@ import { recipe } from "@vanilla-extract/recipes"
 
 export const styledLogo = style({
   display: "flex",
-  padding: 8,
+  padding: 12,
   flexDirection: "row",
   whiteSpace: "nowrap",
-  marginLeft: -2,
+  marginLeft: -20,
+  borderRadius: 4,
   marginRight: 32,
   lineHeight: "16px",
 })
@@ -15,6 +16,7 @@ export const headerLink = recipe({
   base: {
     lineHeight: "16px",
     padding: 8,
+    borderRadius: 4,
   },
   variants: {
     isCurrent: {

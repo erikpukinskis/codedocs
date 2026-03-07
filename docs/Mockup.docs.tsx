@@ -1,9 +1,12 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { useState } from "react"
 // eslint-disable-next-line no-restricted-imports
-import { Demo, Doc } from "../macro"
+// import { Demo, Doc } from "../macro"
+import { Component } from "~/Component"
+import { Demo } from "~/Demo"
+import { Doc } from "~/Doc"
 import { slotId } from "~/helpers/componentTypes"
 import { MockupProvider } from "~/Mockup"
-import { PaletteProvider } from "~/PaletteProvider"
 
 type TagProps = {
   label: string
@@ -62,6 +65,15 @@ export const Button: React.FC<ButtonProps> = ({ label, tag, ...rest }) => {
   )
 }
 
+type IconProps = {
+  size: "8px" | "12px" | "16px"
+  icon: "book" | "copy" | "close" | "eye-slash" | "bug"
+}
+
+const Icon: React.FC<IconProps> = ({ size, icon }) => (
+  <FontAwesomeIcon icon={icon} width={size} height={size} />
+)
+
 export const MockupDocs = (
   <Doc path="/Docs/Mockups">
     <h2>Editable Text</h2>
@@ -93,36 +105,43 @@ export const MockupDocs = (
       />
     </Demo>
 
-    <h2>Slots</h2>
+    <h2>Components</h2>
 
     <p>
-      By wrapping your <code>MockupProvider</code> in a{" "}
-      <code>PaletteProvider</code>, you can provide a set of components that can
-      be dragged into any slot.
+      Put a <code>&lt;Component /&gt;</code> in your docs to show a demo with
+      editable props. Any components you document this way will also be added to
+      the component palette, available to be added to mockups throughout your
+      docs.
     </p>
 
+    <Component
+      name="Button"
+      component={Button}
+      props={{
+        label: {
+          type: "string",
+          value: "Button",
+          description: <>text to display on the button</>,
+        },
+        tag: { type: "slot", value: undefined },
+      }}
+    />
+
+    <Component
+      name="Tag"
+      component={Tag}
+      props={{
+        label: { type: "string", value: "+1" },
+      }}
+    />
+    {/* <Component name="Icon" component={Icon} props={{
+  size: { type: "enum", options: ["8px", "12px", "16px"], value: "16px" },
+  icon: { type: "enum", options: ["book", "copy", "close", "eye-slash", "bug"], value: "eye-slash" },
+}} /> */}
+    <h2>Slots</h2>
+    <p>An empty mockup starts with a single empty slot.</p>
     <Demo>
-      <PaletteProvider
-        palette={{
-          Button: {
-            id: "Button",
-            component: Button,
-            props: {
-              label: { type: "string", value: "Button" },
-              tag: { type: "slot", value: undefined },
-            },
-          },
-          Tag: {
-            id: "Tag",
-            component: Tag,
-            props: {
-              label: { type: "string", value: "+1" },
-            },
-          },
-        }}
-      >
-        <MockupProvider slots={{}} />
-      </PaletteProvider>
+      <MockupProvider slots={{}} />
     </Demo>
   </Doc>
 )

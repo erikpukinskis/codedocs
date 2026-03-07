@@ -15,11 +15,14 @@ export const navHeading = style({
 export const navLink = style({
   display: "block",
   lineHeight: "20px",
+  padding: 8,
+  marginLeft: -8,
+  borderRadius: 4,
 })
 
 export const navItem = style({
-  padding: "none",
-  margin: "none",
+  padding: 0,
+  margin: 0,
   marginLeft: "0 !important",
   color: "#444",
   listStyleType: "none",
