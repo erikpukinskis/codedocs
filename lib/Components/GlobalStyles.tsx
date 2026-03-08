@@ -76,7 +76,7 @@ export const GlobalStyles = () => (
       h3 {
         font-size: 1em;
         margin-block: 0;
-        color: #555;
+        color: #778;
       }
 
       li {

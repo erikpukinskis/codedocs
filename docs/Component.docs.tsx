@@ -1,5 +1,6 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { useState } from "react"
+import { Code } from "~/Code"
 // eslint-disable-next-line no-restricted-imports
 // import { Demo, Doc } from "../macro"
 import { Component } from "~/Component"
@@ -68,16 +69,16 @@ export const Button: React.FC<ButtonProps> = ({ label, tag, ...rest }) => {
 type IconProps = {
   size: "8px" | "12px" | "16px"
   icon: "book" | "copy" | "close" | "eye-slash" | "bug"
+  color: "aqua" | "bisque" | "coral"
 }
 
-export const Icon: React.FC<IconProps> = ({ size, icon }) => (
-  <FontAwesomeIcon icon={icon} width={size} height={size} />
+export const Icon: React.FC<IconProps> = ({ size, icon, color }) => (
+  <FontAwesomeIcon icon={icon} width={size} height={size} color={color} />
 )
 
 export const ComponentDocs = (
   <Doc path="/Docs/Components">
     <h2>Components</h2>
-
     <p>
       Put a <code>&lt;Component /&gt;</code> in your docs to show a demo with
       editable props.
@@ -86,7 +87,7 @@ export const ComponentDocs = (
       Any components you document this way will also be added to the component
       palette, available to be added to mockups throughout your docs.
     </p>
-
+    <h3>Button</h3>
     <Component
       name="Button"
       component={Button}
@@ -99,7 +100,7 @@ export const ComponentDocs = (
         tag: { type: "slot", value: undefined },
       }}
     />
-
+    <h3>Button</h3>
     <Component
       name="Tag"
       component={Tag}
@@ -107,9 +108,78 @@ export const ComponentDocs = (
         label: { type: "string", value: "+1" },
       }}
     />
-    {/* <Component name="Icon" component={Icon} props={{
-  size: { type: "enum", options: ["8px", "12px", "16px"], value: "16px" },
-  icon: { type: "enum", options: ["book", "copy", "close", "eye-slash", "bug"], value: "eye-slash" },
-}} /> */}
+    <h2>Composing components</h2>
+    <p>
+      Typically a <code>&lt;Component&gt;</code> is only documented once, in
+      order to show the full set of props, and allow for quick mockups of simple
+      props.
+    </p>
+    <p>
+      Variations of components, slots, and other advanced features will
+      typically just be demonstrated with a <code>&lt;Demo&gt;</code>:
+    </p>
+    <h3>Button with tag</h3>
+    <Demo>
+      <Button label="Button" tag={<Tag label="+1" />} />
+    </Demo>
+    <h2>Simple prop editing</h2>
+    <p>
+      <code>String</code>, <code>Boolean</code>, <code>Number</code>, and string
+      union props can be edited in the Component editor.
+    </p>
+    <Component
+      skip
+      name="Icon"
+      component={Icon}
+      props={{
+        size: {
+          type: "string-union",
+          options: ["8px", "12px", "16px", "20px"],
+          value: "20px",
+        },
+        icon: {
+          type: "string-union",
+          options: ["book", "copy", "close", "eye-slash", "bug"],
+          value: "eye-slash",
+        },
+        color: {
+          type: "string-union",
+          options: [
+            "aqua",
+            "bisque",
+            "coral",
+            "tomato",
+            "gold",
+            "darkslateblue",
+          ],
+          value: "darkslateblue",
+        },
+      }}
+    />
+    <h2>Skipped components</h2>
+    Like demos, broken components can be temporarily ignored with the{" "}
+    <code>skip</code> prop:
+    <Component
+      skip
+      name="SkipMe"
+      component={Button}
+      props={{
+        label: { type: "string", value: "" },
+      }}
+    />
+    <h2>Focus mode</h2>
+    <p>
+      Also like demos, components obey the <code>only</code> prop, to allow you
+      to focus on a specific component:
+    </p>
+    <Code
+      mode="tsx"
+      source={`<Component
+  only
+  name="Button"
+  component={Button}
+  props={...}
+/>`}
+    />
   </Doc>
 )

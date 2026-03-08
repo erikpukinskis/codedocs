@@ -40,7 +40,7 @@ export function Component<PropsType extends Record<string, AllowedPropTypes>>({
   name: componentName,
   component: RenderFunction,
   props: initialProps,
-  skip,
+  skip = false,
   boundingSelectors,
 }: ComponentProps<PropsType>) {
   const [propValues, setPropValues] = useState(() =>
@@ -56,10 +56,17 @@ export function Component<PropsType extends Record<string, AllowedPropTypes>>({
   ) as PropsType
 
   return (
-    <div data-component="Component" className={styles.Component}>
+    <div data-component="Component" className={styles.Component({ skip })}>
       <div className={styles.DemoContainer}>
         {skip ? (
-          <SkippedComponent />
+          <>
+            <FontAwesomeIcon
+              icon="eye-slash"
+              color="#ffa800"
+              className={styles.outdentIcon}
+            />
+            This component has been skipped.
+          </>
         ) : (
           <ErrorBoundary location="demo-area">
             <PreviewArea boundingSelectors={boundingSelectors}>
@@ -104,19 +111,6 @@ export function Component<PropsType extends Record<string, AllowedPropTypes>>({
           )
         })}
       </div>
-    </div>
-  )
-}
-
-const SkippedComponent: React.FC = () => {
-  return (
-    <div data-component="SkippedComponent" className={styles.skippedComponent}>
-      <FontAwesomeIcon
-        icon="eye-slash"
-        color="#ffa800"
-        className={styles.outdentIcon}
-      />
-      This component has been skipped.
     </div>
   )
 }

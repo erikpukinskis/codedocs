@@ -144,6 +144,17 @@ The general philosophy of Codedocs is
 3. Work within the existing build
 4. Give the best possible realtime feedback
 
+Prop editing todos:
+- [x] Component component
+- [ ] String union prop editing
+- [ ] Boolean prop editing
+- [ ] Number prop editing
+- [ ] Slot prop editing
+- [ ] Hide skip components from the component palette
+- [ ] Fix dragging things into empty slots
+- [ ] Fix tag aligment issue
+- [ ] Adaptive scaling of drag overlay
+
 Roadmap to 1.0
 
 - [x] Render demos

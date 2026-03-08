@@ -1,25 +1,41 @@
 import { style } from "@vanilla-extract/css"
+import { recipe } from "@vanilla-extract/recipes"
 
-export { skippedDemo as skippedComponent, outdentIcon } from "./Demo.css"
+export { outdentIcon } from "./Demo.css"
 
-export const Component = style({
-  display: "flex",
-  flexDirection: "row",
-  gap: 16,
-  paddingInline: 14,
-  paddingBlock: 10,
-  borderRadius: 8,
-  boxShadow: "0px 2px 10px 0px inset #e1dbf3",
-  borderBottom: "1px solid #ededf4",
-  background: "#eee",
-  marginBlock: "1em",
-  boxSizing: "border-box",
-})
-
-export const ComponentTitle = style({
-  color: "#7d81b8",
-  fontWeight: "500",
-  marginBottom: 8,
+export const Component = recipe({
+  base: {
+    position: "relative",
+    display: "flex",
+    flexDirection: "row",
+    gap: 16,
+    paddingInline: 14,
+    paddingBlock: 10,
+    borderRadius: 8,
+    background: "#eee",
+    marginBlock: "1em",
+    boxSizing: "border-box",
+  },
+  variants: {
+    skip: {
+      true: {
+        background: "#ffbc2c",
+        fontSize: "0.85em",
+        color: "white",
+        paddingInline: 14,
+        paddingBlock: 10,
+        borderRadius: 8,
+        boxShadow: "0px 2px 10px 0px inset #ffa33c",
+        borderBottom: "1px solid #ffd79d",
+      },
+      false: {
+        color: "#7d81b8",
+        boxShadow: "0px 2px 10px 0px inset #e1dbf3",
+        borderBottom: "1px solid #ededf4",
+        background: "#eee",
+      },
+    },
+  },
 })
 
 export const PropsPanel = style({
@@ -33,7 +49,6 @@ export const PropsPanel = style({
 })
 
 export const PropLabel = style({
-  color: "#7d81b8",
   fontWeight: "500",
   display: "block",
 })
