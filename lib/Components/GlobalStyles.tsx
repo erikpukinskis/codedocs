@@ -75,7 +75,6 @@ export const GlobalStyles = () => (
 
       h3 {
         font-size: 1em;
-        font-weight: 400;
         margin-block: 0;
         color: #555;
       }
@@ -87,7 +86,6 @@ export const GlobalStyles = () => (
         margin-left: 16px;
         max-width: 40em;
         color: #333;
-        font-weight: 500;
       }
 
       ul {

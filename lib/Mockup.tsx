@@ -70,17 +70,17 @@ const MockupContext = createContext(
   )
 )
 
-type MockupProviderProps<Lookup extends PropsLookup> = {
+type MockupProps<Lookup extends PropsLookup> = {
   rootSlotId?: string
   slots: {
     [key in keyof Lookup]: SlotDef<Lookup[key]>
   }
 }
 
-export function MockupProvider<Lookup extends PropsLookup>({
+export function Mockup<Lookup extends PropsLookup>({
   rootSlotId: initialRootSlotId,
   slots,
-}: MockupProviderProps<Lookup>) {
+}: MockupProps<Lookup>) {
   const [slotsById, setSlotsById] = useState(slots)
   const [rootSlotId, setRootSlotId] = useState(initialRootSlotId)
   const [editables, setEditables] = useState<Editables>([

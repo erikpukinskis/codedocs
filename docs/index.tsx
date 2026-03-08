@@ -2,6 +2,7 @@ import React from "react"
 import { createRoot } from "react-dom/client"
 // eslint-disable-next-line no-restricted-imports
 import { DocsApp } from "../macro"
+import { ComponentDocs } from "./Component.docs"
 import { DemoDocs } from "./Demo.docs"
 import { DocDocs } from "./Doc.docs"
 import { VeryLongDocumentPathDocs } from "./DocWithAVeryLongTitle.docs"
@@ -21,8 +22,9 @@ createRoot(root).render(
     icon="book"
     copyright="Copyright © 2022 Outerframe, Inc"
     docs={[
-      DemoDocs,
       DocDocs,
+      DemoDocs,
+      ComponentDocs,
       MockupDocs,
       GettingStartedDocs,
       HomePageDocs,

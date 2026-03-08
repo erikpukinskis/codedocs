@@ -89,5 +89,6 @@ export function isEmptySlot(
  */
 export type SlotDefLookup = Record<
   string,
-  SlotDef<Record<string, AllowedPropTypes>>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  SlotDef<any>
 >
