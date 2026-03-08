@@ -541,7 +541,6 @@ function findPropForElementText<Lookup extends PropsLookup>(
   }
 
   for (const prop in slotDef.props) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const value = slotDef.props[prop].value
     if (typeof value !== "string") continue
     if (value !== text) continue

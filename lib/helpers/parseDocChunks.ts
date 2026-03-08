@@ -1,4 +1,5 @@
 import React from "react"
+import { Component } from "~/Component"
 import { Demo, type DemoProps } from "~/Demo"
 
 export type DocChunk = {
@@ -6,12 +7,12 @@ export type DocChunk = {
 }
 
 /**
- * Checks if an element is a Demo component.
+ * Checks if an element is a Demo or Component (both support only & skip props).
  */
 function isDemo(
   element: React.ReactElement
 ): element is React.ReactElement<DemoProps<unknown>> {
-  return element.type === Demo
+  return element.type === Demo || element.type === Component
 }
 
 /**

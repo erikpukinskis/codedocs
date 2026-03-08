@@ -1,10 +1,10 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import React, { useLayoutEffect, useMemo, useRef, useState } from "react"
+import React, { useMemo, useState } from "react"
 import { Code } from "./Code"
-import { CropMarks } from "./CropMarks"
 import * as styles from "./Demo.css"
 import { ErrorBoundary } from "./ErrorBoundary"
-import { EventLog, type CallbackEvent } from "./EventLog"
+import { EventLog, useEventLog } from "./EventLog"
+import { PreviewArea } from "./PreviewArea"
 
 type ReactChildren = React.ReactElement | React.ReactPortal | string
 
@@ -18,7 +18,6 @@ type CallbackFactory = (name: string) => (...args: unknown[]) => void
 export type PropsLike = Record<string, unknown>
 
 export type DemoContext<
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ValueType,
   DependenciesType extends DependencyMap = DependencyMap
 > = {
@@ -43,7 +42,6 @@ type DemoPropsWithRenderFunction<
 }
 
 export type DemoProps<
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   ValueType,
   DependenciesType extends DependencyMap = DependencyMap,
   VariantsType extends string = never
@@ -69,9 +67,7 @@ export function Demo<
 >(props: DemoProps<ValueType, DependenciesType, VariantsType>) {
   const [activeTab, setActiveTab] = useState<string>("__source")
   const [showCode, setShowCode] = useState(false)
-  const [events, setEvents] = useState<CallbackEvent[]>([])
-  const containerRef = useRef<HTMLDivElement>(null)
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+  const { events, mockCallback } = useEventLog()
   const [value, setValue] = useState(props.defaultValue)
 
   const dependencySources = hasDependencies(props)
@@ -102,24 +98,22 @@ export function Demo<
       value,
       setValue,
       mock: {
-        callback: (name: string) => {
-          return (...args: unknown[]) => {
-            const event: CallbackEvent = {
-              id: Math.random().toString(36).slice(2, 10),
-              name,
-              args,
-              time: Date.now().valueOf(),
-            }
-            setEvents((prev) => [event, ...prev])
-          }
-        },
+        callback: mockCallback,
       },
       ...dependencies,
     }),
-    [value, dependencies]
+    [value, dependencies, mockCallback]
   )
 
   const { width, variants } = props
+
+  if (props.skip) {
+    return (
+      <div className={styles.demo} data-component="Demo">
+        <SkippedDemo />
+      </div>
+    )
+  }
 
   const variantsToRender =
     variants && variants.length > 0 ? variants : [undefined as never]
@@ -129,9 +123,8 @@ export function Demo<
       {variantsToRender.map((variant, i) => (
         <div
           key={variant ?? "__default"}
-          ref={containerRef}
-          className={styles.demoWithCode}
-          data-component="DemoWithCode"
+          className={styles.demo}
+          data-component="Demo"
           style={{ width: props.width }}
         >
           <div
@@ -141,19 +134,15 @@ export function Demo<
             })}
             data-component="DemoContainer"
           >
-            {props.skip ? (
-              <SkippedDemo />
-            ) : (
-              <ErrorBoundary location="demo-area">
-                <DemoArea
-                  variant={variant}
-                  inline={!width}
-                  props={props}
-                  context={demoContext}
-                  boundingSelectors={props.boundingSelectors}
-                />
-              </ErrorBoundary>
-            )}
+            <ErrorBoundary location="demo-area">
+              <DemoArea
+                variant={variant}
+                inline={!width}
+                props={props}
+                context={demoContext}
+                boundingSelectors={props.boundingSelectors}
+              />
+            </ErrorBoundary>
 
             {i === variantsToRender.length - 1 && (
               <div className={styles.tabsContainer}>
@@ -212,7 +201,7 @@ export function Demo<
   )
 }
 
-const SkippedDemo: React.FC = () => {
+export const SkippedDemo: React.FC = () => {
   return (
     <div data-component="SkippedDemo" className={styles.skippedDemo}>
       <FontAwesomeIcon
@@ -248,42 +237,6 @@ function DemoArea<
   inline,
   variant,
 }: DemoAreaProps<ValueType, DependenciesType, VariantsType>) {
-  const areaRef = useRef<HTMLDivElement>(null)
-
-  useLayoutEffect(() => {
-    if (!areaRef.current || !boundingSelectors?.length) return
-
-    const container = areaRef.current
-    const containerRect = container.getBoundingClientRect()
-
-    let minX = 0
-    let minY = 0
-    let maxX = containerRect.width
-    let maxY = containerRect.height
-
-    for (const selector of boundingSelectors) {
-      const elements = Array.from(container.querySelectorAll(selector))
-      for (const el of elements) {
-        const rect = el.getBoundingClientRect()
-        minX = Math.min(minX, rect.left - containerRect.left)
-        minY = Math.min(minY, rect.top - containerRect.top)
-        maxX = Math.max(maxX, rect.right - containerRect.left)
-        maxY = Math.max(maxY, rect.bottom - containerRect.top)
-      }
-    }
-
-    // Apply padding to accommodate overflow
-    const paddingLeft = Math.abs(Math.min(0, minX))
-    const paddingTop = Math.abs(Math.min(0, minY))
-    const paddingRight = Math.max(0, maxX - containerRect.width)
-    const paddingBottom = Math.max(0, maxY - containerRect.height)
-
-    container.style.paddingLeft = `${paddingLeft}px`
-    container.style.paddingTop = `${paddingTop}px`
-    container.style.paddingRight = `${paddingRight}px`
-    container.style.paddingBottom = `${paddingBottom}px`
-  }, [boundingSelectors])
-
   const content = hasChildren(props) ? (
     props.children
   ) : isRenderable(props) ? (
@@ -295,38 +248,9 @@ function DemoArea<
   }
 
   return (
-    <div
-      ref={areaRef}
-      data-component="DemoArea"
-      style={{
-        display: "inline-block",
-        width: inline ? "auto" : "100%",
-        maxWidth: "100%",
-      }}
-    >
-      <div style={{ position: "relative" }}>
-        <div
-          data-description="content wrapper"
-          style={{ isolation: "isolate", position: "relative", zIndex: 1 }}
-        >
-          {content}
-        </div>
-        <div
-          data-description="crop marks wrapper"
-          style={{
-            zIndex: 0,
-            isolation: "isolate",
-            position: "absolute",
-            left: 0,
-            top: 0,
-            bottom: 0,
-            right: 0,
-          }}
-        >
-          <CropMarks />
-        </div>
-      </div>
-    </div>
+    <PreviewArea boundingSelectors={boundingSelectors} inline={inline}>
+      {content}
+    </PreviewArea>
   )
 }
 

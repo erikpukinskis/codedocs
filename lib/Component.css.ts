@@ -1,5 +1,7 @@
 import { style } from "@vanilla-extract/css"
 
+export { skippedDemo as skippedComponent, outdentIcon } from "./Demo.css"
+
 export const Component = style({
   display: "flex",
   flexDirection: "row",

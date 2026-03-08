@@ -5,6 +5,7 @@ import type { Location } from "react-router-dom"
 import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom"
 import { ErrorBoundary } from "./ErrorBoundary"
 import favicon from "./favicon.svg"
+import { PaletteProvider } from "./PaletteProvider"
 import { Panel, PanelOutlet, PanelProvider } from "./Panel"
 import { ComponentContextProvider, useComponents } from "~/ComponentContext"
 import * as Defaults from "~/Components"
@@ -13,6 +14,7 @@ import {
   type Components,
   type SocialProps,
 } from "~/ComponentTypes"
+import { buildPalette } from "~/helpers/buildPalette"
 import {
   buildSiteTree,
   isPage,
@@ -59,6 +61,7 @@ const _DocsApp = ({
   ...rest
 }: DocsAppProps) => {
   const pagesByPath = useMemo(() => buildSiteTree(docs), [docs])
+  const  palette = useMemo(() => buildPalette(docs), [docs])
 
   const ComponentOverrides = Object.keys(Defaults).reduce((overrides, key) => {
     const override = rest[key as ComponentName]
@@ -83,30 +86,35 @@ const _DocsApp = ({
       <DesignSystemProvider>
         <PanelProvider>
           <ComponentContextProvider Components={components}>
-            <BrowserRouter
-              future={{ v7_startTransition: true, v7_relativeSplatPath: true }}
-            >
-              {/* TODO: Add a wrapper so we can use LayoutContainer from the theme */}
-              <Defaults.LayoutContainer>
-                <Header
-                  pagesByPath={pagesByPath}
-                  logo={logo}
-                  icon={icon}
-                  socialProps={socialProps}
-                />
-                <Routes>
-                  <Route
-                    path="*"
-                    element={
-                      <WildcardRoute
-                        pagesByPath={pagesByPath}
-                        copyright={copyright}
-                      />
-                    }
+            <PaletteProvider palette={palette}>
+              <BrowserRouter
+                future={{
+                  v7_startTransition: true,
+                  v7_relativeSplatPath: true,
+                }}
+              >
+                {/* TODO: Add a wrapper so we can use LayoutContainer from the theme */}
+                <Defaults.LayoutContainer>
+                  <Header
+                    pagesByPath={pagesByPath}
+                    logo={logo}
+                    icon={icon}
+                    socialProps={socialProps}
                   />
-                </Routes>
-              </Defaults.LayoutContainer>
-            </BrowserRouter>
+                  <Routes>
+                    <Route
+                      path="*"
+                      element={
+                        <WildcardRoute
+                          pagesByPath={pagesByPath}
+                          copyright={copyright}
+                        />
+                      }
+                    />
+                  </Routes>
+                </Defaults.LayoutContainer>
+              </BrowserRouter>
+            </PaletteProvider>
           </ComponentContextProvider>
         </PanelProvider>
       </DesignSystemProvider>
