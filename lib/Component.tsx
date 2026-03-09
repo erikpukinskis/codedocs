@@ -89,18 +89,61 @@ export function Component<PropsType extends Record<string, AllowedPropTypes>>({
                 {propName}
               </label>
               <div>
-                <input
-                  id={`prop-input-${componentName}-${propName}`}
-                  type="text"
-                  className={styles.PropInput}
-                  value={String(propValues[propName] ?? "")}
-                  onChange={(e) => {
-                    setPropValues((prev) => ({
-                      ...prev,
-                      [propName]: e.target.value,
-                    }))
-                  }}
-                />
+                {def.type === "boolean" ? (
+                  <input
+                    id={`prop-input-${componentName}-${propName}`}
+                    type="checkbox"
+                    checked={Boolean(propValues[propName])}
+                    onChange={(e) => {
+                      setPropValues((prev) => ({
+                        ...prev,
+                        [propName]: e.target.checked,
+                      }))
+                    }}
+                  />
+                ) : def.type === "number" ? (
+                  <input
+                    id={`prop-input-${componentName}-${propName}`}
+                    type="number"
+                    value={Number(propValues[propName] ?? 0)}
+                    onChange={(e) => {
+                      setPropValues((prev) => ({
+                        ...prev,
+                        [propName]: e.target.valueAsNumber,
+                      }))
+                    }}
+                  />
+                ) : def.type === "string-union" ? (
+                  <select
+                    id={`prop-input-${componentName}-${propName}`}
+                    value={String(propValues[propName] ?? "")}
+                    onChange={(e) => {
+                      setPropValues((prev) => ({
+                        ...prev,
+                        [propName]: e.target.value,
+                      }))
+                    }}
+                  >
+                    {def.options.map((option) => (
+                      <option key={option} value={option}>
+                        {option}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    id={`prop-input-${componentName}-${propName}`}
+                    type="text"
+                    className={styles.PropInput}
+                    value={String(propValues[propName] ?? "")}
+                    onChange={(e) => {
+                      setPropValues((prev) => ({
+                        ...prev,
+                        [propName]: e.target.value,
+                      }))
+                    }}
+                  />
+                )}
                 {def.description && (
                   <div className={styles.PropDescription}>
                     {def.description}

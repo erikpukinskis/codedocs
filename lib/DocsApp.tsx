@@ -61,7 +61,7 @@ const _DocsApp = ({
   ...rest
 }: DocsAppProps) => {
   const pagesByPath = useMemo(() => buildSiteTree(docs), [docs])
-  const  palette = useMemo(() => buildPalette(docs), [docs])
+  const palette = useMemo(() => buildPalette(docs), [docs])
 
   const ComponentOverrides = Object.keys(Defaults).reduce((overrides, key) => {
     const override = rest[key as ComponentName]

@@ -1,13 +1,19 @@
+import type { IconDefinition } from "@fortawesome/free-regular-svg-icons"
+import {
+  faBell as regularBell,
+  faCopy as regularCopy,
+  faEyeSlash as regularEyeSlash,
+} from "@fortawesome/free-regular-svg-icons"
+import {
+  faBell as solidBell,
+  faCopy as solidCopy,
+  faEyeSlash as solidEyeSlash,
+} from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { useState } from "react"
-import { Code } from "~/Code"
 // eslint-disable-next-line no-restricted-imports
-// import { Demo, Doc } from "../macro"
-import { Component } from "~/Component"
-import { Demo } from "~/Demo"
-import { Doc } from "~/Doc"
-import { slotId } from "~/helpers/componentTypes"
-import { Mockup } from "~/Mockup"
+import { Component, Demo, Doc } from "../macro"
+import { Code } from "~/Code"
 
 type TagProps = {
   label: string
@@ -66,21 +72,46 @@ export const Button: React.FC<ButtonProps> = ({ label, tag, ...rest }) => {
   )
 }
 
+type IconName = "bell" | "copy" | "eye-slash"
+
+const icons: Record<"solid" | "regular", Record<IconName, IconDefinition>> = {
+  solid: {
+    "copy": solidCopy,
+    "bell": solidBell,
+    "eye-slash": solidEyeSlash,
+  },
+  regular: {
+    "bell": regularBell,
+    "copy": regularCopy,
+    "eye-slash": regularEyeSlash,
+  },
+}
+
 type IconProps = {
-  size: "8px" | "12px" | "16px"
-  icon: "book" | "copy" | "close" | "eye-slash" | "bug"
+  size: number
+  solid: boolean
+  icon: IconName
   color: "aqua" | "bisque" | "coral"
 }
 
-export const Icon: React.FC<IconProps> = ({ size, icon, color }) => (
-  <FontAwesomeIcon icon={icon} width={size} height={size} color={color} />
+export const Icon: React.FC<IconProps> = ({
+  size,
+  solid = false,
+  icon,
+  color,
+}) => (
+  <FontAwesomeIcon
+    icon={icons[solid ? "solid" : "regular"][icon]}
+    style={{ fontSize: `${size}px`, width: `${size}px`, height: `${size}px` }}
+    color={color}
+  />
 )
 
 export const ComponentDocs = (
   <Doc path="/Docs/Components">
     <h2>Components</h2>
     <p>
-      Put a <code>&lt;Component /&gt;</code> in your docs to show a demo with
+      Put a <code>&lt;Component&gt;</code> in your docs to show a demo with
       editable props.
     </p>
     <p>
@@ -128,18 +159,20 @@ export const ComponentDocs = (
       union props can be edited in the Component editor.
     </p>
     <Component
-      skip
       name="Icon"
       component={Icon}
       props={{
         size: {
-          type: "string-union",
-          options: ["8px", "12px", "16px", "20px"],
-          value: "20px",
+          type: "number",
+          value: 20,
+        },
+        solid: {
+          type: "boolean",
+          value: false,
         },
         icon: {
           type: "string-union",
-          options: ["book", "copy", "close", "eye-slash", "bug"],
+          options: ["bell", "copy", "eye-slash"],
           value: "eye-slash",
         },
         color: {

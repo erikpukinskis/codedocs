@@ -1,10 +1,7 @@
 // eslint-disable-next-line no-restricted-imports
-// import { Demo, Doc } from "../macro"
+import { Demo, Doc, Mockup } from "../macro"
 import { Button, Tag } from "./Component.docs"
-import { Demo } from "~/Demo"
-import { Doc } from "~/Doc"
 import { slotId } from "~/helpers/componentTypes"
-import { Mockup } from "~/Mockup"
 
 export const MockupDocs = (
   <Doc path="/Docs/Mockups">

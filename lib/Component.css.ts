@@ -20,7 +20,6 @@ export const Component = recipe({
     skip: {
       true: {
         background: "#ffbc2c",
-        fontSize: "0.85em",
         color: "white",
         paddingInline: 14,
         paddingBlock: 10,

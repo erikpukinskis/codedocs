@@ -1,7 +1,7 @@
 import React from "react"
 import { Component } from "~/Component"
-import type { SlotDefLookup } from "~/helpers/componentTypes"
 import type { DocElement } from "~/helpers/buildSiteTree"
+import type { SlotDefLookup } from "~/helpers/componentTypes"
 
 export function buildPalette(docs: DocElement[]): SlotDefLookup {
   const palette: SlotDefLookup = {}
@@ -16,8 +16,13 @@ function collectComponents(
   palette: SlotDefLookup
 ): void {
   React.Children.forEach(children, (child) => {
+    // TODO: Better type guards that establish ComponentProps vs.
+    // PropsWithChildre vs. something else
     if (!React.isValidElement(child)) return
-    if (child.type === Component) {
+    if (
+      child.type === Component &&
+      (child.props as { skip?: boolean }).skip !== true
+    ) {
       const { name, component, props } = child.props as React.ComponentProps<
         typeof Component
       >

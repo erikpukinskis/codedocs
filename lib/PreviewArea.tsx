@@ -60,7 +60,12 @@ export function PreviewArea({
       <div style={{ position: "relative" }}>
         <div
           data-description="content wrapper"
-          style={{ isolation: "isolate", position: "relative", zIndex: 1 }}
+          style={{
+            isolation: "isolate",
+            position: "relative",
+            zIndex: 1,
+            lineHeight: 0,
+          }}
         >
           {children}
         </div>

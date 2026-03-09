@@ -22,6 +22,19 @@ export type PropDef = {
       value: string
     }
   | {
+      type: "number"
+      value: number
+    }
+  | {
+      type: "boolean"
+      value: boolean
+    }
+  | {
+      type: "string-union"
+      options: string[]
+      value: string
+    }
+  | {
       type: "slot"
       value: React.ReactNode | SlotId
     }
