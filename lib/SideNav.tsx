@@ -23,7 +23,12 @@ type SideNavProps = {
   currentPage: Page
 }
 
-export const SideNav = ({ categories, subCategories, pages }: SideNavProps) => {
+export const SideNav = ({
+  categories,
+  subCategories,
+  pages,
+  currentPage,
+}: SideNavProps) => {
   const topLevelItems =
     categories.length > 0
       ? categories
@@ -34,7 +39,7 @@ export const SideNav = ({ categories, subCategories, pages }: SideNavProps) => {
   return (
     <>
       {topLevelItems.map((item) => (
-        <Nav key={item.name} item={item} />
+        <Nav key={item.name} item={item} currentPath={currentPage.path} />
       ))}
     </>
   )
@@ -42,9 +47,10 @@ export const SideNav = ({ categories, subCategories, pages }: SideNavProps) => {
 
 type NavItemProps = {
   item: Category | SubCategory | Page | Site | SiteSection
+  currentPath: string
 }
 
-const Nav = ({ item }: NavItemProps) => {
+const Nav = ({ item, currentPath }: NavItemProps) => {
   const Components = useComponents()
 
   if (isSite(item)) {
@@ -57,7 +63,11 @@ const Nav = ({ item }: NavItemProps) => {
         <Components.NavHeading>{addSpaces(item.name)}</Components.NavHeading>
         <Components.NavList>
           {item.children.map((subCategory) => (
-            <Nav key={subCategory.name} item={subCategory} />
+            <Nav
+              key={subCategory.name}
+              item={subCategory}
+              currentPath={currentPath}
+            />
           ))}
         </Components.NavList>
       </>
@@ -70,7 +80,7 @@ const Nav = ({ item }: NavItemProps) => {
         <Components.NavItem>{addSpaces(item.name)}</Components.NavItem>
         <Components.NavList>
           {item.children.map((page) => (
-            <Nav key={page.name} item={page} />
+            <Nav key={page.name} item={page} currentPath={currentPath} />
           ))}
         </Components.NavList>
       </>
@@ -89,7 +99,7 @@ const Nav = ({ item }: NavItemProps) => {
 
   return (
     <Components.NavItem>
-      <Components.NavLink to={item.path}>
+      <Components.NavLink to={item.path} current={currentPath === item.path}>
         {addSpaces(item.name)}
       </Components.NavLink>
     </Components.NavItem>
