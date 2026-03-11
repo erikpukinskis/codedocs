@@ -64,7 +64,11 @@ export function PreviewArea({
             isolation: "isolate",
             position: "relative",
             zIndex: 1,
-            lineHeight: 0,
+            /**
+             * If this is display: block then it will have line height, which
+             * effectively gives the PreviewArea a min-height.
+             */
+            display: "flex",
           }}
         >
           {children}

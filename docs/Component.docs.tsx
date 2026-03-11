@@ -3,11 +3,15 @@ import {
   faBell as regularBell,
   faCopy as regularCopy,
   faEyeSlash as regularEyeSlash,
+  faPenToSquare as regularPenToSquare,
+  faCalendar as regularCalendar,
 } from "@fortawesome/free-regular-svg-icons"
 import {
   faBell as solidBell,
   faCopy as solidCopy,
   faEyeSlash as solidEyeSlash,
+  faPencil as solidPenToSquare,
+  faCalendar as solidCalendar,
 } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { useState } from "react"
@@ -29,6 +33,10 @@ export const Tag: React.FC<TagProps> = ({ label, ...rest }) => (
       padding: "0px 4px",
       borderRadius: 999,
       fontSize: 12,
+      maxWidth: 50,
+      overflow: "hidden",
+      textOverflow: "ellipsis",
+      whiteSpace: "nowrap",
       display: "inline-block",
     }}
     {...rest}
@@ -72,18 +80,22 @@ export const Button: React.FC<ButtonProps> = ({ label, tag, ...rest }) => {
   )
 }
 
-type IconName = "bell" | "copy" | "eye-slash"
+type IconName = "bell" | "copy" | "eye-slash" | "pen-to-square" | "calendar"
 
 const icons: Record<"solid" | "regular", Record<IconName, IconDefinition>> = {
   solid: {
     "copy": solidCopy,
     "bell": solidBell,
     "eye-slash": solidEyeSlash,
+    "pen-to-square": solidPenToSquare,
+    "calendar": solidCalendar,
   },
   regular: {
     "bell": regularBell,
     "copy": regularCopy,
     "eye-slash": regularEyeSlash,
+    "pen-to-square": regularPenToSquare,
+    "calendar": regularCalendar,
   },
 }
 
@@ -91,19 +103,12 @@ type IconProps = {
   size: number
   solid: boolean
   icon: IconName
-  color: "aqua" | "bisque" | "coral"
 }
 
-export const Icon: React.FC<IconProps> = ({
-  size,
-  solid = false,
-  icon,
-  color,
-}) => (
+export const Icon: React.FC<IconProps> = ({ size, solid = false, icon }) => (
   <FontAwesomeIcon
     icon={icons[solid ? "solid" : "regular"][icon]}
     style={{ fontSize: `${size}px`, width: `${size}px`, height: `${size}px` }}
-    color={color}
   />
 )
 
@@ -164,7 +169,7 @@ export const ComponentDocs = (
       props={{
         size: {
           type: "number",
-          value: 20,
+          value: 48,
         },
         solid: {
           type: "boolean",
@@ -172,20 +177,8 @@ export const ComponentDocs = (
         },
         icon: {
           type: "string-union",
-          options: ["bell", "copy", "eye-slash"],
+          options: Object.keys(icons.solid),
           value: "eye-slash",
-        },
-        color: {
-          type: "string-union",
-          options: [
-            "aqua",
-            "bisque",
-            "coral",
-            "tomato",
-            "gold",
-            "darkslateblue",
-          ],
-          value: "darkslateblue",
         },
       }}
     />

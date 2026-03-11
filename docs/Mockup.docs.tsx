@@ -8,16 +8,8 @@ export const MockupDocs = (
     <p>Mockups are visual prototypes built from components in your library:</p>
     <Demo>
       <Mockup
-        rootSlotId="btn1"
+        rootSlotId="tag1"
         slots={{
-          btn1: {
-            id: "btn1",
-            component: Button,
-            props: {
-              label: { type: "string", value: "Hello" },
-              tag: { type: "slot", value: slotId("tag1") },
-            },
-          },
           tag1: {
             id: "tag1",
             component: Tag,
