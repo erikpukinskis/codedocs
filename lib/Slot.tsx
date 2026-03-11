@@ -28,7 +28,7 @@ export const Slot = React.memo(function Slot({ id }: SlotProps) {
   const isDragging = source !== null
 
   if (counter > 100) {
-    throw new Error("Too many slots")
+    throw new Error("Too many slot renders")
   }
 
   const [slotDef] = useSlot(id)

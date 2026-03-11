@@ -26,7 +26,7 @@ export const navLink = recipe({
   variants: {
     current: {
       true: {
-        // color: "#8a8aca",
+        color: "#8a8aca",
         pointerEvents: "none",
       },
     },

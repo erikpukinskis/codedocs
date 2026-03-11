@@ -20,5 +20,11 @@ export const PanelHeader: React.FC<PanelHeaderProps> = ({
 }) => (
   <div className={styles.PanelHeader({ isOpen })} {...props}>
     {children}
+    {isOpen !== undefined && (
+      <FontAwesomeIcon
+        icon={isOpen ? "chevron-down" : "chevron-up"}
+        size="xs"
+      />
+    )}
   </div>
 )
