@@ -113,8 +113,7 @@ export const Icon: React.FC<IconProps> = ({ size, solid = false, icon }) => (
 )
 
 export const ComponentDocs = (
-  <Doc path="/Docs/Components">
-    <h2>Components</h2>
+  <Doc path="/Docs/Component">
     <p>
       Put a <code>&lt;Component&gt;</code> in your docs to show a demo with
       editable props.

@@ -4,7 +4,7 @@ import { Demo, Doc, Placeholder } from "../macro"
 import { Code } from "~/Code"
 
 export const DocDocs = (
-  <Doc path="/Docs/RenderingDocs">
+  <Doc path="/Docs/Doc">
     <p>
       Each page in your docs is a JSX element that you export from a .tsx file.
     </p>
@@ -42,11 +42,11 @@ export const ButtonDocs = (
     <h3>Find out more...</h3>
     <ul>
       <li>
-        <a href="/Docs/Demos">Demos</a> are snippets of code that demonstrate
-        how to use a component.
+        <a href="/Docs/Demo">Demos</a> are snippets of code that demonstrate how
+        to use a component.
       </li>
       <li>
-        <a href="/Docs/Mockups">Mockups</a> are how designers build prototypes.
+        <a href="/Docs/Mockup">Mockups</a> are how designers build prototypes.
       </li>
     </ul>
   </Doc>

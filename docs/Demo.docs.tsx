@@ -5,8 +5,7 @@ import { Demo, Doc, Placeholder } from "../macro"
 import { Code } from "~/Code"
 
 export const DemoDocs = (
-  <Doc path="/Docs/Demos">
-    <h2>Basic Demo</h2>
+  <Doc path="/Docs/Demo">
     <p>
       Demos are how you show code samples in Codedocs. The simplest way to set
       up a demo is just to put some JSX inside your <code>&lt;Demo&gt;</code>{" "}

@@ -4,7 +4,7 @@ import { Button, Tag } from "./Component.docs"
 import { slotId } from "~/helpers/componentTypes"
 
 export const MockupDocs = (
-  <Doc path="/Docs/Mockups">
+  <Doc path="/Docs/Mockup">
     <p>Mockups are visual prototypes built from components in your library:</p>
     <Demo>
       <Mockup
