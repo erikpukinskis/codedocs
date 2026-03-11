@@ -65,8 +65,10 @@ type PaletteProviderProps<Lookup extends PropsLookup> = {
 
 export function PaletteProvider<ComponentDefs extends PropsLookup>({
   children,
-  palette,
+  palette: strictPalette,
 }: PaletteProviderProps<ComponentDefs>) {
+  const palette = strictPalette as SlotDefLookup
+
   const [{ numRequests }, dispatch] = useReducer(paletteReducer, {
     palette,
     numRequests: 0,
@@ -80,20 +82,16 @@ export function PaletteProvider<ComponentDefs extends PropsLookup>({
         dispatch,
       }}
     >
-      {numRequests === 0 ? (
-        children
-      ) : (
-        <DragDropProvider
-          plugins={(defaults) => [
-            ...defaults,
-            configure(Cursor, { cursor: "default" }),
-            configure(Feedback, { dropAnimation: null }),
-          ]}
-        >
-          {children}
-          <Palette palette={palette} />
-        </DragDropProvider>
-      )}
+      <DragDropProvider
+        plugins={(defaults) => [
+          ...defaults,
+          configure(Cursor, { cursor: "default" }),
+          configure(Feedback, { dropAnimation: null }),
+        ]}
+      >
+        {children}
+        {numRequests > 0 && <Palette palette={palette} />}
+      </DragDropProvider>
     </PaletteContext>
   )
 }

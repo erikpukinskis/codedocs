@@ -22,6 +22,8 @@ let counter = 0
 export const Slot = React.memo(function Slot({ id }: SlotProps) {
   counter++
 
+  useComponentPalette()
+
   const { source } = useDragOperation()
   const isDragging = source !== null
 
@@ -77,11 +79,11 @@ export function useDroppableSlot({ location }: UseDroppableSlotArgs) {
   const [id] = useState(generate)
   const setRootSlot = useSetRootSlotId()
   const setProp = useSetProp()
+  const componentPalette = useComponentPalette()
 
   const { ref, isDropTarget } = useDroppable({
     id,
   })
-  const componentPalette = useComponentPalette()
 
   const [_, setSlotDef] = useSlot(id)
 
