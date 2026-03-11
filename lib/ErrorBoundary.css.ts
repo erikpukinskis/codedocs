@@ -10,6 +10,7 @@ export const demoErrorContainer = style({
   borderRadius: 8,
   boxShadow: "0px 2px 10px 0px inset #f53da7",
   borderBottom: "1px solid #ffc3c3",
+  boxSizing: "border-box",
 })
 
 export const demoErrorHeading = style({

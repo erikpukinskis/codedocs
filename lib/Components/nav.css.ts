@@ -1,4 +1,5 @@
 import { style } from "@vanilla-extract/css"
+import { recipe } from "@vanilla-extract/recipes"
 
 export const navList = style({
   marginTop: 12,
@@ -9,17 +10,32 @@ export const navList = style({
 export const navHeading = style({
   lineHeight: "24px",
   fontWeight: 600,
-  color: "#b4b4b4",
+  color: "#99b",
 })
 
-export const navLink = style({
-  display: "block",
-  lineHeight: "20px",
+export const navLink = recipe({
+  base: {
+    display: "flex",
+    flexDirection: "row",
+    alignItems: "center",
+    lineHeight: "20px",
+    padding: 8,
+    marginLeft: -8,
+    borderRadius: 4,
+  },
+  variants: {
+    current: {
+      true: {
+        color: "#8a8aca",
+        pointerEvents: "none",
+      },
+    },
+  },
 })
 
 export const navItem = style({
-  padding: "none",
-  margin: "none",
+  padding: 0,
+  margin: 0,
   marginLeft: "0 !important",
   color: "#444",
   listStyleType: "none",

@@ -22,11 +22,13 @@ let counter = 0
 export const Slot = React.memo(function Slot({ id }: SlotProps) {
   counter++
 
+  useComponentPalette()
+
   const { source } = useDragOperation()
   const isDragging = source !== null
 
   if (counter > 100) {
-    throw new Error("Too many slots")
+    throw new Error("Too many slot renders")
   }
 
   const [slotDef] = useSlot(id)
@@ -77,11 +79,11 @@ export function useDroppableSlot({ location }: UseDroppableSlotArgs) {
   const [id] = useState(generate)
   const setRootSlot = useSetRootSlotId()
   const setProp = useSetProp()
+  const componentPalette = useComponentPalette()
 
   const { ref, isDropTarget } = useDroppable({
     id,
   })
-  const componentPalette = useComponentPalette()
 
   const [_, setSlotDef] = useSlot(id)
 

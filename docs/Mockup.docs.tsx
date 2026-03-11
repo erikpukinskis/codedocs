@@ -1,87 +1,15 @@
-import { useState } from "react"
 // eslint-disable-next-line no-restricted-imports
-import { Demo, Doc } from "../macro"
+import { Demo, Doc, Mockup } from "../macro"
+import { Button, Tag } from "./Component.docs"
 import { slotId } from "~/helpers/componentTypes"
-import { MockupProvider } from "~/Mockup"
-import { PaletteProvider } from "~/PaletteProvider"
-
-type TagProps = {
-  label: string
-  [key: `data-${string}`]: unknown
-}
-
-export const Tag: React.FC<TagProps> = ({ label, ...rest }) => (
-  <div
-    data-component="Tag"
-    style={{
-      backgroundColor: "#e000ff",
-      color: "white",
-      padding: "0px 4px",
-      borderRadius: 999,
-      fontSize: 12,
-      display: "inline-block",
-    }}
-    {...rest}
-  >
-    {label}
-  </div>
-)
-
-type ButtonProps = {
-  label: string
-  tag?: React.ReactNode
-  [key: `data-${string}`]: unknown
-}
-
-export const Button: React.FC<ButtonProps> = ({ label, tag, ...rest }) => {
-  const [clicked, setClicked] = useState(false)
-
-  return (
-    <>
-      <button
-        data-component="Button"
-        style={{
-          border: "none",
-          padding: "6px 12px",
-          cursor: "pointer",
-          borderRadius: 6,
-          fontSize: 16,
-          backgroundColor: clicked ? "red" : "#9231ff",
-          color: "#ffefe6",
-          position: "relative",
-        }}
-        onClick={() => setClicked(true)}
-        {...rest}
-      >
-        {label}
-        {tag && (
-          <div style={{ position: "absolute", right: -8, top: -8 }}>{tag}</div>
-        )}
-      </button>
-    </>
-  )
-}
 
 export const MockupDocs = (
-  <Doc path="/Docs/Mockups">
-    <h2>Editable Text</h2>
-    <p>
-      The basic <code>Mockup</code> component allows you to edit text elements
-      in any slot.The element text has to match the exact value of one of the
-      props for the editor to make the association.
-    </p>
+  <Doc path="/Docs/Mockup">
+    <p>Mockups are visual prototypes built from components in your library:</p>
     <Demo>
-      <MockupProvider
-        rootSlotId="btn1"
+      <Mockup
+        rootSlotId="tag1"
         slots={{
-          btn1: {
-            id: "btn1",
-            component: Button,
-            props: {
-              label: { type: "string", value: "Hello" },
-              tag: { type: "slot", value: slotId("tag1") },
-            },
-          },
           tag1: {
             id: "tag1",
             component: Tag,
@@ -92,37 +20,45 @@ export const MockupDocs = (
         }}
       />
     </Demo>
-
-    <h2>Slots</h2>
-
     <p>
-      By wrapping your <code>MockupProvider</code> in a{" "}
-      <code>PaletteProvider</code>, you can provide a set of components that can
-      be dragged into any slot.
+      In Codedocs, when a <code>&lt;Mockup&gt;</code> is rendered, the component
+      palette opens in the 👈 left sidebar. The palette allows every{" "}
+      <code>&lt;Component&gt;</code> that you have documented to be dragged into
+      empty slots.
     </p>
-
+    <h2>Editable Text</h2>
+    <p>
+      The basic <code>&lt;Mockup&gt;</code> component allows you to edit text
+      elements in any slot. The element text has to match the exact value of one
+      of the props for the editor to make the association.
+    </p>
     <Demo>
-      <PaletteProvider
-        palette={{
-          Button: {
-            id: "Button",
+      <Mockup
+        rootSlotId="btn1"
+        slots={{
+          btn1: {
+            id: "btn1",
             component: Button,
             props: {
-              label: { type: "string", value: "Button" },
-              tag: { type: "slot", value: undefined },
+              label: { type: "string", value: "Edit me" },
+              tag: { type: "slot", value: slotId("tag1") },
             },
           },
-          Tag: {
-            id: "Tag",
+          tag1: {
+            id: "tag1",
             component: Tag,
             props: {
-              label: { type: "string", value: "+1" },
+              label: { type: "string", value: "+me too" },
             },
           },
         }}
-      >
-        <MockupProvider slots={{}} />
-      </PaletteProvider>
+      />
+    </Demo>
+
+    <h2>Slots</h2>
+    <p>Mockups start with a single empty slot:</p>
+    <Demo>
+      <Mockup slots={{}} />
     </Demo>
   </Doc>
 )

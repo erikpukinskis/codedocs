@@ -1,16 +1,37 @@
 // @codedocs include-wrapper-in-source
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import React, { useState } from "react"
 // eslint-disable-next-line no-restricted-imports
 import { Demo, Doc, Placeholder } from "../macro"
 import { Code } from "~/Code"
 
 export const DemoDocs = (
-  <Doc path="/Docs/Demos">
-    <h2>Full Width</h2>
+  <Doc path="/Docs/Demo">
+    <p>
+      Demos are how you show code samples in Codedocs. The simplest way to set
+      up a demo is just to put some JSX inside your <code>&lt;Demo&gt;</code>{" "}
+      tag inside a <code>&lt;Doc&gt;</code>.
+    </p>
+    <Code
+      mode="tsx"
+      source={`<Doc path="/Components/Placeholder">
+  <Demo>
+    <Placeholder>Hello, world!</Placeholder>
+  </Demo>
+</Doc>`}
+    />
+    <p>That gives you something like this:</p>
+    <Demo noWrapperInSource>
+      <Placeholder>Hello, world!</Placeholder>
+    </Demo>
+    <h2>Width</h2>
+    <Demo>
+      <Placeholder>
+        By default demos hug the width of their content.
+      </Placeholder>
+    </Demo>
     <Demo width="full">
       <Placeholder>
-        Demos will hug their content, unless you set <code>width="full"</code>.
+        But you can set <code>width="full"</code>.
       </Placeholder>
     </Demo>
     <h2>Variants</h2>
@@ -99,15 +120,6 @@ export const DemoDocs = (
         />
       )}
     />
-    <h2>Inline</h2>
-    <Demo>
-      <Placeholder style={{ width: "200px" }}>
-        Inline demos only fit the width of the content.
-      </Placeholder>
-    </Demo>
-    <Demo>
-      <FontAwesomeIcon icon="check" />
-    </Demo>
     <h2>Multi-component demos</h2>
     <p>
       Sometimes you want to demonstrate something that requires some additional
@@ -116,7 +128,6 @@ export const DemoDocs = (
       a context provider and a hook:
     </p>
     <Demo
-      noWrapperInSource
       dependencies={{
         ChildComponent: () => {
           const data = useMyHook()

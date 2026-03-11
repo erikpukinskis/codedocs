@@ -63,6 +63,10 @@ export const GlobalStyles = () => (
         font-size: 1.5em;
       }
 
+      *:focus-visible {
+        outline: 2px solid #434fff33;
+      }
+
       h2 {
         font-size: 1.1em;
         font-weight: 500;
@@ -71,9 +75,8 @@ export const GlobalStyles = () => (
 
       h3 {
         font-size: 1em;
-        font-weight: 400;
         margin-block: 0;
-        color: #555;
+        color: #778;
       }
 
       li {
@@ -83,7 +86,6 @@ export const GlobalStyles = () => (
         margin-left: 16px;
         max-width: 40em;
         color: #333;
-        font-weight: 500;
       }
 
       ul {

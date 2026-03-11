@@ -70,17 +70,17 @@ const MockupContext = createContext(
   )
 )
 
-type MockupProviderProps<Lookup extends PropsLookup> = {
+type MockupProps<Lookup extends PropsLookup> = {
   rootSlotId?: string
   slots: {
     [key in keyof Lookup]: SlotDef<Lookup[key]>
   }
 }
 
-export function MockupProvider<Lookup extends PropsLookup>({
+export function Mockup<Lookup extends PropsLookup>({
   rootSlotId: initialRootSlotId,
   slots,
-}: MockupProviderProps<Lookup>) {
+}: MockupProps<Lookup>) {
   const [slotsById, setSlotsById] = useState(slots)
   const [rootSlotId, setRootSlotId] = useState(initialRootSlotId)
   const [editables, setEditables] = useState<Editables>([
@@ -125,18 +125,20 @@ export function MockupProvider<Lookup extends PropsLookup>({
     const style = window.getComputedStyle(target)
 
     return {
-      top: rect.top - editorRect.top,
-      left: rect.left - editorRect.left,
-      width: rect.width,
-      height: rect.height,
-      padding: style.padding,
       boxSizing: "border-box",
+      color: style.color,
       fontFamily: style.fontFamily,
       fontSize: style.fontSize,
-      fontWeight: style.fontWeight,
       fontStyle: style.fontStyle,
-      color: style.color,
+      fontWeight: style.fontWeight,
+      height: rect.height,
+      left: rect.left - editorRect.left,
+      lineHeight: style.lineHeight,
       outline: "1px solid gray",
+      padding: style.padding,
+      top: rect.top - editorRect.top,
+      whiteSpace: style.whiteSpace,
+      width: rect.width,
     }
   }
 
@@ -375,10 +377,6 @@ export function MockupProvider<Lookup extends PropsLookup>({
         onMouseOverCapture={handleMouseOverCapture}
         onMouseOutCapture={handleMouseOutCapture}
         data-description="mockup editor"
-        // TODO: Can we unify this div with the one above it? And maybe get rid
-        // of this lineHeight issue? It's currently needed to allow slot height
-        // to be less than the default line height.
-        style={{ lineHeight: 0 }}
       >
         <MockupContext
           value={{
@@ -541,7 +539,6 @@ function findPropForElementText<Lookup extends PropsLookup>(
   }
 
   for (const prop in slotDef.props) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const value = slotDef.props[prop].value
     if (typeof value !== "string") continue
     if (value !== text) continue

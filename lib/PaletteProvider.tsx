@@ -5,7 +5,7 @@ import {
   useDragDropMonitor,
   DragDropProvider,
 } from "@dnd-kit/react"
-import React, { createContext, useContext } from "react"
+import React, { createContext, useContext, useEffect, useReducer } from "react"
 import * as styles from "./Palette.css"
 import { Panel } from "./Panel"
 import type {
@@ -19,12 +19,21 @@ import { getDraggingComponentTransform } from "~/helpers/getDraggingComponentTra
 import { makeUninitializedContext } from "~/helpers/makeUninitializedContext"
 
 export function useComponentPalette() {
-  const { palette } = useContext(PaletteContext)
+  const { palette, dispatch } = useContext(PaletteContext)
+
+  useEffect(() => {
+    dispatch({ type: "request-palette" })
+
+    return () => dispatch({ type: "release-palette" })
+  }, [])
 
   return palette
 }
+
 type PaletteContextValue = {
   palette: SlotDefLookup
+  numRequests: number
+  dispatch: React.Dispatch<PaletteAction>
 }
 
 const PaletteContext = createContext(
@@ -32,6 +41,20 @@ const PaletteContext = createContext(
     "Cannot use PaletteContext outside of a PaletteProvider"
   )
 )
+
+type PaletteAction = { type: "request-palette" } | { type: "release-palette" }
+
+function paletteReducer(
+  state: { palette: SlotDefLookup; numRequests: number },
+  action: PaletteAction
+): { palette: SlotDefLookup; numRequests: number } {
+  switch (action.type) {
+    case "request-palette":
+      return { ...state, numRequests: state.numRequests + 1 }
+    case "release-palette":
+      return { ...state, numRequests: state.numRequests - 1 }
+  }
+}
 
 type PaletteProviderProps<Lookup extends PropsLookup> = {
   children: React.ReactNode
@@ -42,25 +65,34 @@ type PaletteProviderProps<Lookup extends PropsLookup> = {
 
 export function PaletteProvider<ComponentDefs extends PropsLookup>({
   children,
-  palette,
+  palette: strictPalette,
 }: PaletteProviderProps<ComponentDefs>) {
+  const palette = strictPalette as SlotDefLookup
+
+  const [{ numRequests }, dispatch] = useReducer(paletteReducer, {
+    palette,
+    numRequests: 0,
+  })
+
   return (
-    <DragDropProvider
-      plugins={(defaults) => [
-        ...defaults,
-        configure(Cursor, { cursor: "default" }),
-        configure(Feedback, { dropAnimation: null }),
-      ]}
+    <PaletteContext
+      value={{
+        palette,
+        numRequests,
+        dispatch,
+      }}
     >
-      <PaletteContext
-        value={{
-          palette: palette as SlotDefLookup, // Casting since React contexts can't be generic
-        }}
+      <DragDropProvider
+        plugins={(defaults) => [
+          ...defaults,
+          configure(Cursor, { cursor: "default" }),
+          configure(Feedback, { dropAnimation: null }),
+        ]}
       >
         {children}
-        <Palette palette={palette} />
-      </PaletteContext>
-    </DragDropProvider>
+        {numRequests > 0 && <Palette palette={palette} />}
+      </DragDropProvider>
+    </PaletteContext>
   )
 }
 

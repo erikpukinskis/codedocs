@@ -14,15 +14,31 @@ export function isSlotId(value: unknown): value is SlotId {
   return typeof (value as SlotId).__slotId === "string"
 }
 
-export type PropDef =
+export type PropDef = {
+  description?: React.ReactNode
+} & (
   | {
       type: "string"
+      value: string
+    }
+  | {
+      type: "number"
+      value: number
+    }
+  | {
+      type: "boolean"
+      value: boolean
+    }
+  | {
+      type: "string-union"
+      options: string[]
       value: string
     }
   | {
       type: "slot"
       value: React.ReactNode | SlotId
     }
+)
 
 export type PropDefLookup<PropsType extends Record<string, AllowedPropTypes>> =
   {
@@ -30,9 +46,9 @@ export type PropDefLookup<PropsType extends Record<string, AllowedPropTypes>> =
   }
 
 /**
- * A SlotDef represents both a component definition (like in a palette) and an
- * instance of that component (in a mockup tree). When dragging from a palette,
- * the SlotDef is cloned, and the clone's prop values can be edited independently.
+ * A SlotDef represents ban instance of a component in a mockup tree. When
+ * dragging from a palette, the SlotDef is cloned, and the clone's prop values
+ * can be edited independently.
  */
 export type SlotDef<PropsType extends Record<string, AllowedPropTypes>> = {
   /**

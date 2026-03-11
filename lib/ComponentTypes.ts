@@ -5,7 +5,11 @@ import { type JSX } from "react"
 import { type Link } from "react-router-dom"
 import type { SiteSection } from "~/helpers/buildSiteTree"
 
-type LinkProps = Pick<Parameters<typeof Link>[0], "to" | "children">
+export type LinkProps = Pick<Parameters<typeof Link>[0], "to" | "children">
+
+export type NavLinkProps = LinkProps & {
+  current: boolean
+}
 
 export type SearchBoxProps = {
   inputProps: {
@@ -94,7 +98,7 @@ export type Components = {
   LeftColumn: Container
   MainColumn: Container
   CenterColumn: Container
-  NavLink: React.FC<LinkProps>
+  NavLink: React.FC<NavLinkProps>
   NavList: Container
   NavHeading: Container
   NavItem: Container

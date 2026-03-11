@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useCallback, useState } from "react"
 import * as styles from "./EventLog.css"
 
 export type CallbackEvent = {
@@ -164,4 +164,24 @@ const EventItem: React.FC<EventItemProps> = ({ name, args }) => {
       {argsDescription(args)}
     </li>
   )
+}
+
+export type MockCallbackFactory = (name: string) => (...args: unknown[]) => void
+
+export function useEventLog() {
+  const [events, setEvents] = useState<CallbackEvent[]>([])
+
+  const mockCallback = useCallback((name: string) => {
+    return (...args: unknown[]) => {
+      const event: CallbackEvent = {
+        id: Math.random().toString(36).slice(2, 10),
+        name,
+        args,
+        time: Date.now().valueOf(),
+      }
+      setEvents((prev) => [event, ...prev])
+    }
+  }, [])
+
+  return { events, mockCallback }
 }

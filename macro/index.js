@@ -45,10 +45,15 @@ function formatTypescript(source) {
 }
 
 module.exports = createMacro(function Demo({ references, state, babel }) {
+  /**
+   * SYNCME: Update this list when adding new exports
+   */
   const {
     Demo = [],
     Doc = [],
     DocsApp = [],
+    Component = [],
+    Mockup = [],
     Code = [],
     Placeholder = [],
   } = references
@@ -258,6 +263,9 @@ module.exports = createMacro(function Demo({ references, state, babel }) {
 
   const specifierIdentifiers = []
 
+  /**
+   * SYNCME: Update this list when adding new exports
+   */
   if (Demo.length > 0) {
     specifierIdentifiers.push("Demo")
   }
@@ -272,6 +280,12 @@ module.exports = createMacro(function Demo({ references, state, babel }) {
   }
   if (Placeholder.length > 0) {
     specifierIdentifiers.push("Placeholder")
+  }
+  if (Mockup.length > 0) {
+    specifierIdentifiers.push("Mockup")
+  }
+  if (Component.length > 0) {
+    specifierIdentifiers.push("Component")
   }
 
   const specifiers = specifierIdentifiers.map((identifier) =>

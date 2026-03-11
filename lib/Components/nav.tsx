@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom"
 import * as styles from "./nav.css"
+import type { NavLinkProps } from "~/ComponentTypes"
 
 export const NavList = ({
   children,
@@ -19,11 +20,8 @@ export const NavHeading = ({
   </span>
 )
 
-export const NavLink = ({
-  children,
-  ...props
-}: React.ComponentPropsWithoutRef<typeof Link>) => (
-  <Link className={styles.navLink} {...props}>
+export const NavLink = ({ children, current, ...props }: NavLinkProps) => (
+  <Link className={styles.navLink({ current })} {...props}>
     {children}
   </Link>
 )
