@@ -156,6 +156,478 @@ module.exports = createMacro(function Demo({ references, state, babel }) {
     openingElement.attributes.push(dependencySourcesAttr)
   }
 
+  /**
+   * For each <Doc> reference: walk its JSX children, classify editable vs frozen,
+   * and attach slateDocument, frozenElements, and frozenSources props.
+   */
+  Doc.forEach(function processCodedocsDoc(nodePath) {
+    if (nodePath.parentPath.node.type !== "JSXOpeningElement") return
+
+    traverse(
+      state.file.path.parent,
+      {
+        /**
+         * Visitor: when we see a "Doc" tag name, transform that <Doc> element.
+         */
+        JSXIdentifier(path) {
+          if (path.node.name !== "Doc") return
+          if (path.parentPath.node.type !== "JSXOpeningElement") return
+
+          const jsxElement = path.parentPath.parentPath.node
+          if (jsxElement.type !== "JSXElement") return
+
+          const openingElement = jsxElement.openingElement
+
+          // Skip if already processed
+          if (
+            openingElement.attributes.some(
+              (attr) =>
+                attr.type === "JSXAttribute" &&
+                attr.name.name === "slateDocument"
+            )
+          ) {
+            return
+          }
+
+          const children = jsxElement.children
+          const slateNodes = []
+          const frozenElementsData = []
+          const frozenSourcesData = []
+          let blockId = 0
+          let frozenId = 0
+
+          /**
+           * Convert inline JSX (text, strong, em, code, a) into Slate leaf/link AST nodes.
+           * Returns null if any unknown inline is found (caller should freeze the block).
+           */
+          function parseInlineChildren(childNodes) {
+            const result = []
+            for (const child of childNodes) {
+              if (child.type === "JSXText") {
+                const text = child.value
+                  .replace(/\n\s*/g, " ")
+                  .replace(/\s+/g, " ")
+                if (text && text !== " ") {
+                  result.push(
+                    babel.types.objectExpression([
+                      babel.types.objectProperty(
+                        babel.types.identifier("text"),
+                        babel.types.stringLiteral(text)
+                      ),
+                    ])
+                  )
+                }
+                continue
+              }
+
+              if (child.type === "JSXExpressionContainer") {
+                if (child.expression.type === "StringLiteral") {
+                  result.push(
+                    babel.types.objectExpression([
+                      babel.types.objectProperty(
+                        babel.types.identifier("text"),
+                        babel.types.stringLiteral(child.expression.value)
+                      ),
+                    ])
+                  )
+                }
+                // {" "} and other expressions: skip (they're whitespace hints)
+                continue
+              }
+
+              // Only elements (strong, em, code, a) are handled below; skip fragments etc.
+              if (child.type !== "JSXElement") continue
+
+              const tagName = child.openingElement.name.name
+              if (!tagName) continue
+
+              // Editable inline marks: emit a Slate text leaf with bold/italic/code.
+              if (
+                tagName === "strong" ||
+                tagName === "em" ||
+                tagName === "code"
+              ) {
+                const innerText = getJSXTextContent(child.children)
+                if (innerText !== null) {
+                  const props = [
+                    babel.types.objectProperty(
+                      babel.types.identifier("text"),
+                      babel.types.stringLiteral(innerText)
+                    ),
+                  ]
+                  if (tagName === "strong") {
+                    props.push(
+                      babel.types.objectProperty(
+                        babel.types.identifier("bold"),
+                        babel.types.booleanLiteral(true)
+                      )
+                    )
+                  } else if (tagName === "em") {
+                    props.push(
+                      babel.types.objectProperty(
+                        babel.types.identifier("italic"),
+                        babel.types.booleanLiteral(true)
+                      )
+                    )
+                  } else if (tagName === "code") {
+                    props.push(
+                      babel.types.objectProperty(
+                        babel.types.identifier("code"),
+                        babel.types.booleanLiteral(true)
+                      )
+                    )
+                  }
+                  result.push(babel.types.objectExpression(props))
+                  continue
+                }
+              }
+
+              // Links become a Slate inline element with type, url, and children.
+              if (tagName === "a") {
+                const hrefAttr = child.openingElement.attributes.find(
+                  (a) => a.type === "JSXAttribute" && a.name.name === "href"
+                )
+                const url =
+                  hrefAttr && hrefAttr.value
+                    ? hrefAttr.value.type === "StringLiteral"
+                      ? hrefAttr.value.value
+                      : ""
+                    : ""
+                const linkChildren = parseInlineChildren(child.children)
+                // If link body has unknown inline (e.g. component), freeze whole block.
+                if (linkChildren === null) return null
+
+                result.push(
+                  babel.types.objectExpression([
+                    babel.types.objectProperty(
+                      babel.types.identifier("type"),
+                      babel.types.stringLiteral("link")
+                    ),
+                    babel.types.objectProperty(
+                      babel.types.identifier("url"),
+                      babel.types.stringLiteral(url)
+                    ),
+                    babel.types.objectProperty(
+                      babel.types.identifier("children"),
+                      babel.types.arrayExpression(linkChildren)
+                    ),
+                  ])
+                )
+                continue
+              }
+
+              // Unknown inline element — signal the whole block should be frozen
+              return null
+            }
+            return result
+          }
+
+          /**
+           * Extract plain text from JSX children; return null if any non-text (e.g. component) is present.
+           */
+          function getJSXTextContent(childNodes) {
+            let text = ""
+            for (const child of childNodes) {
+              if (child.type === "JSXText") {
+                text += child.value.replace(/\n\s*/g, " ").replace(/\s+/g, " ")
+              } else if (child.type === "JSXExpressionContainer") {
+                if (child.expression.type === "StringLiteral") {
+                  text += child.expression.value
+                } else {
+                  // Non-string expression (e.g. variable) — can't flatten to text.
+                  return null
+                }
+              } else {
+                // JSX element inside — can't flatten to text.
+                return null
+              }
+            }
+            return text
+          }
+
+          /** Build a Slate void node placeholder for a frozen block (Demo, Code, etc.). */
+          function makeFrozenNode(id) {
+            return babel.types.objectExpression([
+              babel.types.objectProperty(
+                babel.types.identifier("type"),
+                babel.types.stringLiteral("frozen")
+              ),
+              babel.types.objectProperty(
+                babel.types.identifier("id"),
+                babel.types.stringLiteral(id)
+              ),
+              babel.types.objectProperty(
+                babel.types.identifier("children"),
+                babel.types.arrayExpression([
+                  babel.types.objectExpression([
+                    babel.types.objectProperty(
+                      babel.types.identifier("text"),
+                      babel.types.stringLiteral("")
+                    ),
+                  ]),
+                ])
+              ),
+            ])
+          }
+
+          /** Single empty text leaf; used for empty paragraphs and list items. */
+          function makeEmptyChildren() {
+            return [
+              babel.types.objectExpression([
+                babel.types.objectProperty(
+                  babel.types.identifier("text"),
+                  babel.types.stringLiteral("")
+                ),
+              ]),
+            ]
+          }
+
+          /** Record this node as frozen: keep AST + source, push a frozen Slate node. */
+          function freezeBlock(node) {
+            const id = `f${frozenId++}`
+            frozenElementsData.push({ id, node })
+            frozenSourcesData.push({ id, source: getSource(node, code) })
+            slateNodes.push(makeFrozenNode(id))
+          }
+
+          /**
+           * Flatten <ul>/<ol> into a sequence of list-item Slate nodes with listType and depth.
+           */
+          function processListItems(listElement, listType, depth) {
+            for (const child of listElement.children) {
+              if (child.type === "JSXText") continue
+              if (
+                child.type !== "JSXElement" ||
+                child.openingElement.name.name !== "li"
+              ) {
+                continue
+              }
+
+              const textChildren = []
+              let nestedList = null
+
+              for (const liChild of child.children) {
+                if (
+                  liChild.type === "JSXElement" &&
+                  (liChild.openingElement.name.name === "ul" ||
+                    liChild.openingElement.name.name === "ol")
+                ) {
+                  nestedList = liChild
+                } else {
+                  textChildren.push(liChild)
+                }
+              }
+
+              const inlineResult = parseInlineChildren(textChildren)
+              if (inlineResult === null) {
+                // List item has unknown inline (e.g. <Component />); treat whole <li> as frozen.
+                freezeBlock(child)
+              } else {
+                const childrenArr =
+                  inlineResult.length > 0 ? inlineResult : makeEmptyChildren()
+
+                slateNodes.push(
+                  babel.types.objectExpression([
+                    babel.types.objectProperty(
+                      babel.types.identifier("type"),
+                      babel.types.stringLiteral("list-item")
+                    ),
+                    babel.types.objectProperty(
+                      babel.types.identifier("id"),
+                      babel.types.stringLiteral(`b${blockId++}`)
+                    ),
+                    babel.types.objectProperty(
+                      babel.types.identifier("listType"),
+                      babel.types.stringLiteral(listType)
+                    ),
+                    babel.types.objectProperty(
+                      babel.types.identifier("depth"),
+                      babel.types.numericLiteral(depth)
+                    ),
+                    babel.types.objectProperty(
+                      babel.types.identifier("children"),
+                      babel.types.arrayExpression(childrenArr)
+                    ),
+                  ])
+                )
+              }
+
+              if (nestedList) {
+                const nestedType = nestedList.openingElement.name.name
+                processListItems(nestedList, nestedType, depth + 1)
+              }
+            }
+          }
+
+          /**
+           * Top-level loop: turn each Doc child into a Slate block or frozen node.
+           */
+          for (const child of children) {
+            if (child.type === "JSXText") {
+              // Lone text (not inside <p>) becomes a paragraph.
+              const trimmed = child.value.trim()
+              if (trimmed) {
+                slateNodes.push(
+                  babel.types.objectExpression([
+                    babel.types.objectProperty(
+                      babel.types.identifier("type"),
+                      babel.types.stringLiteral("paragraph")
+                    ),
+                    babel.types.objectProperty(
+                      babel.types.identifier("id"),
+                      babel.types.stringLiteral(`b${blockId++}`)
+                    ),
+                    babel.types.objectProperty(
+                      babel.types.identifier("children"),
+                      babel.types.arrayExpression([
+                        babel.types.objectExpression([
+                          babel.types.objectProperty(
+                            babel.types.identifier("text"),
+                            babel.types.stringLiteral(trimmed)
+                          ),
+                        ]),
+                      ])
+                    ),
+                  ])
+                )
+              }
+              continue
+            }
+
+            if (child.type === "JSXExpressionContainer") continue
+            if (child.type !== "JSXElement") continue
+
+            const tagName = child.openingElement.name.name
+
+            // Member expression or other non-identifier (e.g. <Foo.Bar />); freeze.
+            if (!tagName) {
+              freezeBlock(child)
+              continue
+            }
+
+            if (tagName === "p") {
+              const inlineResult = parseInlineChildren(child.children)
+              if (inlineResult === null) {
+                freezeBlock(child)
+              } else {
+                const childrenArr =
+                  inlineResult.length > 0 ? inlineResult : makeEmptyChildren()
+                slateNodes.push(
+                  babel.types.objectExpression([
+                    babel.types.objectProperty(
+                      babel.types.identifier("type"),
+                      babel.types.stringLiteral("paragraph")
+                    ),
+                    babel.types.objectProperty(
+                      babel.types.identifier("id"),
+                      babel.types.stringLiteral(`b${blockId++}`)
+                    ),
+                    babel.types.objectProperty(
+                      babel.types.identifier("children"),
+                      babel.types.arrayExpression(childrenArr)
+                    ),
+                  ])
+                )
+              }
+              continue
+            }
+
+            const headingMatch = tagName.match(/^h([1-6])$/)
+            if (headingMatch) {
+              const level = parseInt(headingMatch[1], 10)
+              const inlineResult = parseInlineChildren(child.children)
+              if (inlineResult === null) {
+                freezeBlock(child)
+              } else {
+                const childrenArr =
+                  inlineResult.length > 0 ? inlineResult : makeEmptyChildren()
+                slateNodes.push(
+                  babel.types.objectExpression([
+                    babel.types.objectProperty(
+                      babel.types.identifier("type"),
+                      babel.types.stringLiteral("heading")
+                    ),
+                    babel.types.objectProperty(
+                      babel.types.identifier("id"),
+                      babel.types.stringLiteral(`b${blockId++}`)
+                    ),
+                    babel.types.objectProperty(
+                      babel.types.identifier("level"),
+                      babel.types.numericLiteral(level)
+                    ),
+                    babel.types.objectProperty(
+                      babel.types.identifier("children"),
+                      babel.types.arrayExpression(childrenArr)
+                    ),
+                  ])
+                )
+              }
+              continue
+            }
+
+            if (tagName === "ul" || tagName === "ol") {
+              processListItems(child, tagName, 0)
+              continue
+            }
+
+            // Everything else (Demo, Code, img, unknown components) is frozen
+            freezeBlock(child)
+          }
+
+          // Attach slateDocument prop
+          openingElement.attributes.push(
+            babel.types.jsxAttribute(
+              babel.types.jsxIdentifier("slateDocument"),
+              babel.types.jsxExpressionContainer(
+                babel.types.arrayExpression(slateNodes)
+              )
+            )
+          )
+
+          // Attach frozenElements prop: { "f0": <Demo>...</Demo>, ... }
+          if (frozenElementsData.length > 0) {
+            openingElement.attributes.push(
+              babel.types.jsxAttribute(
+                babel.types.jsxIdentifier("frozenElements"),
+                babel.types.jsxExpressionContainer(
+                  babel.types.objectExpression(
+                    frozenElementsData.map(({ id, node }) =>
+                      babel.types.objectProperty(
+                        babel.types.stringLiteral(id),
+                        node
+                      )
+                    )
+                  )
+                )
+              )
+            )
+          }
+
+          // Attach frozenSources prop: { "f0": "<Demo>...</Demo>", ... }
+          if (frozenSourcesData.length > 0) {
+            openingElement.attributes.push(
+              babel.types.jsxAttribute(
+                babel.types.jsxIdentifier("frozenSources"),
+                babel.types.jsxExpressionContainer(
+                  babel.types.objectExpression(
+                    frozenSourcesData.map(({ id, source }) =>
+                      babel.types.objectProperty(
+                        babel.types.stringLiteral(id),
+                        babel.types.stringLiteral(source)
+                      )
+                    )
+                  )
+                )
+              )
+            )
+          }
+        },
+      },
+      nodePath.scope,
+      nodePath.parentPath
+    )
+  })
+
   Demo.forEach(function processCodedocsDemo(nodePath) {
     if (nodePath.parentPath.node.type !== "JSXOpeningElement") return
 
