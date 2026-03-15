@@ -3,15 +3,21 @@
  * Built to dist/macro.js; macro/index.js stub attaches component re-exports and loads this.
  */
 
-import type { NodePath } from "@babel/traverse"
 import traverse from "@babel/traverse"
+import type { NodePath } from "@babel/traverse"
+import type {
+  JSXAttribute,
+  JSXElement,
+  JSXExpressionContainer,
+  JSXOpeningElement,
+  Node,
+  ObjectProperty,
+} from "@babel/types"
 import type { MacroParams } from "babel-plugin-macros"
 import { createMacro } from "babel-plugin-macros"
 import prettier from "prettier"
 import parserTypescript from "prettier/parser-typescript"
 import { processDocNode } from "./helpers/processDocNode"
-
-/* eslint-disable @typescript-eslint/no-explicit-any */
 
 function formatTypescript(source: string): string {
   try {
@@ -45,8 +51,12 @@ function formatTypescript(source: string): string {
   }
 }
 
-function getSource(node: { start: number; end: number }, code: string): string {
-  const { start, end } = node
+function getSource(
+  node: { start?: number | null; end?: number | null },
+  code: string
+): string {
+  const start = node.start ?? 0
+  const end = node.end ?? code.length
   return code.slice(start, end)
 }
 
@@ -57,7 +67,7 @@ interface MockCallback {
 }
 
 function findMockCallbacks(
-  node: any,
+  node: Node | null | undefined,
   results: MockCallback[] = []
 ): MockCallback[] {
   if (!node || typeof node !== "object") return results
@@ -70,7 +80,9 @@ function findMockCallbacks(
     node.callee.property?.type === "Identifier" &&
     node.callee.property.name === "callback" &&
     node.arguments?.length === 1 &&
-    node.arguments[0]?.type === "StringLiteral"
+    node.arguments[0]?.type === "StringLiteral" &&
+    node.start != null &&
+    node.end != null
   ) {
     results.push({
       start: node.start,
@@ -79,13 +91,14 @@ function findMockCallbacks(
     })
   }
 
-  for (const key in node) {
+  const nodeObj = node as unknown as Record<string, unknown>
+  for (const key in nodeObj) {
     if (key === "start" || key === "end" || key === "loc") continue
-    const child = node[key]
+    const child = nodeObj[key]
     if (Array.isArray(child)) {
-      child.forEach((item: any) => findMockCallbacks(item, results))
+      child.forEach((item: Node) => findMockCallbacks(item, results))
     } else if (child && typeof child === "object") {
-      findMockCallbacks(child, results)
+      findMockCallbacks(child as Node, results)
     }
   }
 
@@ -109,17 +122,16 @@ function replaceMockCallbacks(
   return result
 }
 
-function isRenderAttribute(path: any): boolean {
+function isRenderAttribute(path: NodePath<JSXAttribute>): boolean {
   if (path.node.name.type !== "JSXIdentifier") return false
   if (path.node.name.name !== "render") return false
   return true
 }
 
-function isDemoIdentifier(path: any): boolean {
-  if (!path.node.name) return false
-  const { type, name } = path.node.name
-  if (type !== "JSXIdentifier") return false
-  if (name !== "Demo") return false
+function isDemoIdentifier(path: NodePath<JSXElement>): boolean {
+  const name = path.node.openingElement.name
+  if (name.type !== "JSXIdentifier") return false
+  if (name.name !== "Demo") return false
   return true
 }
 
@@ -143,7 +155,7 @@ export default createMacro(function codedocsMacro({
     "// @codedocs include-wrapper-in-source"
   )
 
-  function setSourceAttribute(node: any, source: string): void {
+  function setSourceAttribute(node: JSXOpeningElement, source: string): void {
     const formattedSource = formatTypescript(source)
     const newAttribute = babel.types.jsxAttribute(
       babel.types.jsxIdentifier("source"),
@@ -156,7 +168,10 @@ export default createMacro(function codedocsMacro({
     )
 
     const existingSourceAttributeIndex = node.attributes.findIndex(
-      (attribute: any) => attribute.name.name === "source"
+      (attribute): attribute is JSXAttribute =>
+        attribute.type === "JSXAttribute" &&
+        attribute.name.type === "JSXIdentifier" &&
+        attribute.name.name === "source"
     )
 
     if (existingSourceAttributeIndex >= 0) {
@@ -166,28 +181,37 @@ export default createMacro(function codedocsMacro({
     }
   }
 
-  function setDependencySourcesAttribute(openingElement: any): void {
+  function setDependencySourcesAttribute(
+    openingElement: JSXOpeningElement
+  ): void {
     const dependenciesAttr = openingElement.attributes.find(
-      (attr: any) =>
+      (attr): attr is JSXAttribute =>
         attr.type === "JSXAttribute" &&
+        attr.name.type === "JSXIdentifier" &&
         attr.name.name === "dependencies" &&
         attr.value?.type === "JSXExpressionContainer"
     )
 
-    if (!dependenciesAttr) return
+    if (
+      !dependenciesAttr?.value ||
+      dependenciesAttr.value.type !== "JSXExpressionContainer"
+    )
+      return
 
     const objExpr = dependenciesAttr.value.expression
     if (objExpr.type !== "ObjectExpression") return
 
     const dependencySourcesProperties = objExpr.properties
-      .filter(
-        (prop: any) =>
-          prop.type === "ObjectProperty" || prop.type === "Property"
-      )
-      .map((prop: any) => {
+      .filter((prop): prop is ObjectProperty => prop.type === "ObjectProperty")
+      .map((prop: ObjectProperty) => {
         const keyName =
-          prop.key.type === "Identifier" ? prop.key.name : prop.key.value
-        const valueSource = getSource(prop.value, code)
+          prop.key.type === "Identifier"
+            ? prop.key.name
+            : (prop.key as { value: string }).value
+        const valueSource = getSource(
+          prop.value as { start?: number | null; end?: number | null },
+          code
+        )
         const formattedValueSource = formatTypescript(valueSource)
         return babel.types.objectProperty(
           babel.types.stringLiteral(keyName),
@@ -201,8 +225,10 @@ export default createMacro(function codedocsMacro({
     if (dependencySourcesProperties.length === 0) return
 
     const alreadyHasDependencySources = openingElement.attributes.some(
-      (attr: any) =>
-        attr.type === "JSXAttribute" && attr.name.name === "dependencySources"
+      (attr) =>
+        attr.type === "JSXAttribute" &&
+        attr.name.type === "JSXIdentifier" &&
+        attr.name.name === "dependencySources"
     )
     if (alreadyHasDependencySources) return
 
@@ -217,20 +243,29 @@ export default createMacro(function codedocsMacro({
   }
 
   Doc.forEach((nodePath: NodePath) => {
-    processDocNode({ nodePath, state, babel, code, getSource })
+    processDocNode({ nodePath, state, code, getSource })
   })
 
-  Demo.forEach((nodePath: any) => {
-    if (nodePath.parentPath.node.type !== "JSXOpeningElement") return
+  Demo.forEach((nodePath: NodePath) => {
+    if (
+      !nodePath.parentPath ||
+      nodePath.parentPath.node.type !== "JSXOpeningElement"
+    )
+      return
 
     traverse(
       state.file.path.parent,
       {
-        JSXIdentifier(path: any) {
-          if (path.node.name !== "Demo") return
-          if (path.parentPath.node.type !== "JSXOpeningElement") return
+        JSXIdentifier(path: NodePath) {
+          if (path.node.type !== "JSXIdentifier" || path.node.name !== "Demo")
+            return
+          const parentPath = path.parentPath
+          if (!parentPath || parentPath.node.type !== "JSXOpeningElement")
+            return
 
-          const jsxElement = path.parentPath.parentPath.node
+          const grandPath = parentPath.parentPath
+          if (!grandPath) return
+          const jsxElement = grandPath.node
 
           if (jsxElement.type !== "JSXElement") return
 
@@ -239,12 +274,12 @@ export default createMacro(function codedocsMacro({
             source = getSource(jsxElement, code)
           } else {
             source = jsxElement.children
-              .map((child: any) => {
+              .map((child: JSXElement["children"][number]) => {
                 const childSource = getSource(child, code)
-                const mockCallbacks = findMockCallbacks(child)
+                const mockCallbacks = findMockCallbacks(child as Node)
                 return replaceMockCallbacks(
                   childSource,
-                  child.start,
+                  child.start ?? 0,
                   mockCallbacks
                 )
               })
@@ -254,22 +289,31 @@ export default createMacro(function codedocsMacro({
           setSourceAttribute(jsxElement.openingElement, source)
           setDependencySourcesAttribute(jsxElement.openingElement)
         },
-        JSXExpressionContainer(path: any) {
-          if (!isDemoIdentifier(path.parentPath.parentPath)) return
+        JSXExpressionContainer(path: NodePath<JSXExpressionContainer>) {
+          const demoPath = path.parentPath?.parentPath
+          if (!demoPath || !isDemoIdentifier(demoPath as NodePath<JSXElement>))
+            return
 
-          const demoIdentifier = path.parentPath.parentPath
+          const demoIdentifier = demoPath as NodePath<JSXElement>
 
-          if (!isRenderAttribute(path.parentPath)) return
-
-          const noWrapperInSource = demoIdentifier.node.attributes.find(
-            (attr: any) =>
-              attr.type === "JSXAttribute" &&
-              attr.name.name === "noWrapperInSource"
+          const attrPath = path.parentPath
+          if (
+            !attrPath ||
+            !isRenderAttribute(attrPath as NodePath<JSXAttribute>)
           )
+            return
+
+          const noWrapperInSource =
+            demoIdentifier.node.openingElement.attributes.find(
+              (attr) =>
+                attr.type === "JSXAttribute" &&
+                attr.name.type === "JSXIdentifier" &&
+                attr.name.name === "noWrapperInSource"
+            )
 
           let source: string
           if (includeWrapperInSource && !noWrapperInSource) {
-            source = getSource(demoIdentifier.parentPath.node, code)
+            source = getSource(demoIdentifier.node, code)
           } else {
             const expression = path.node.expression
 
@@ -294,21 +338,22 @@ export default createMacro(function codedocsMacro({
               const trimStart =
                 bodySource.slice(1).length -
                 bodySource.slice(1).trimStart().length
+              const bodyStart = body.start ?? 0
               source = replaceMockCallbacks(
                 processedSource,
-                body.start + braceOffset + trimStart,
+                bodyStart + braceOffset + trimStart,
                 mockCallbacks
               )
             } else {
               source = replaceMockCallbacks(
                 bodySource,
-                body.start,
+                body.start ?? 0,
                 mockCallbacks
               )
             }
           }
 
-          setSourceAttribute(demoIdentifier.node, source)
+          setSourceAttribute(demoIdentifier.node.openingElement, source)
         },
       },
       nodePath.scope,

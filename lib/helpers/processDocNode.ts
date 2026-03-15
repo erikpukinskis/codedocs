@@ -1,39 +1,46 @@
-import traverse from "@babel/traverse"
 import type { PluginPass } from "@babel/core"
+import traverse from "@babel/traverse"
 import type { NodePath } from "@babel/traverse"
-import type {
+import {
   arrayExpression,
   booleanLiteral,
   identifier,
-  JSXElement,
   jsxAttribute,
   jsxExpressionContainer,
   jsxIdentifier,
   numericLiteral,
-  ObjectExpression,
   objectExpression,
   objectProperty,
   stringLiteral,
 } from "@babel/types"
+import type {
+  JSXAttribute,
+  JSXElement,
+  JSXExpressionContainer,
+  JSXFragment,
+  JSXSpreadChild,
+  JSXText,
+  ObjectExpression,
+  ObjectProperty,
+} from "@babel/types"
 
-/** Only the @babel/types builders we use for building Slate document AST. */
-type BabelTypes = {
-  // TODO: Really? We need to be this explicit?
-  arrayExpression: typeof arrayExpression
-  booleanLiteral: typeof booleanLiteral
-  identifier: typeof identifier
-  jsxAttribute: typeof jsxAttribute
-  jsxExpressionContainer: typeof jsxExpressionContainer
-  jsxIdentifier: typeof jsxIdentifier
-  numericLiteral: typeof numericLiteral
-  objectExpression: typeof objectExpression
-  objectProperty: typeof objectProperty
-  stringLiteral: typeof stringLiteral
+/** JSX child node (element children array item). */
+export type JSXChild =
+  | JSXText
+  | JSXExpressionContainer
+  | JSXSpreadChild
+  | JSXElement
+  | JSXFragment
+
+function getJsxTagName(
+  name: JSXElement["openingElement"]["name"]
+): string | undefined {
+  return name.type === "JSXIdentifier" ? name.name : undefined
 }
 
 /** Extracts source code for an AST node. */
 export type GetSource = (
-  node: { start: number; end: number },
+  node: { start?: number | null; end?: number | null },
   code: string
 ) => string
 
@@ -43,7 +50,7 @@ export interface ProcessDocState {
   blockId: number
   /** Counter for unique IDs on frozen blocks (e.g. "f0", "f1"). Incremented for each frozen child (<Code>, <Demo>, etc.). */
   frozenId: number
-  /** Semi-flatted document AST — . */
+  /** Semi-flatted document AST. E.g. nested lists become flat lists with indentation. */
   blockNodes: ObjectExpression[]
   /** Map of frozen block id → JSX AST node. Used to build the frozenElements prop (id → AST) for runtime rendering. */
   frozenElements: Record<string, JSXElement>
@@ -61,7 +68,6 @@ export interface ProcessDocState {
 export interface ProcessCodedocsDocParams {
   nodePath: NodePath
   state: PluginPass
-  babel: { types: BabelTypes }
   code: string
   getSource: GetSource
 }
@@ -73,26 +79,21 @@ export interface ProcessCodedocsDocParams {
 export function processDocNode({
   nodePath,
   state,
-  babel,
   code,
   getSource,
 }: ProcessCodedocsDocParams): void {
-  if (nodePath.parentPath.node.type !== "JSXOpeningElement") return
+  const parentPath = nodePath.parentPath
+  if (!parentPath || parentPath.node.type !== "JSXOpeningElement") return
 
   traverse(
     state.file.path.parent,
     {
-      JSXIdentifier(path: any) {
-        visitDocJSXIdentifier(path, {
-          state,
-          babel,
-          code,
-          getSource,
-        })
+      JSXIdentifier(path: NodePath) {
+        visitDocJSXIdentifier(path, { state, code, getSource })
       },
     },
     nodePath.scope,
-    nodePath.parentPath
+    parentPath
   )
 }
 
@@ -100,26 +101,26 @@ export function processDocNode({
  * Visitor: when we see a "Doc" tag name, transform that <Doc> element.
  */
 function visitDocJSXIdentifier(
-  path: any,
-  ctx: {
-    state: { file: { path: { parent: any } } }
-    babel: { types: BabelTypes }
-    code: string
-    getSource: GetSource
-  }
+  path: NodePath,
+  ctx: { state: PluginPass; code: string; getSource: GetSource }
 ): void {
-  if (path.node.name !== "Doc") return
-  if (path.parentPath.node.type !== "JSXOpeningElement") return
+  if (path.node.type !== "JSXIdentifier" || path.node.name !== "Doc") return
+  const parentPath = path.parentPath
+  if (!parentPath || parentPath.node.type !== "JSXOpeningElement") return
 
-  const jsxElement = path.parentPath.parentPath.node
+  const grandPath = parentPath.parentPath
+  if (!grandPath) return
+  const jsxElement = grandPath.node
   if (jsxElement.type !== "JSXElement") return
 
   const openingElement = jsxElement.openingElement
 
   if (
     openingElement.attributes.some(
-      (attr: any) =>
-        attr.type === "JSXAttribute" && attr.name.name === "slateDocument"
+      (attr) =>
+        attr.type === "JSXAttribute" &&
+        attr.name.type === "JSXIdentifier" &&
+        attr.name.name === "slateDocument"
     )
   ) {
     return
@@ -134,37 +135,29 @@ function visitDocJSXIdentifier(
     frozenSources: {},
   }
 
-  const t = ctx.babel.types
-
-  const makeFrozenNodeFn = (id: string) => makeFrozenNode(t, id)
-  const makeEmptyChildrenFn = () => makeEmptyChildren(t)
-  const freezeBlockFn = (node: any) =>
+  const makeFrozenNodeFn = (id: string) => makeFrozenNode(id)
+  const makeEmptyChildrenFn = () => makeEmptyChildren()
+  const freezeBlockFn = (node: JSXElement) =>
     freezeBlock(node, processState, ctx.code, ctx.getSource, makeFrozenNodeFn)
-  const parseInlineChildrenFn = (childNodes: any[]) =>
-    parseInlineChildren(t, childNodes)
+  const parseInlineChildrenFn = (childNodes: JSXChild[]) =>
+    parseInlineChildren(childNodes)
 
   for (const child of children) {
     if (child.type === "JSXText") {
       const trimmed = child.value.trim()
       if (trimmed) {
         processState.blockNodes.push(
-          t.objectExpression([
-            t.objectProperty(
-              t.identifier("type"),
-              t.stringLiteral("paragraph")
+          objectExpression([
+            objectProperty(identifier("type"), stringLiteral("paragraph")),
+            objectProperty(
+              identifier("id"),
+              stringLiteral(`b${processState.blockId++}`)
             ),
-            t.objectProperty(
-              t.identifier("id"),
-              t.stringLiteral(`b${processState.blockId++}`)
-            ),
-            t.objectProperty(
-              t.identifier("children"),
-              t.arrayExpression([
-                t.objectExpression([
-                  t.objectProperty(
-                    t.identifier("text"),
-                    t.stringLiteral(trimmed)
-                  ),
+            objectProperty(
+              identifier("children"),
+              arrayExpression([
+                objectExpression([
+                  objectProperty(identifier("text"), stringLiteral(trimmed)),
                 ]),
               ])
             ),
@@ -177,7 +170,10 @@ function visitDocJSXIdentifier(
     if (child.type === "JSXExpressionContainer") continue
     if (child.type !== "JSXElement") continue
 
-    const tagName = child.openingElement.name?.name
+    const tagName =
+      child.openingElement.name.type === "JSXIdentifier"
+        ? child.openingElement.name.name
+        : undefined
 
     if (!tagName) {
       freezeBlockFn(child)
@@ -192,18 +188,15 @@ function visitDocJSXIdentifier(
         const childrenArr =
           inlineResult.length > 0 ? inlineResult : makeEmptyChildrenFn()
         processState.blockNodes.push(
-          t.objectExpression([
-            t.objectProperty(
-              t.identifier("type"),
-              t.stringLiteral("paragraph")
+          objectExpression([
+            objectProperty(identifier("type"), stringLiteral("paragraph")),
+            objectProperty(
+              identifier("id"),
+              stringLiteral(`b${processState.blockId++}`)
             ),
-            t.objectProperty(
-              t.identifier("id"),
-              t.stringLiteral(`b${processState.blockId++}`)
-            ),
-            t.objectProperty(
-              t.identifier("children"),
-              t.arrayExpression(childrenArr)
+            objectProperty(
+              identifier("children"),
+              arrayExpression(childrenArr)
             ),
           ])
         )
@@ -221,16 +214,16 @@ function visitDocJSXIdentifier(
         const childrenArr =
           inlineResult.length > 0 ? inlineResult : makeEmptyChildrenFn()
         processState.blockNodes.push(
-          t.objectExpression([
-            t.objectProperty(t.identifier("type"), t.stringLiteral("heading")),
-            t.objectProperty(
-              t.identifier("id"),
-              t.stringLiteral(`b${processState.blockId++}`)
+          objectExpression([
+            objectProperty(identifier("type"), stringLiteral("heading")),
+            objectProperty(
+              identifier("id"),
+              stringLiteral(`b${processState.blockId++}`)
             ),
-            t.objectProperty(t.identifier("level"), t.numericLiteral(level)),
-            t.objectProperty(
-              t.identifier("children"),
-              t.arrayExpression(childrenArr)
+            objectProperty(identifier("level"), numericLiteral(level)),
+            objectProperty(
+              identifier("children"),
+              arrayExpression(childrenArr)
             ),
           ])
         )
@@ -239,16 +232,15 @@ function visitDocJSXIdentifier(
     }
 
     if (tagName === "ul" || tagName === "ol") {
-      processListItems(
-        child,
-        tagName,
-        0,
-        processState,
-        parseInlineChildrenFn,
-        freezeBlockFn,
-        makeEmptyChildrenFn,
-        t
-      )
+    processListItems(
+      child,
+      tagName,
+      0,
+      processState,
+      parseInlineChildrenFn,
+      freezeBlockFn,
+      makeEmptyChildrenFn
+    )
       continue
     }
 
@@ -256,20 +248,20 @@ function visitDocJSXIdentifier(
   }
 
   openingElement.attributes.push(
-    t.jsxAttribute(
-      t.jsxIdentifier("slateDocument"),
-      t.jsxExpressionContainer(t.arrayExpression(processState.blockNodes))
+    jsxAttribute(
+      jsxIdentifier("slateDocument"),
+      jsxExpressionContainer(arrayExpression(processState.blockNodes))
     )
   )
 
   if (Object.keys(processState.frozenElements).length > 0) {
     openingElement.attributes.push(
-      t.jsxAttribute(
-        t.jsxIdentifier("frozenElements"),
-        t.jsxExpressionContainer(
-          t.objectExpression(
+      jsxAttribute(
+        jsxIdentifier("frozenElements"),
+        jsxExpressionContainer(
+          objectExpression(
             Object.entries(processState.frozenElements).map(([id, node]) =>
-              t.objectProperty(t.stringLiteral(id), node)
+              objectProperty(stringLiteral(id), node)
             )
           )
         )
@@ -279,12 +271,12 @@ function visitDocJSXIdentifier(
 
   if (Object.keys(processState.frozenSources).length > 0) {
     openingElement.attributes.push(
-      t.jsxAttribute(
-        t.jsxIdentifier("frozenSources"),
-        t.jsxExpressionContainer(
-          t.objectExpression(
+      jsxAttribute(
+        jsxIdentifier("frozenSources"),
+        jsxExpressionContainer(
+          objectExpression(
             Object.entries(processState.frozenSources).map(([id, source]) =>
-              t.objectProperty(t.stringLiteral(id), t.stringLiteral(source))
+              objectProperty(stringLiteral(id), stringLiteral(source))
             )
           )
         )
@@ -299,15 +291,17 @@ function visitDocJSXIdentifier(
  * Convert inline JSX (text, strong, em, code, a) into Slate leaf/link AST nodes.
  * Returns null if any unknown inline is found (caller should freeze the block).
  */
-function parseInlineChildren(t: BabelTypes, childNodes: any[]): any[] | null {
-  const result: any[] = []
+function parseInlineChildren(
+  childNodes: JSXChild[]
+): ObjectExpression[] | null {
+  const result: ObjectExpression[] = []
   for (const child of childNodes) {
     if (child.type === "JSXText") {
       const text = child.value.replace(/\n\s*/g, " ").replace(/\s+/g, " ")
       if (text && text !== " ") {
         result.push(
-          t.objectExpression([
-            t.objectProperty(t.identifier("text"), t.stringLiteral(text)),
+          objectExpression([
+            objectProperty(identifier("text"), stringLiteral(text)),
           ])
         )
       }
@@ -317,10 +311,10 @@ function parseInlineChildren(t: BabelTypes, childNodes: any[]): any[] | null {
     if (child.type === "JSXExpressionContainer") {
       if (child.expression.type === "StringLiteral") {
         result.push(
-          t.objectExpression([
-            t.objectProperty(
-              t.identifier("text"),
-              t.stringLiteral(child.expression.value)
+          objectExpression([
+            objectProperty(
+              identifier("text"),
+              stringLiteral(child.expression.value)
             ),
           ])
         )
@@ -330,36 +324,39 @@ function parseInlineChildren(t: BabelTypes, childNodes: any[]): any[] | null {
 
     if (child.type !== "JSXElement") continue
 
-    const tagName = child.openingElement.name?.name
+    const tagName = getJsxTagName(child.openingElement.name)
     if (!tagName) continue
 
     if (tagName === "strong" || tagName === "em" || tagName === "code") {
       const innerText = getJSXTextContent(child.children)
       if (innerText !== null) {
-        const props: any[] = [
-          t.objectProperty(t.identifier("text"), t.stringLiteral(innerText)),
+        const props: ObjectProperty[] = [
+          objectProperty(identifier("text"), stringLiteral(innerText)),
         ]
         if (tagName === "strong") {
           props.push(
-            t.objectProperty(t.identifier("bold"), t.booleanLiteral(true))
+            objectProperty(identifier("bold"), booleanLiteral(true))
           )
         } else if (tagName === "em") {
           props.push(
-            t.objectProperty(t.identifier("italic"), t.booleanLiteral(true))
+            objectProperty(identifier("italic"), booleanLiteral(true))
           )
         } else if (tagName === "code") {
           props.push(
-            t.objectProperty(t.identifier("code"), t.booleanLiteral(true))
+            objectProperty(identifier("code"), booleanLiteral(true))
           )
         }
-        result.push(t.objectExpression(props))
+        result.push(objectExpression(props))
         continue
       }
     }
 
     if (tagName === "a") {
       const hrefAttr = child.openingElement.attributes.find(
-        (a: any) => a.type === "JSXAttribute" && a.name.name === "href"
+        (a): a is JSXAttribute =>
+          a.type === "JSXAttribute" &&
+          a.name.type === "JSXIdentifier" &&
+          a.name.name === "href"
       )
       const url =
         hrefAttr && hrefAttr.value
@@ -367,16 +364,16 @@ function parseInlineChildren(t: BabelTypes, childNodes: any[]): any[] | null {
             ? hrefAttr.value.value
             : ""
           : ""
-      const linkChildren = parseInlineChildren(t, child.children)
+      const linkChildren = parseInlineChildren(child.children)
       if (linkChildren === null) return null
 
       result.push(
-        t.objectExpression([
-          t.objectProperty(t.identifier("type"), t.stringLiteral("link")),
-          t.objectProperty(t.identifier("url"), t.stringLiteral(url)),
-          t.objectProperty(
-            t.identifier("children"),
-            t.arrayExpression(linkChildren)
+        objectExpression([
+          objectProperty(identifier("type"), stringLiteral("link")),
+          objectProperty(identifier("url"), stringLiteral(url)),
+          objectProperty(
+            identifier("children"),
+            arrayExpression(linkChildren)
           ),
         ])
       )
@@ -391,7 +388,7 @@ function parseInlineChildren(t: BabelTypes, childNodes: any[]): any[] | null {
 /**
  * Extract plain text from JSX children; return null if any non-text (e.g. component) is present.
  */
-function getJSXTextContent(childNodes: any[]): string | null {
+function getJSXTextContent(childNodes: JSXChild[]): string | null {
   let text = ""
   for (const child of childNodes) {
     if (child.type === "JSXText") {
@@ -410,15 +407,15 @@ function getJSXTextContent(childNodes: any[]): string | null {
 }
 
 /** Build a Slate void node placeholder for a frozen block (Demo, Code, etc.). */
-function makeFrozenNode(t: BabelTypes, id: string): any {
-  return t.objectExpression([
-    t.objectProperty(t.identifier("type"), t.stringLiteral("frozen")),
-    t.objectProperty(t.identifier("id"), t.stringLiteral(id)),
-    t.objectProperty(
-      t.identifier("children"),
-      t.arrayExpression([
-        t.objectExpression([
-          t.objectProperty(t.identifier("text"), t.stringLiteral("")),
+function makeFrozenNode(id: string): ObjectExpression {
+  return objectExpression([
+    objectProperty(identifier("type"), stringLiteral("frozen")),
+    objectProperty(identifier("id"), stringLiteral(id)),
+    objectProperty(
+      identifier("children"),
+      arrayExpression([
+        objectExpression([
+          objectProperty(identifier("text"), stringLiteral("")),
         ]),
       ])
     ),
@@ -426,10 +423,10 @@ function makeFrozenNode(t: BabelTypes, id: string): any {
 }
 
 /** Single empty text leaf; used for empty paragraphs and list items. */
-function makeEmptyChildren(t: BabelTypes): any[] {
+function makeEmptyChildren(): ObjectExpression[] {
   return [
-    t.objectExpression([
-      t.objectProperty(t.identifier("text"), t.stringLiteral("")),
+    objectExpression([
+      objectProperty(identifier("text"), stringLiteral("")),
     ]),
   ]
 }
@@ -440,14 +437,11 @@ function freezeBlock(
   processState: ProcessDocState,
   code: string,
   getSource: GetSource,
-  makeFrozenNodeFn: (id: string) => any
+  makeFrozenNodeFn: (id: string) => ObjectExpression
 ): void {
   const id = `f${processState.frozenId++}`
   processState.frozenElements[id] = node
-  processState.frozenSources[id] = getSource(
-    node as { start: number; end: number },
-    code
-  )
+  processState.frozenSources[id] = getSource(node, code)
   processState.blockNodes.push(makeFrozenNodeFn(id))
 }
 
@@ -455,32 +449,34 @@ function freezeBlock(
  * Flatten <ul>/<ol> into a sequence of list-item Slate nodes with listType and depth.
  */
 function processListItems(
-  listElement: any,
+  listElement: JSXElement,
   listType: string,
   depth: number,
   processState: ProcessDocState,
-  parseInlineChildrenFn: (childNodes: any[]) => any[] | null,
-  freezeBlockFn: (node: any) => void,
-  makeEmptyChildrenFn: () => any[],
-  t: BabelTypes
+  parseInlineChildrenFn: (childNodes: JSXChild[]) => ObjectExpression[] | null,
+  freezeBlockFn: (node: JSXElement) => void,
+  makeEmptyChildrenFn: () => ObjectExpression[]
 ): void {
   for (const child of listElement.children) {
     if (child.type === "JSXText") continue
     if (
       child.type !== "JSXElement" ||
-      child.openingElement.name?.name !== "li"
+      getJsxTagName(child.openingElement.name) !== "li"
     ) {
       continue
     }
 
-    const textChildren: any[] = []
-    let nestedList: any = null
+    const textChildren: JSXChild[] = []
+    let nestedList: JSXElement | null = null
 
     for (const liChild of child.children) {
+      const liTagName =
+        liChild.type === "JSXElement"
+          ? getJsxTagName(liChild.openingElement.name)
+          : undefined
       if (
         liChild.type === "JSXElement" &&
-        (liChild.openingElement.name?.name === "ul" ||
-          liChild.openingElement.name?.name === "ol")
+        (liTagName === "ul" || liTagName === "ol")
       ) {
         nestedList = liChild
       } else {
@@ -496,24 +492,24 @@ function processListItems(
         inlineResult.length > 0 ? inlineResult : makeEmptyChildrenFn()
 
       processState.blockNodes.push(
-        t.objectExpression([
-          t.objectProperty(t.identifier("type"), t.stringLiteral("list-item")),
-          t.objectProperty(
-            t.identifier("id"),
-            t.stringLiteral(`b${processState.blockId++}`)
+        objectExpression([
+          objectProperty(identifier("type"), stringLiteral("list-item")),
+          objectProperty(
+            identifier("id"),
+            stringLiteral(`b${processState.blockId++}`)
           ),
-          t.objectProperty(t.identifier("listType"), t.stringLiteral(listType)),
-          t.objectProperty(t.identifier("depth"), t.numericLiteral(depth)),
-          t.objectProperty(
-            t.identifier("children"),
-            t.arrayExpression(childrenArr)
+          objectProperty(identifier("listType"), stringLiteral(listType)),
+          objectProperty(identifier("depth"), numericLiteral(depth)),
+          objectProperty(
+            identifier("children"),
+            arrayExpression(childrenArr)
           ),
         ])
       )
     }
 
     if (nestedList) {
-      const nestedType = nestedList.openingElement.name?.name
+      const nestedType = getJsxTagName(nestedList.openingElement.name) ?? "ul"
       processListItems(
         nestedList,
         nestedType,
@@ -521,8 +517,7 @@ function processListItems(
         processState,
         parseInlineChildrenFn,
         freezeBlockFn,
-        makeEmptyChildrenFn,
-        t
+        makeEmptyChildrenFn
       )
     }
   }

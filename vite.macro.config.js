@@ -19,6 +19,7 @@ export default defineConfig({
       external: [
         "babel-plugin-macros",
         "@babel/traverse",
+        "@babel/types",
         "prettier",
         "prettier/parser-typescript",
       ],
