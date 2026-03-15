@@ -1,21 +1,16 @@
-/**
- * Processes <Doc> JSX elements during the codedocs macro: walks children,
- * classifies editable vs frozen blocks, and attaches slateDocument,
- * frozenElements, and frozenSources props.
- *
- * Used by lib/macro.ts.
- */
-
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
+import traverse from "@babel/traverse"
+import type { PluginPass } from "@babel/core"
+import type { NodePath } from "@babel/traverse"
 import type {
   arrayExpression,
   booleanLiteral,
   identifier,
+  JSXElement,
   jsxAttribute,
   jsxExpressionContainer,
   jsxIdentifier,
   numericLiteral,
+  ObjectExpression,
   objectExpression,
   objectProperty,
   stringLiteral,
@@ -42,43 +37,45 @@ export type GetSource = (
   code: string
 ) => string
 
-/** Babel traverse function signature. */
-export type Traverse = (
-  parent: any,
-  visitors: Record<string, (path: any, state?: any) => void>,
-  scope: any,
-  state: any
-) => void
-
 /** Mutable state used while processing a single <Doc> element. */
 export interface ProcessDocState {
+  /** Counter for unique IDs on editable Slate blocks (e.g. "b0", "b1"). Incremented for each paragraph, heading, or list item. */
   blockId: number
+  /** Counter for unique IDs on frozen blocks (e.g. "f0", "f1"). Incremented for each frozen child (<Code>, <Demo>, etc.). */
   frozenId: number
-  slateNodes: any[]
-  frozenElementsData: Array<{ id: string; node: any }>
-  frozenSourcesData: Array<{ id: string; source: string }>
+  /** Semi-flatted document AST — . */
+  blockNodes: ObjectExpression[]
+  /** Map of frozen block id → JSX AST node. Used to build the frozenElements prop (id → AST) for runtime rendering. */
+  frozenElements: Record<string, JSXElement>
+  /** The source code for each frozen element, for when we need to convert the Slate document back to TSX */
+  frozenSources: Record<string, string>
 }
 
+/**
+ * Processes <Doc> JSX elements during the codedocs macro: walks children,
+ * classifies editable vs frozen blocks, and attaches slateDocument,
+ * frozenElements, and frozenSources props.
+ *
+ * Used by lib/macro.ts.
+ */
 export interface ProcessCodedocsDocParams {
-  nodePath: any
-  state: { file: { code: string; path: { parent: any } } }
+  nodePath: NodePath
+  state: PluginPass
   babel: { types: BabelTypes }
   code: string
   getSource: GetSource
-  traverse: Traverse
 }
 
 /**
  * For each <Doc> reference: walk its JSX children, classify editable vs frozen,
  * and attach slateDocument, frozenElements, and frozenSources props.
  */
-export function processCodedocsDoc({
+export function processDocNode({
   nodePath,
   state,
   babel,
   code,
   getSource,
-  traverse,
 }: ProcessCodedocsDocParams): void {
   if (nodePath.parentPath.node.type !== "JSXOpeningElement") return
 
@@ -132,9 +129,9 @@ function visitDocJSXIdentifier(
   const processState: ProcessDocState = {
     blockId: 0,
     frozenId: 0,
-    slateNodes: [],
-    frozenElementsData: [],
-    frozenSourcesData: [],
+    blockNodes: [],
+    frozenElements: {},
+    frozenSources: {},
   }
 
   const t = ctx.babel.types
@@ -150,7 +147,7 @@ function visitDocJSXIdentifier(
     if (child.type === "JSXText") {
       const trimmed = child.value.trim()
       if (trimmed) {
-        processState.slateNodes.push(
+        processState.blockNodes.push(
           t.objectExpression([
             t.objectProperty(
               t.identifier("type"),
@@ -194,7 +191,7 @@ function visitDocJSXIdentifier(
       } else {
         const childrenArr =
           inlineResult.length > 0 ? inlineResult : makeEmptyChildrenFn()
-        processState.slateNodes.push(
+        processState.blockNodes.push(
           t.objectExpression([
             t.objectProperty(
               t.identifier("type"),
@@ -223,7 +220,7 @@ function visitDocJSXIdentifier(
       } else {
         const childrenArr =
           inlineResult.length > 0 ? inlineResult : makeEmptyChildrenFn()
-        processState.slateNodes.push(
+        processState.blockNodes.push(
           t.objectExpression([
             t.objectProperty(t.identifier("type"), t.stringLiteral("heading")),
             t.objectProperty(
@@ -261,17 +258,17 @@ function visitDocJSXIdentifier(
   openingElement.attributes.push(
     t.jsxAttribute(
       t.jsxIdentifier("slateDocument"),
-      t.jsxExpressionContainer(t.arrayExpression(processState.slateNodes))
+      t.jsxExpressionContainer(t.arrayExpression(processState.blockNodes))
     )
   )
 
-  if (processState.frozenElementsData.length > 0) {
+  if (Object.keys(processState.frozenElements).length > 0) {
     openingElement.attributes.push(
       t.jsxAttribute(
         t.jsxIdentifier("frozenElements"),
         t.jsxExpressionContainer(
           t.objectExpression(
-            processState.frozenElementsData.map(({ id, node }) =>
+            Object.entries(processState.frozenElements).map(([id, node]) =>
               t.objectProperty(t.stringLiteral(id), node)
             )
           )
@@ -280,13 +277,13 @@ function visitDocJSXIdentifier(
     )
   }
 
-  if (processState.frozenSourcesData.length > 0) {
+  if (Object.keys(processState.frozenSources).length > 0) {
     openingElement.attributes.push(
       t.jsxAttribute(
         t.jsxIdentifier("frozenSources"),
         t.jsxExpressionContainer(
           t.objectExpression(
-            processState.frozenSourcesData.map(({ id, source }) =>
+            Object.entries(processState.frozenSources).map(([id, source]) =>
               t.objectProperty(t.stringLiteral(id), t.stringLiteral(source))
             )
           )
@@ -439,16 +436,19 @@ function makeEmptyChildren(t: BabelTypes): any[] {
 
 /** Record this node as frozen: keep AST + source, push a frozen Slate node. */
 function freezeBlock(
-  node: any,
+  node: JSXElement,
   processState: ProcessDocState,
   code: string,
   getSource: GetSource,
   makeFrozenNodeFn: (id: string) => any
 ): void {
   const id = `f${processState.frozenId++}`
-  processState.frozenElementsData.push({ id, node })
-  processState.frozenSourcesData.push({ id, source: getSource(node, code) })
-  processState.slateNodes.push(makeFrozenNodeFn(id))
+  processState.frozenElements[id] = node
+  processState.frozenSources[id] = getSource(
+    node as { start: number; end: number },
+    code
+  )
+  processState.blockNodes.push(makeFrozenNodeFn(id))
 }
 
 /**
@@ -495,7 +495,7 @@ function processListItems(
       const childrenArr =
         inlineResult.length > 0 ? inlineResult : makeEmptyChildrenFn()
 
-      processState.slateNodes.push(
+      processState.blockNodes.push(
         t.objectExpression([
           t.objectProperty(t.identifier("type"), t.stringLiteral("list-item")),
           t.objectProperty(

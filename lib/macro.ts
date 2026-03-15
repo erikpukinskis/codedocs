@@ -3,11 +3,13 @@
  * Built to dist/macro.js; macro/index.js stub attaches component re-exports and loads this.
  */
 
+import type { NodePath } from "@babel/traverse"
 import traverse from "@babel/traverse"
+import type { MacroParams } from "babel-plugin-macros"
 import { createMacro } from "babel-plugin-macros"
 import prettier from "prettier"
 import parserTypescript from "prettier/parser-typescript"
-import { processCodedocsDoc } from "./helpers/processDocNode"
+import { processDocNode } from "./helpers/processDocNode"
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -125,11 +127,7 @@ export default createMacro(function codedocsMacro({
   references,
   state,
   babel,
-}: {
-  references: Record<string, any[]>
-  state: { file: { code: string; path: any } }
-  babel: { types: any }
-}) {
+}: MacroParams) {
   const {
     Demo = [],
     Doc = [],
@@ -218,8 +216,8 @@ export default createMacro(function codedocsMacro({
     openingElement.attributes.push(dependencySourcesAttr)
   }
 
-  Doc.forEach((nodePath: any) => {
-    processCodedocsDoc({ nodePath, state, babel, code, getSource, traverse })
+  Doc.forEach((nodePath: NodePath) => {
+    processDocNode({ nodePath, state, babel, code, getSource })
   })
 
   Demo.forEach((nodePath: any) => {
@@ -342,7 +340,5 @@ export default createMacro(function codedocsMacro({
     importSourceLiteral
   )
 
-  const { program } = state.file.path.container
-
-  program.body.unshift(newImport)
+  state.file.path.node.body.unshift(newImport)
 })
