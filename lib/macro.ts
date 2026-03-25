@@ -129,7 +129,9 @@ function isRenderAttribute(path: NodePath<JSXAttribute>): boolean {
 }
 
 function isDemoIdentifier(path: NodePath<JSXElement>): boolean {
-  const name = path.node.openingElement.name
+  const opening = path.node.openingElement
+  if (!opening) return false
+  const name = opening.name
   if (name.type !== "JSXIdentifier") return false
   if (name.name !== "Demo") return false
   return true
@@ -290,18 +292,23 @@ export default createMacro(function codedocsMacro({
           setDependencySourcesAttribute(jsxElement.openingElement)
         },
         JSXExpressionContainer(path: NodePath<JSXExpressionContainer>) {
-          const demoPath = path.parentPath?.parentPath
+          const attrPath = path.parentPath
+          if (
+            !attrPath ||
+            attrPath.node.type !== "JSXAttribute" ||
+            !isRenderAttribute(attrPath as NodePath<JSXAttribute>)
+          )
+            return
+
+          const openingPath = attrPath.parentPath
+          if (!openingPath || openingPath.node.type !== "JSXOpeningElement")
+            return
+
+          const demoPath = openingPath.parentPath
           if (!demoPath || !isDemoIdentifier(demoPath as NodePath<JSXElement>))
             return
 
           const demoIdentifier = demoPath as NodePath<JSXElement>
-
-          const attrPath = path.parentPath
-          if (
-            !attrPath ||
-            !isRenderAttribute(attrPath as NodePath<JSXAttribute>)
-          )
-            return
 
           const noWrapperInSource =
             demoIdentifier.node.openingElement.attributes.find(

@@ -3,6 +3,7 @@ import { defineConfig } from "vite"
 import react from "@vitejs/plugin-react"
 import tsconfigPaths from "vite-tsconfig-paths"
 import { vanillaExtractPlugin } from "@vanilla-extract/vite-plugin"
+import macros from "vite-plugin-babel-macros"
 
 export default defineConfig({
   test: {
@@ -11,6 +12,7 @@ export default defineConfig({
   },
 
   plugins: [
+    macros(),
     tsconfigPaths(),
     vanillaExtractPlugin(),
     react({
