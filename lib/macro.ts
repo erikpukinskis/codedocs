@@ -5,13 +5,18 @@
 
 import traverse from "@babel/traverse"
 import type { NodePath } from "@babel/traverse"
-import type {
-  JSXAttribute,
-  JSXElement,
-  JSXExpressionContainer,
-  JSXOpeningElement,
-  Node,
-  ObjectProperty,
+import {
+  isJSXAttribute,
+  isJSXElement,
+  isJSXOpeningElement,
+  type CallExpression,
+  type JSXAttribute,
+  type JSXElement,
+  type JSXExpressionContainer,
+  type JSXOpeningElement,
+  type Node,
+  type ObjectProperty,
+  type StringLiteral,
 } from "@babel/types"
 import type { MacroParams } from "babel-plugin-macros"
 import { createMacro } from "babel-plugin-macros"
@@ -66,24 +71,36 @@ interface MockCallback {
   callbackName: string
 }
 
+/** `mock.callback("name")` with positions, for stripping displayed demo source. */
+type MockCallbackCall = CallExpression & {
+  start: number
+  end: number
+  arguments: [StringLiteral]
+}
+
+function isMockCallbackNode(node: Node): node is MockCallbackCall {
+  if (node.type !== "CallExpression") return false
+  else if (node.start == null || node.end == null) return false
+  else if (node.arguments.length !== 1) return false
+  else if (node.arguments[0].type !== "StringLiteral") return false
+
+  const { callee } = node
+
+  if (callee.type !== "MemberExpression") return false
+  else if (callee.object?.type !== "Identifier") return false
+  else if (callee.object?.name !== "mock") return false
+  else if (callee.property.type !== "Identifier") return false
+  else if (callee.property.name !== "callback") return false
+  else return true
+}
+
 function findMockCallbacks(
   node: Node | null | undefined,
   results: MockCallback[] = []
 ): MockCallback[] {
   if (!node || typeof node !== "object") return results
 
-  if (
-    node.type === "CallExpression" &&
-    node.callee?.type === "MemberExpression" &&
-    node.callee.object?.type === "Identifier" &&
-    node.callee.object.name === "mock" &&
-    node.callee.property?.type === "Identifier" &&
-    node.callee.property.name === "callback" &&
-    node.arguments?.length === 1 &&
-    node.arguments[0]?.type === "StringLiteral" &&
-    node.start != null &&
-    node.end != null
-  ) {
+  if (isMockCallbackNode(node)) {
     results.push({
       start: node.start,
       end: node.end,
@@ -122,19 +139,28 @@ function replaceMockCallbacks(
   return result
 }
 
-function isRenderAttribute(path: NodePath<JSXAttribute>): boolean {
-  if (path.node.name.type !== "JSXIdentifier") return false
-  if (path.node.name.name !== "render") return false
-  return true
+function isRenderAttribute(
+  path: NodePath | null | undefined
+): path is NodePath<JSXAttribute> {
+  if (path == null) return false
+  else if (!isJSXAttribute(path.node)) return false
+  else
+    return (
+      path.node.name.type === "JSXIdentifier" &&
+      path.node.name.name === "render"
+    )
 }
 
-function isDemoIdentifier(path: NodePath<JSXElement>): boolean {
-  const opening = path.node.openingElement
-  if (!opening) return false
-  const name = opening.name
-  if (name.type !== "JSXIdentifier") return false
-  if (name.name !== "Demo") return false
-  return true
+function isDemoElement(
+  path: NodePath | null | undefined
+): path is NodePath<JSXElement> {
+  if (path == null) return false
+  else if (!isJSXElement(path.node)) return false
+  else if (!path.node.openingElement) return false
+  return (
+    path.node.openingElement.name.type === "JSXIdentifier" &&
+    path.node.openingElement.name.name === "Demo"
+  )
 }
 
 export default createMacro(function codedocsMacro({
@@ -293,25 +319,16 @@ export default createMacro(function codedocsMacro({
         },
         JSXExpressionContainer(path: NodePath<JSXExpressionContainer>) {
           const attrPath = path.parentPath
-          if (
-            !attrPath ||
-            attrPath.node.type !== "JSXAttribute" ||
-            !isRenderAttribute(attrPath as NodePath<JSXAttribute>)
-          )
-            return
+          if (!isRenderAttribute(attrPath)) return
 
           const openingPath = attrPath.parentPath
-          if (!openingPath || openingPath.node.type !== "JSXOpeningElement")
-            return
+          if (!isJSXOpeningElement(openingPath?.node)) return
 
           const demoPath = openingPath.parentPath
-          if (!demoPath || !isDemoIdentifier(demoPath as NodePath<JSXElement>))
-            return
-
-          const demoIdentifier = demoPath as NodePath<JSXElement>
+          if (!isDemoElement(demoPath)) return
 
           const noWrapperInSource =
-            demoIdentifier.node.openingElement.attributes.find(
+            demoPath.node.openingElement.attributes.find(
               (attr) =>
                 attr.type === "JSXAttribute" &&
                 attr.name.type === "JSXIdentifier" &&
@@ -320,7 +337,7 @@ export default createMacro(function codedocsMacro({
 
           let source: string
           if (includeWrapperInSource && !noWrapperInSource) {
-            source = getSource(demoIdentifier.node, code)
+            source = getSource(demoPath.node, code)
           } else {
             const expression = path.node.expression
 
@@ -360,7 +377,7 @@ export default createMacro(function codedocsMacro({
             }
           }
 
-          setSourceAttribute(demoIdentifier.node.openingElement, source)
+          setSourceAttribute(demoPath.node.openingElement, source)
         },
       },
       nodePath.scope,
