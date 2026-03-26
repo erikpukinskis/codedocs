@@ -55,6 +55,12 @@
     "react-dom": "^19.0.0",
     "react-router-dom": "^6.0.0"
   },
+  "overrides": {
+    "baseline-browser-mapping": "2.10.10"
+  },
+  "resolutions": {
+    "baseline-browser-mapping": "2.10.10"
+  },
   "devDependencies": {
     "@babel/types": "^7.28.0",
     "@fortawesome/fontawesome-common-types": "^7.2.0",
@@ -75,7 +81,7 @@
     "@vanilla-extract/vite-plugin": "3",
     "@vitejs/plugin-react": "^1.2.0",
     "babel-plugin-macros": "^3.1.0",
-    "baseline-browser-mapping": "^2.10.8",
+    "baseline-browser-mapping": "^2.10.10",
     "chokidar-cli": "^3.0.0",
     "eslint": "8.29.0",
     "eslint-import-resolver-typescript": "^3.5.2",

@@ -17,6 +17,11 @@ export default defineConfig({
     },
 
     rollupOptions: {
+      onwarn(warning, defaultHandler) {
+        // Clean up useless warnings:
+        if (warning.message?.includes('"Fragment" is imported')) return
+        else defaultHandler(warning)
+      },
       // make sure to externalize deps that shouldn't be bundled
       // into your library
       external: [
