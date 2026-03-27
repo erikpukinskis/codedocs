@@ -5,6 +5,12 @@ import {
   arrayExpression,
   booleanLiteral,
   identifier,
+  isJSXElement,
+  isJSXExpressionContainer,
+  isJSXIdentifier,
+  isJSXOpeningElement,
+  isJSXText,
+  isStringLiteral,
   jsxAttribute,
   jsxExpressionContainer,
   jsxIdentifier,
@@ -12,17 +18,22 @@ import {
   objectExpression,
   objectProperty,
   stringLiteral,
+  type JSXAttribute,
+  type JSXElement,
+  type JSXExpressionContainer,
+  type JSXFragment,
+  type JSXSpreadChild,
+  type JSXText,
+  type ObjectExpression,
+  type ObjectProperty,
 } from "@babel/types"
-import type {
-  JSXAttribute,
-  JSXElement,
-  JSXExpressionContainer,
-  JSXFragment,
-  JSXSpreadChild,
-  JSXText,
-  ObjectExpression,
-  ObjectProperty,
-} from "@babel/types"
+import { isNamedJSXAttribute, isNamedJSXElement } from "./babelJsxGuards"
+
+/**
+ * AST checks in this helper follow `lib/macro.ts`: prefer `@babel/types` predicates,
+ * reuse `babelJsxGuards` for named JSX tags/attributes, `if` / `else if` chains in
+ * custom guards with one assertion per line.
+ */
 
 /** JSX child node (element children array item). */
 export type JSXChild =
@@ -35,7 +46,7 @@ export type JSXChild =
 function getJsxTagName(
   name: JSXElement["openingElement"]["name"]
 ): string | undefined {
-  return name.type === "JSXIdentifier" ? name.name : undefined
+  return isJSXIdentifier(name) ? name.name : undefined
 }
 
 /** Extracts source code for an AST node. */
@@ -83,7 +94,7 @@ export function processDocNode({
   getSource,
 }: ProcessCodedocsDocParams): void {
   const parentPath = nodePath.parentPath
-  if (!parentPath || parentPath.node.type !== "JSXOpeningElement") return
+  if (!parentPath || !isJSXOpeningElement(parentPath.node)) return
 
   traverse(
     state.file.path.parent,
@@ -104,25 +115,16 @@ function visitDocJSXIdentifier(
   path: NodePath,
   ctx: { state: PluginPass; code: string; getSource: GetSource }
 ): void {
-  if (path.node.type !== "JSXIdentifier" || path.node.name !== "Doc") return
   const parentPath = path.parentPath
-  if (!parentPath || parentPath.node.type !== "JSXOpeningElement") return
+  if (!parentPath || !isJSXOpeningElement(parentPath.node)) return
 
   const grandPath = parentPath.parentPath
-  if (!grandPath) return
-  const jsxElement = grandPath.node
-  if (jsxElement.type !== "JSXElement") return
+  if (!grandPath || !isNamedJSXElement(grandPath.node, "Doc")) return
 
+  const jsxElement = grandPath.node
   const openingElement = jsxElement.openingElement
 
-  if (
-    openingElement.attributes.some(
-      (attr) =>
-        attr.type === "JSXAttribute" &&
-        attr.name.type === "JSXIdentifier" &&
-        attr.name.name === "slateDocument"
-    )
-  ) {
+  if (openingElement.attributes.some((attr) => isNamedJSXAttribute(attr, "slateDocument"))) {
     return
   }
 
@@ -143,7 +145,7 @@ function visitDocJSXIdentifier(
     parseInlineChildren(childNodes)
 
   for (const child of children) {
-    if (child.type === "JSXText") {
+    if (isJSXText(child)) {
       const trimmed = child.value.trim()
       if (trimmed) {
         processState.blockNodes.push(
@@ -167,13 +169,10 @@ function visitDocJSXIdentifier(
       continue
     }
 
-    if (child.type === "JSXExpressionContainer") continue
-    if (child.type !== "JSXElement") continue
+    if (isJSXExpressionContainer(child)) continue
+    if (!isJSXElement(child)) continue
 
-    const tagName =
-      child.openingElement.name.type === "JSXIdentifier"
-        ? child.openingElement.name.name
-        : undefined
+    const tagName = getJsxTagName(child.openingElement.name)
 
     if (!tagName) {
       freezeBlockFn(child)
@@ -232,15 +231,15 @@ function visitDocJSXIdentifier(
     }
 
     if (tagName === "ul" || tagName === "ol") {
-    processListItems(
-      child,
-      tagName,
-      0,
-      processState,
-      parseInlineChildrenFn,
-      freezeBlockFn,
-      makeEmptyChildrenFn
-    )
+      processListItems(
+        child,
+        tagName,
+        0,
+        processState,
+        parseInlineChildrenFn,
+        freezeBlockFn,
+        makeEmptyChildrenFn
+      )
       continue
     }
 
@@ -296,7 +295,7 @@ function parseInlineChildren(
 ): ObjectExpression[] | null {
   const result: ObjectExpression[] = []
   for (const child of childNodes) {
-    if (child.type === "JSXText") {
+    if (isJSXText(child)) {
       const text = child.value.replace(/\n\s*/g, " ").replace(/\s+/g, " ")
       if (text && text !== " ") {
         result.push(
@@ -308,8 +307,8 @@ function parseInlineChildren(
       continue
     }
 
-    if (child.type === "JSXExpressionContainer") {
-      if (child.expression.type === "StringLiteral") {
+    if (isJSXExpressionContainer(child)) {
+      if (isStringLiteral(child.expression)) {
         result.push(
           objectExpression([
             objectProperty(
@@ -322,7 +321,7 @@ function parseInlineChildren(
       continue
     }
 
-    if (child.type !== "JSXElement") continue
+    if (!isJSXElement(child)) continue
 
     const tagName = getJsxTagName(child.openingElement.name)
     if (!tagName) continue
@@ -353,17 +352,11 @@ function parseInlineChildren(
 
     if (tagName === "a") {
       const hrefAttr = child.openingElement.attributes.find(
-        (a): a is JSXAttribute =>
-          a.type === "JSXAttribute" &&
-          a.name.type === "JSXIdentifier" &&
-          a.name.name === "href"
+        (a): a is JSXAttribute => isNamedJSXAttribute(a, "href")
       )
+      const hrefValue = hrefAttr?.value
       const url =
-        hrefAttr && hrefAttr.value
-          ? hrefAttr.value.type === "StringLiteral"
-            ? hrefAttr.value.value
-            : ""
-          : ""
+        hrefValue && isStringLiteral(hrefValue) ? hrefValue.value : ""
       const linkChildren = parseInlineChildren(child.children)
       if (linkChildren === null) return null
 
@@ -391,10 +384,10 @@ function parseInlineChildren(
 function getJSXTextContent(childNodes: JSXChild[]): string | null {
   let text = ""
   for (const child of childNodes) {
-    if (child.type === "JSXText") {
+    if (isJSXText(child)) {
       text += child.value.replace(/\n\s*/g, " ").replace(/\s+/g, " ")
-    } else if (child.type === "JSXExpressionContainer") {
-      if (child.expression.type === "StringLiteral") {
+    } else if (isJSXExpressionContainer(child)) {
+      if (isStringLiteral(child.expression)) {
         text += child.expression.value
       } else {
         return null
@@ -458,9 +451,9 @@ function processListItems(
   makeEmptyChildrenFn: () => ObjectExpression[]
 ): void {
   for (const child of listElement.children) {
-    if (child.type === "JSXText") continue
+    if (isJSXText(child)) continue
     if (
-      child.type !== "JSXElement" ||
+      !isJSXElement(child) ||
       getJsxTagName(child.openingElement.name) !== "li"
     ) {
       continue
@@ -470,12 +463,11 @@ function processListItems(
     let nestedList: JSXElement | null = null
 
     for (const liChild of child.children) {
-      const liTagName =
-        liChild.type === "JSXElement"
-          ? getJsxTagName(liChild.openingElement.name)
-          : undefined
+      const liTagName = isJSXElement(liChild)
+        ? getJsxTagName(liChild.openingElement.name)
+        : undefined
       if (
-        liChild.type === "JSXElement" &&
+        isJSXElement(liChild) &&
         (liTagName === "ul" || liTagName === "ol")
       ) {
         nestedList = liChild
