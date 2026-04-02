@@ -124,7 +124,11 @@ function visitDocJSXIdentifier(
   const jsxElement = grandPath.node
   const openingElement = jsxElement.openingElement
 
-  if (openingElement.attributes.some((attr) => isNamedJSXAttribute(attr, "slateDocument"))) {
+  if (
+    openingElement.attributes.some((attr) =>
+      isNamedJSXAttribute(attr, "slateDocument")
+    )
+  ) {
     return
   }
 
@@ -296,13 +300,9 @@ function parseInlineChildren(
   const result: ObjectExpression[] = []
   for (const child of childNodes) {
     if (isJSXText(child)) {
-      const text = child.value.replace(/\n\s*/g, " ").replace(/\s+/g, " ")
-      if (text && text !== " ") {
-        result.push(
-          objectExpression([
-            objectProperty(identifier("text"), stringLiteral(text)),
-          ])
-        )
+      const normalized = collapseWhitespace(child)
+      if (normalized) {
+        result.push(normalized)
       }
       continue
     }
@@ -333,17 +333,11 @@ function parseInlineChildren(
           objectProperty(identifier("text"), stringLiteral(innerText)),
         ]
         if (tagName === "strong") {
-          props.push(
-            objectProperty(identifier("bold"), booleanLiteral(true))
-          )
+          props.push(objectProperty(identifier("bold"), booleanLiteral(true)))
         } else if (tagName === "em") {
-          props.push(
-            objectProperty(identifier("italic"), booleanLiteral(true))
-          )
+          props.push(objectProperty(identifier("italic"), booleanLiteral(true)))
         } else if (tagName === "code") {
-          props.push(
-            objectProperty(identifier("code"), booleanLiteral(true))
-          )
+          props.push(objectProperty(identifier("code"), booleanLiteral(true)))
         }
         result.push(objectExpression(props))
         continue
@@ -355,8 +349,7 @@ function parseInlineChildren(
         (a): a is JSXAttribute => isNamedJSXAttribute(a, "href")
       )
       const hrefValue = hrefAttr?.value
-      const url =
-        hrefValue && isStringLiteral(hrefValue) ? hrefValue.value : ""
+      const url = hrefValue && isStringLiteral(hrefValue) ? hrefValue.value : ""
       const linkChildren = parseInlineChildren(child.children)
       if (linkChildren === null) return null
 
@@ -364,10 +357,7 @@ function parseInlineChildren(
         objectExpression([
           objectProperty(identifier("type"), stringLiteral("link")),
           objectProperty(identifier("url"), stringLiteral(url)),
-          objectProperty(
-            identifier("children"),
-            arrayExpression(linkChildren)
-          ),
+          objectProperty(identifier("children"), arrayExpression(linkChildren)),
         ])
       )
       continue
@@ -376,6 +366,47 @@ function parseInlineChildren(
     return null
   }
   return result
+}
+
+/**
+ * Collapses the whitespace in a JSX text node, analogous to what white-space:
+ * normal does. For example, in this `<p>` tag:
+ *
+ * ```html
+ * <p>
+ *   Hello <strong>world</strong> foo
+ * </p>
+ * ```
+ *
+ * There are two text nodes that would be altered by this function. The leading
+ * "\n  Hello " node and the trailing " foo\n  " node:
+ *
+ *  - `"\n  Hello "` -> `"Hello "`
+ *  - `" foo\n  "` -> `" foo"`
+ *
+ * @returns undefined if the text node is empty or only contains whitespace.
+ */
+function collapseWhitespace(node: JSXText): ObjectExpression | undefined {
+  //
+  let text = node.value.replace(/\n\s*/g, " ").replace(/\s+/g, " ")
+  // If the raw value started/ended with a newline, the resulting edge space
+  // is just source formatting — strip it. We check the raw value (not the
+  // normalised result) so that a real content space like "Hello " before a
+  // <strong> is never accidentally trimmed.
+  if (/^\s*\n/.test(node.value)) {
+    text = text.trimStart()
+  }
+  if (/\n\s*$/.test(node.value)) {
+    text = text.trimEnd()
+  }
+  // Skip pure-whitespace nodes that collapsed to nothing or a lone space.
+  if (text === "" || text === " ") {
+    return undefined
+  }
+
+  return objectExpression([
+    objectProperty(identifier("text"), stringLiteral(text)),
+  ])
 }
 
 /**
@@ -418,9 +449,7 @@ function makeFrozenNode(id: string): ObjectExpression {
 /** Single empty text leaf; used for empty paragraphs and list items. */
 function makeEmptyChildren(): ObjectExpression[] {
   return [
-    objectExpression([
-      objectProperty(identifier("text"), stringLiteral("")),
-    ]),
+    objectExpression([objectProperty(identifier("text"), stringLiteral(""))]),
   ]
 }
 
@@ -466,10 +495,7 @@ function processListItems(
       const liTagName = isJSXElement(liChild)
         ? getJsxTagName(liChild.openingElement.name)
         : undefined
-      if (
-        isJSXElement(liChild) &&
-        (liTagName === "ul" || liTagName === "ol")
-      ) {
+      if (isJSXElement(liChild) && (liTagName === "ul" || liTagName === "ol")) {
         nestedList = liChild
       } else {
         textChildren.push(liChild)
@@ -492,10 +518,7 @@ function processListItems(
           ),
           objectProperty(identifier("listType"), stringLiteral(listType)),
           objectProperty(identifier("depth"), numericLiteral(depth)),
-          objectProperty(
-            identifier("children"),
-            arrayExpression(childrenArr)
-          ),
+          objectProperty(identifier("children"), arrayExpression(childrenArr)),
         ])
       )
     }

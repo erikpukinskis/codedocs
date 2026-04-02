@@ -28,7 +28,6 @@ export const ButtonDocs = (
 )`}
     />
     <h2>Document structure</h2>
-    <h3>You're in charge.</h3>
     <p>
       You can write your docs however you like, using the full capabilities of
       HTML and React.
