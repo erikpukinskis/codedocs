@@ -2,11 +2,22 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "My TypeScript Watch",
+      "label": "TypeScript Watch",
       "type": "shell",
       "command": "yarn watch:types",
       "problemMatcher": ["$tsc-watch"],
       "group": "build",
+      "runOptions": {
+        "runOn": "folderOpen"
+      }
+    },
+    {
+      "label": "Dev Server",
+      "type": "shell",
+      "command": "yarn start:docs:dev",
+      "presentation": {
+        "reveal": "always"
+      },
       "runOptions": {
         "runOn": "folderOpen"
       }
