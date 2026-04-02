@@ -12,6 +12,22 @@
 - [Future](#future)
 - [Inspiration](#inspiration)
 
+## Quick Start
+
+See a running example at [www.usecodedocs.com](https://www.usecodedocs.com/).
+
+To run Codedocs locally:
+
+```bash
+git clone https://github.com/erikpukinskis/codedocs.git
+cd codedocs
+yarn install
+yarn build
+yarn start:docs:dev
+```
+
+The dev server will be available at [http://localhost:2030](http://localhost:2030) by default.
+
 ## Features
 
 ### Public-facing documentation
