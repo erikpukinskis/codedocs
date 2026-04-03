@@ -151,25 +151,26 @@ function visitDocJSXIdentifier(
   for (const child of children) {
     if (isJSXText(child)) {
       const trimmed = child.value.trim()
-      if (trimmed) {
-        processState.blockNodes.push(
-          objectExpression([
-            objectProperty(identifier("type"), stringLiteral("paragraph")),
-            objectProperty(
-              identifier("id"),
-              stringLiteral(`b${processState.blockId++}`)
-            ),
-            objectProperty(
-              identifier("children"),
-              arrayExpression([
-                objectExpression([
-                  objectProperty(identifier("text"), stringLiteral(trimmed)),
-                ]),
-              ])
-            ),
-          ])
-        )
-      }
+      // Skip pure whitespace lines, since that's what HTML would do anyway.
+      if (trimmed === "") continue
+      // Or, if there are actual text nodes at the root of the <Doc> element, turn them into paragraphs:
+      processState.blockNodes.push(
+        objectExpression([
+          objectProperty(identifier("type"), stringLiteral("paragraph")),
+          objectProperty(
+            identifier("id"),
+            stringLiteral(`b${processState.blockId++}`)
+          ),
+          objectProperty(
+            identifier("children"),
+            arrayExpression([
+              objectExpression([
+                objectProperty(identifier("text"), stringLiteral(trimmed)),
+              ]),
+            ])
+          ),
+        ])
+      )
       continue
     }
 
@@ -410,7 +411,8 @@ function collapseWhitespace(node: JSXText): ObjectExpression | undefined {
 }
 
 /**
- * Extract plain text from JSX children; return null if any non-text (e.g. component) is present.
+ * Extract plain text from JSX children; return null if any non-text (e.g.
+ * component) is present.
  */
 function getJSXTextContent(childNodes: JSXChild[]): string | null {
   let text = ""

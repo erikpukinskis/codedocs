@@ -18,6 +18,7 @@ import { slateToJsx } from "./helpers/slateToJsx"
  * A Slate element node as produced by the macro — all block and inline types
  * used in the editor (paragraph, heading, list-item, link, frozen).
  */
+// TODO: would it make sense to make this much more restrictive, and only allow the specific blocks we support?
 type SlateBlock = SlateElement & {
   type: string
   id?: string
