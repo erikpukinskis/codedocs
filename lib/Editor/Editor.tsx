@@ -1,43 +1,12 @@
-import React, { useCallback, useRef, useState } from "react"
-import { createEditor, Editor, Element, Range, Transforms } from "slate"
+import React, { useCallback, useMemo, useState } from "react"
+import { createEditor, Editor, Range, Transforms } from "slate"
 import type { Element as SlateElement } from "slate"
 import { withHistory } from "slate-history"
 import { Editable, ReactEditor, Slate, withReact, useSlate } from "slate-react"
 import type { RenderElementProps } from "slate-react"
+import { copyHtml, copyPlainText } from "./copy"
 import * as styles from "./Editor.css"
-import {
-  isCodeBlock,
-  isLineOfCodeElement,
-  isListItemBlock,
-  type SlateBlock,
-} from "./types"
-
-/**
- * Slate's default setFragmentData clones the DOM for text/plain; line-number
- * gutters live only in the DOM, so digits leak into the clipboard. When the
- * selection touches code lines, replace text/plain from the document.
- */
-function selectionIncludesCodeLine(editor: Editor, range: Range): boolean {
-  return !Editor.nodes(editor, { at: range, match: isLineOfCodeElement }).next()
-    .done
-}
-
-function clipboardPlainTextForRange(editor: Editor, range: Range): string {
-  const chunks: string[] = []
-  for (const [, path] of Editor.nodes(editor, {
-    at: range,
-    match: (n) =>
-      Element.isElement(n) &&
-      Editor.isBlock(editor, n) &&
-      !isCodeBlock(n),
-  })) {
-    const blockRange = Editor.range(editor, path)
-    const intersection = Range.intersection(range, blockRange)
-    if (!intersection || Range.isCollapsed(intersection)) continue
-    chunks.push(Editor.string(editor, intersection))
-  }
-  return chunks.join("\n")
-}
+import { isLineOfCodeElement, isListItemBlock, type SlateBlock } from "./types"
 
 type DocEditorProps = {
   slateDocument: SlateElement[]
@@ -48,20 +17,24 @@ export const DocEditor = ({
   slateDocument,
   frozenElements,
 }: DocEditorProps) => {
-  const editorRef = useRef<Editor | null>(null)
-  if (!editorRef.current) {
-    const e = withHistory(withReact(createEditor()))
-    const baseSetFragmentData = e.setFragmentData.bind(e)
-    e.setFragmentData = (data: DataTransfer) => {
-      baseSetFragmentData(data)
-      const { selection } = e
+  // One editor instance per mount (useMemo is the usual Slate pattern for this).
+  const editor = useMemo(() => {
+    const editor = withHistory(withReact(createEditor()))
+
+    const defaultSetFragmentData = editor.setFragmentData.bind(editor)
+
+    editor.setFragmentData = (data: DataTransfer) => {
+      // Still set application/x-slate-fragment, text/html, etc. from Slate.
+      defaultSetFragmentData(data)
+      const { selection } = editor
       if (!selection || Range.isCollapsed(selection)) return
-      if (!selectionIncludesCodeLine(e, selection)) return
-      data.setData("text/plain", clipboardPlainTextForRange(e, selection))
+      // Always derive text/plain from the document (see clipboardPlainTextForRange).
+      data.setData("text/plain", copyPlainText(editor, selection))
+      data.setData("text/html", copyHtml(editor, selection))
     }
-    editorRef.current = e
-  }
-  const editor = editorRef.current
+
+    return editor
+  }, [])
   const [value, setValue] = useState(slateDocument)
 
   const renderElement = useCallback(

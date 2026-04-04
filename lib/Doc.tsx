@@ -2,9 +2,9 @@ import React, { useMemo, useState } from "react"
 import { Code } from "./Code"
 import * as styles from "./Doc.css"
 import { DocEditor } from "./Editor/Editor"
+import { slateToJsx } from "./Editor/serialization"
 import { type SlateBlock } from "./Editor/types"
 import { parseDocChunks, filterChunks } from "./helpers/parseDocChunks"
-import { slateToJsx } from "./helpers/slateToJsx"
 
 export type DocProps = {
   path: string
@@ -55,7 +55,9 @@ export const Doc = ({
   // TODO: Maybe use a callback so the editor can update this source string?
   const sourceString = useMemo(() => {
     if (!slateDocument || !frozenSources) return undefined
-    return slateToJsx(slateDocument, frozenSources)
+    return slateToJsx(slateDocument, {
+      frozenSources,
+    })
   }, [slateDocument, frozenSources])
 
   return (

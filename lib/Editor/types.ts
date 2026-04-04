@@ -1,4 +1,4 @@
-import type { BaseElement, Node, Text } from "slate"
+import type { BaseElement, BaseText, Node } from "slate"
 import { Element } from "slate"
 
 /**
@@ -92,14 +92,8 @@ export function isLineOfCodeElement(node: Node): node is LineOfCodeElement {
  * etc.) and no children. They are the actual run of characters and their
  * formatting. Leaves are the bottom-level content inside elements.
  */
-export type SlateLeaf = Text & {
+export type SlateLeaf = BaseText & {
   bold?: boolean
   italic?: boolean
   code?: boolean
-}
-
-export function isSlateLeaf(node: Node): node is SlateLeaf {
-  // Checks for Editor and Text nodes
-  if (!Element.isElement(node)) return false
-  return "text" in node && !("type" in node)
 }
