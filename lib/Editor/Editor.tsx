@@ -1,14 +1,46 @@
 import React, { useCallback, useRef, useState } from "react"
-import type { Element } from "slate"
-import { createEditor, Editor, Range, Transforms } from "slate"
+import { createEditor, Editor, Element, Range, Transforms } from "slate"
+import type { Element as SlateElement } from "slate"
 import { withHistory } from "slate-history"
 import { Editable, ReactEditor, Slate, withReact, useSlate } from "slate-react"
 import type { RenderElementProps } from "slate-react"
 import * as styles from "./Editor.css"
-import { isLineOfCodeElement, isListItemBlock, type SlateBlock } from "./types"
+import {
+  isCodeBlock,
+  isLineOfCodeElement,
+  isListItemBlock,
+  type SlateBlock,
+} from "./types"
+
+/**
+ * Slate's default setFragmentData clones the DOM for text/plain; line-number
+ * gutters live only in the DOM, so digits leak into the clipboard. When the
+ * selection touches code lines, replace text/plain from the document.
+ */
+function selectionIncludesCodeLine(editor: Editor, range: Range): boolean {
+  return !Editor.nodes(editor, { at: range, match: isLineOfCodeElement }).next()
+    .done
+}
+
+function clipboardPlainTextForRange(editor: Editor, range: Range): string {
+  const chunks: string[] = []
+  for (const [, path] of Editor.nodes(editor, {
+    at: range,
+    match: (n) =>
+      Element.isElement(n) &&
+      Editor.isBlock(editor, n) &&
+      !isCodeBlock(n),
+  })) {
+    const blockRange = Editor.range(editor, path)
+    const intersection = Range.intersection(range, blockRange)
+    if (!intersection || Range.isCollapsed(intersection)) continue
+    chunks.push(Editor.string(editor, intersection))
+  }
+  return chunks.join("\n")
+}
 
 type DocEditorProps = {
-  slateDocument: Element[]
+  slateDocument: SlateElement[]
   frozenElements: Record<string, React.ReactNode>
 }
 
@@ -18,7 +50,16 @@ export const DocEditor = ({
 }: DocEditorProps) => {
   const editorRef = useRef<Editor | null>(null)
   if (!editorRef.current) {
-    editorRef.current = withHistory(withReact(createEditor()))
+    const e = withHistory(withReact(createEditor()))
+    const baseSetFragmentData = e.setFragmentData.bind(e)
+    e.setFragmentData = (data: DataTransfer) => {
+      baseSetFragmentData(data)
+      const { selection } = e
+      if (!selection || Range.isCollapsed(selection)) return
+      if (!selectionIncludesCodeLine(e, selection)) return
+      data.setData("text/plain", clipboardPlainTextForRange(e, selection))
+    }
+    editorRef.current = e
   }
   const editor = editorRef.current
   const [value, setValue] = useState(slateDocument)
@@ -263,7 +304,9 @@ const CodeLineElement = ({
 
   return (
     <div {...attributes} className={styles.codeLine}>
-      <span className={styles.lineNumber}>{lineIndex + 1}</span>
+      <span className={styles.lineNumber} contentEditable={false}>
+        {lineIndex + 1}
+      </span>
       {children}
     </div>
   )

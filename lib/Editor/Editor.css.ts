@@ -44,7 +44,7 @@ export const lineNumber = style({
   fontFamily: `-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"`,
   backgroundColor: "#e2daff",
   color: "#a696ff",
-  textAlign: "right",
+  textAlign: "center",
   paddingInline: "1em",
   marginRight: "0.5em",
   userSelect: "none",
