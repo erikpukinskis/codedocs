@@ -3,13 +3,16 @@ import parserTypescript from "prettier/parser-typescript"
 
 export function formatTypescript(source: string): string {
   try {
-    let sourceToFormat = source
+    let sourceToFormat = source.trim()
     let wrappedInFragment = false
 
-    const hasMultipleRoots = /<\/\w+>\s*<\w+/.test(source)
+    // Only wrap in fragment if the code starts with JSX (indicating it's a JSX-only snippet)
+    // Don't wrap if it has imports, exports, or other statements
+    const startsWithJSX = /^\s*</.test(sourceToFormat)
+    const hasMultipleRoots = startsWithJSX && /<\/\w+>\s*<\w+/.test(sourceToFormat)
 
     if (hasMultipleRoots) {
-      sourceToFormat = `<>${source}</>`
+      sourceToFormat = `<>${sourceToFormat}</>`
       wrappedInFragment = true
     }
 

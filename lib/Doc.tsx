@@ -1,38 +1,24 @@
 import React, { useCallback, useMemo, useState } from "react"
-import {
-  createEditor,
-  Editor,
-  Element as SlateElement,
-  Transforms,
-} from "slate"
+import { createEditor, Editor, Range, Transforms } from "slate"
 import type { Descendant } from "slate"
 import { withHistory } from "slate-history"
 import { Editable, Slate, withReact } from "slate-react"
 import type { RenderElementProps } from "slate-react"
 import { Code } from "./Code"
 import * as styles from "./Doc.css"
+import {
+  isLineOfCodeElement,
+  isListItemBlock,
+  type SlateBlock,
+} from "./Editor/types"
 import { parseDocChunks, filterChunks } from "./helpers/parseDocChunks"
 import { slateToJsx } from "./helpers/slateToJsx"
-
-/**
- * A Slate element node as produced by the macro — all block and inline types
- * used in the editor (paragraph, heading, list-item, link, frozen).
- */
-// TODO: would it make sense to make this much more restrictive, and only allow the specific blocks we support?
-type SlateBlock = SlateElement & {
-  type: string
-  id?: string
-  level?: number
-  listType?: "ul" | "ol"
-  depth?: number
-  url?: string
-}
 
 export type DocProps = {
   path: string
   order?: number
   children?: React.ReactNode
-  slateDocument?: Descendant[]
+  slateDocument?: SlateBlock[]
   frozenElements?: Record<string, React.ReactNode>
   frozenSources?: Record<string, string>
 }
@@ -178,17 +164,136 @@ const DocEditor = ({ slateDocument, frozenElements }: DocEditorProps) => {
         return
       }
 
+      const [codeLineMatch] = Editor.nodes(editor, {
+        match: isLineOfCodeElement,
+      })
+
+      if (event.key === "Enter" && codeLineMatch) {
+        event.preventDefault()
+        const [codeLine, codeLinePath] = codeLineMatch
+        const codeLineNode = codeLine
+
+        const lineText = codeLineNode.children
+          .map((c) => ("text" in c ? c.text : ""))
+          .join("")
+
+        const leadingWhitespace = lineText.match(/^\s*/)?.[0] ?? ""
+
+        const codeBlockPath = codeLinePath.slice(0, -1)
+        const [codeBlockNode] = Editor.node(editor, codeBlockPath)
+        // TODO: Use Zod for this when we migrate the types to Zod
+        const codeBlock = codeBlockNode as SlateBlock
+
+        const isLastLine =
+          codeLinePath[codeLinePath.length - 1] ===
+          codeBlock.children.length - 1
+        const isEmpty = lineText.trim() === ""
+
+        if (isEmpty && isLastLine) {
+          Transforms.removeNodes(editor, { at: codeLinePath })
+          Transforms.insertNodes(
+            editor,
+            {
+              type: "paragraph",
+              id: `b${Date.now()}`,
+              children: [{ text: "" }],
+            } as SlateBlock, // TODO: Zod
+            { at: [codeBlockPath[0] + 1] }
+          )
+          Transforms.select(editor, [codeBlockPath[0] + 1, 0])
+        } else {
+          Transforms.splitNodes(editor, { at: editor.selection?.anchor })
+          const newLinePath = [
+            ...codeLinePath.slice(0, -1),
+            codeLinePath[codeLinePath.length - 1] + 1,
+          ]
+          const [newLineNode] = Editor.node(editor, newLinePath)
+          // TODO: Parse with Zod, also is this a new node type? Or a ParagraphBlock?
+          const newLine = newLineNode as SlateBlock
+          const newLineText = newLine.children
+            .map((c) => ("text" in c ? c.text : ""))
+            .join("")
+
+          if (!newLineText.startsWith(leadingWhitespace)) {
+            Transforms.insertText(editor, leadingWhitespace, {
+              at: {
+                path: [...newLinePath, 0],
+                offset: 0,
+              },
+            })
+          }
+        }
+        return
+      }
+
+      if (event.key === "Tab" && codeLineMatch) {
+        event.preventDefault()
+
+        if (editor.selection && Range.isCollapsed(editor.selection)) {
+          const offset = editor.selection.anchor.offset
+          const spacesToInsert = 2 - (offset % 2)
+          editor.insertText(" ".repeat(spacesToInsert))
+        } else {
+          if (!editor.selection) {
+            throw new Error("No selection?")
+          }
+          const [start, end] = Editor.edges(editor, editor.selection)
+          const startCodeLinePath = Editor.above(editor, {
+            at: start,
+            match: isLineOfCodeElement,
+          })?.[1]
+          const endCodeLinePath = Editor.above(editor, {
+            at: end,
+            match: isLineOfCodeElement,
+          })?.[1]
+
+          if (startCodeLinePath && endCodeLinePath) {
+            const startLineIndex =
+              startCodeLinePath[startCodeLinePath.length - 1]
+            const endLineIndex = endCodeLinePath[endCodeLinePath.length - 1]
+
+            for (let i = startLineIndex; i <= endLineIndex; i++) {
+              const linePath = [...startCodeLinePath.slice(0, -1), i]
+              const [lineNode] = Editor.node(editor, linePath)
+              // TODO: Zod
+              const line = lineNode as SlateBlock
+              const lineText = line.children
+                .map((c) => ("text" in c ? c.text : ""))
+                .join("")
+
+              if (event.shiftKey) {
+                const match = lineText.match(/^( {1,2})/)
+                if (match) {
+                  const spacesToRemove = match[1].length
+                  Transforms.delete(editor, {
+                    at: {
+                      anchor: { path: [...linePath, 0], offset: 0 },
+                      focus: {
+                        path: [...linePath, 0],
+                        offset: spacesToRemove,
+                      },
+                    },
+                  })
+                }
+              } else {
+                Transforms.insertText(editor, "  ", {
+                  at: { path: [...linePath, 0], offset: 0 },
+                })
+              }
+            }
+          }
+        }
+        return
+      }
+
       if (event.key === "Tab") {
         event.preventDefault()
         const [match] = Editor.nodes(editor, {
-          match: (n) =>
-            !Editor.isEditor(n) &&
-            SlateElement.isElement(n) &&
-            (n as SlateBlock).type === "list-item",
+          match: isListItemBlock,
         })
         if (match) {
           const [node, path] = match
-          const currentDepth = (node as SlateBlock).depth ?? 0
+          const currentDepth = node.depth ?? 0
           const newDepth = event.shiftKey
             ? Math.max(0, currentDepth - 1)
             : Math.min(6, currentDepth + 1)
@@ -240,6 +345,18 @@ const DocElement = ({
       if (level === 5) return <h5 {...attributes}>{children}</h5>
       return <h6 {...attributes}>{children}</h6>
     }
+    case "code-block":
+      return (
+        <pre {...attributes} className={styles.codeBlock}>
+          {children}
+        </pre>
+      )
+    case "code-line":
+      return (
+        <div {...attributes} className={styles.codeLine}>
+          {children}
+        </div>
+      )
     case "list-item": {
       const marginLeft = (node.depth ?? 0) * 24
       return (
@@ -267,6 +384,7 @@ const DocElement = ({
       return (
         <div
           {...attributes}
+          data-description="frozen block"
           contentEditable={false}
           className={styles.frozenBlock}
         >

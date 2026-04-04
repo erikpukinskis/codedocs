@@ -11,6 +11,7 @@ import {
   isJSXOpeningElement,
   isJSXText,
   isStringLiteral,
+  isTemplateLiteral,
   jsxAttribute,
   jsxExpressionContainer,
   jsxIdentifier,
@@ -28,6 +29,7 @@ import {
   type ObjectProperty,
 } from "@babel/types"
 import { isNamedJSXAttribute, isNamedJSXElement } from "./babelJsxGuards"
+import { formatTypescript } from "./formatTypeScript"
 
 /**
  * AST checks in this helper follow `lib/macro.ts`: prefer `@babel/types` predicates,
@@ -141,10 +143,9 @@ function visitDocJSXIdentifier(
     frozenSources: {},
   }
 
-  const makeFrozenNodeFn = (id: string) => makeFrozenNode(id)
   const makeEmptyChildrenFn = () => makeEmptyChildren()
   const freezeBlockFn = (node: JSXElement) =>
-    freezeBlock(node, processState, ctx.code, ctx.getSource, makeFrozenNodeFn)
+    freezeBlock(node, processState, ctx.code, ctx.getSource)
   const parseInlineChildrenFn = (childNodes: JSXChild[]) =>
     parseInlineChildren(childNodes)
 
@@ -246,6 +247,52 @@ function visitDocJSXIdentifier(
         makeEmptyChildrenFn
       )
       continue
+    }
+
+    if (tagName === "code") {
+      const languageAttr = child.openingElement.attributes.find(
+        (a): a is JSXAttribute => isNamedJSXAttribute(a, "data-language")
+      )
+      const languageValue = languageAttr?.value
+      const language =
+        languageValue && isStringLiteral(languageValue)
+          ? languageValue.value
+          : "tsx"
+
+      const rawText = getJSXTextContent(child.children, {
+        preserveWhitespace: true,
+      })
+      processState.blockNodes.push(
+        makeCodeBlockNode(language, rawText ?? "", processState)
+      )
+      continue
+    }
+
+    if (tagName === "pre") {
+      const codeElement = child.children.find(
+        (c): c is JSXElement =>
+          isJSXElement(c) && getJsxTagName(c.openingElement.name) === "code"
+      )
+
+      // TODO: rewrite to use early returns.
+      if (codeElement) {
+        const languageAttr = codeElement.openingElement.attributes.find(
+          (a): a is JSXAttribute => isNamedJSXAttribute(a, "data-language")
+        )
+        const languageValue = languageAttr?.value
+        const language =
+          languageValue && isStringLiteral(languageValue)
+            ? languageValue.value
+            : "tsx"
+
+        const rawText = getJSXTextContent(codeElement.children, {
+          preserveWhitespace: true,
+        })
+        processState.blockNodes.push(
+          makeCodeBlockNode(language, rawText ?? "", processState)
+        )
+        continue
+      }
     }
 
     freezeBlockFn(child)
@@ -410,18 +457,40 @@ function collapseWhitespace(node: JSXText): ObjectExpression | undefined {
   ])
 }
 
+type GetJSXTextContentOptions = {
+  preserveWhitespace?: boolean
+}
+
+console.debug("YESa")
+
 /**
  * Extract plain text from JSX children; return null if any non-text (e.g.
  * component) is present.
+ *
+ * Handles three cases:
+ *
+ *     <div>Hello, world</div>
+ *     <div>{`Hello, world`}</div>
+ *     <div>"Hello, world"</div>
  */
-function getJSXTextContent(childNodes: JSXChild[]): string | null {
+function getJSXTextContent(
+  childNodes: JSXChild[],
+  { preserveWhitespace = false }: GetJSXTextContentOptions = {}
+): string | null {
   let text = ""
   for (const child of childNodes) {
     if (isJSXText(child)) {
-      text += child.value.replace(/\n\s*/g, " ").replace(/\s+/g, " ")
+      text += preserveWhitespace
+        ? child.value
+        : child.value.replace(/\n\s*/g, " ").replace(/\s+/g, " ")
     } else if (isJSXExpressionContainer(child)) {
       if (isStringLiteral(child.expression)) {
         text += child.expression.value
+      } else if (
+        isTemplateLiteral(child.expression) &&
+        child.expression.expressions.length === 0
+      ) {
+        text += child.expression.quasis[0].value.cooked ?? ""
       } else {
         return null
       }
@@ -430,6 +499,42 @@ function getJSXTextContent(childNodes: JSXChild[]): string | null {
     }
   }
   return text
+}
+
+function makeCodeBlockNode(
+  language: string,
+  rawText: string,
+  processState: ProcessDocState
+): ObjectExpression {
+  let textToSplit = rawText
+  if (language === "tsx" || language === "typescript") {
+    textToSplit = formatTypescript(rawText)
+  }
+
+  const lines = textToSplit.split("\n")
+  const codeLineNodes = lines.map((lineText) =>
+    objectExpression([
+      objectProperty(identifier("type"), stringLiteral("code-line")),
+      objectProperty(
+        identifier("children"),
+        arrayExpression([
+          objectExpression([
+            objectProperty(identifier("text"), stringLiteral(lineText)),
+          ]),
+        ])
+      ),
+    ])
+  )
+
+  return objectExpression([
+    objectProperty(identifier("type"), stringLiteral("code-block")),
+    objectProperty(
+      identifier("id"),
+      stringLiteral(`b${processState.blockId++}`)
+    ),
+    objectProperty(identifier("language"), stringLiteral(language)),
+    objectProperty(identifier("children"), arrayExpression(codeLineNodes)),
+  ])
 }
 
 /** Build a Slate void node placeholder for a frozen block (Demo, Code, etc.). */
@@ -460,13 +565,12 @@ function freezeBlock(
   node: JSXElement,
   processState: ProcessDocState,
   code: string,
-  getSource: GetSource,
-  makeFrozenNodeFn: (id: string) => ObjectExpression
+  getSource: GetSource
 ): void {
   const id = `f${processState.frozenId++}`
   processState.frozenElements[id] = node
   processState.frozenSources[id] = getSource(node, code)
-  processState.blockNodes.push(makeFrozenNodeFn(id))
+  processState.blockNodes.push(makeFrozenNode(id))
 }
 
 /**

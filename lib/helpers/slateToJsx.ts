@@ -1,45 +1,11 @@
-import type { Descendant, Element as SlateElement, Text } from "slate"
-
-/**
- * Slate elements are nodes that have a type and children. They are the
- * structural part of the document: blocks like paragraphs (type: "paragraph"),
- * headings (type: "heading"), list items (type: "list-item"), and inlines like
- * links (type: "link").
- *
- * Elements can nest (e.g. a paragraph element has children that are leaves or
- * inline elements).
- *
- * TODO: I think we are limiting how much elements can nest, right? Like list
- * items do not contain more lists, we just have a bunch of list items with each
- * their own indentation depth. Should that be reflected here?
- */
-type SlateBlock = SlateElement & {
-  type: string
-  id?: string
-  level?: number
-  listType?: "ul" | "ol"
-  depth?: number
-  url?: string
-}
-
-/**
- * Slate leaves are node that has text and optional marks (bold, italic, code,
- * etc.) and no children. They are the actual run of characters and their
- * formatting. Leaves are the bottom-level content inside elements.
- */
-type SlateLeaf = Text & {
-  bold?: boolean
-  italic?: boolean
-  code?: boolean
-}
-
-function isSlateLeaf(node: Descendant): node is SlateLeaf {
-  return "text" in node && !("type" in node)
-}
-
-function isSlateBlock(node: Descendant): node is SlateBlock {
-  return "type" in node
-}
+import type { Descendant } from "slate"
+import type { ListItemBlock, SlateBlock, SlateLeaf } from "~/Editor/types"
+import {
+  isLinkElement,
+  isListItemBlock,
+  isSlateBlock,
+  isSlateLeaf,
+} from "~/Editor/types"
 
 function serializeInlineChildren(children: Descendant[]): string {
   return children
@@ -47,7 +13,10 @@ function serializeInlineChildren(children: Descendant[]): string {
       if (isSlateLeaf(child)) {
         return serializeTextNode(child)
       }
-      if (isSlateBlock(child) && child.type === "link") {
+      // TODO: We probably will want to serialize CodeBlock, ParagraphBlock, etc
+      // here eventually. Although it's not currently even possible to create
+      // those under a list item.
+      if (isLinkElement(child)) {
         const inner = serializeInlineChildren(child.children)
         if (!child.url) {
           throw new Error("Link has no URL?")
@@ -71,7 +40,7 @@ function serializeTextNode(node: SlateLeaf): string {
 }
 
 function serializeBlock(
-  node: Descendant,
+  node: SlateBlock,
   frozenSources: Record<string, string>
 ): string {
   if (!isSlateBlock(node)) return ""
@@ -82,8 +51,22 @@ function serializeBlock(
     case "paragraph":
       return `<p>${children}</p>`
     case "heading": {
-      const level = node.level ?? 1
+      const level: number = node.level
       return `<h${level}>${children}</h${level}>`
+    }
+    case "code-block": {
+      const lines: string[] = []
+      for (const child of node.children) {
+        if (isSlateBlock(child) && child.type === "code-line") {
+          const lineText = child.children
+            .map((c) => (isSlateLeaf(c) ? c.text : ""))
+            .join("")
+          lines.push(lineText)
+        }
+      }
+      const joinedText = lines.join("\n")
+      const language = node.language ?? "tsx"
+      return `<pre><code data-language="${language}">${joinedText}</code></pre>`
     }
     case "frozen":
       return (node.id && frozenSources[node.id]) ?? ""
@@ -96,7 +79,7 @@ function serializeBlock(
  * Reconstructs nested `<ul>/<ol>` + `<li>` structure from the flat
  * list-item-with-depth representation that Slate uses.
  */
-function serializeListItems(items: SlateBlock[]): string {
+function serializeListItems(items: ListItemBlock[]): string {
   if (items.length === 0) return ""
 
   let result = ""
@@ -138,29 +121,35 @@ function serializeListItems(items: SlateBlock[]): string {
 }
 
 export function slateToJsx(
-  nodes: Descendant[],
+  nodes: SlateBlock[],
   frozenSources: Record<string, string>
 ): string {
-  const parts: string[] = []
-  let listBuffer: SlateBlock[] = []
+  /** Accumulated serialized blocks (strings) that will be joined */
+  const lines: string[] = []
+
+  /** Consecutive list items that need to be grouped into a single <ul> or <ol> */
+  let listBuffer: ListItemBlock[] = []
 
   for (const node of nodes) {
-    if (isSlateBlock(node) && node.type === "list-item") {
+    if (isListItemBlock(node)) {
+      // We found a list item, so buffer it to group with adjacent list items
       listBuffer.push(node)
       continue
     }
 
+    // Otherwise we've hit a non-list block, so flush any buffered lists before continuing.
     if (listBuffer.length > 0) {
-      parts.push(serializeListItems(listBuffer))
+      lines.push(serializeListItems(listBuffer))
       listBuffer = []
     }
 
-    parts.push(serializeBlock(node, frozenSources))
+    lines.push(serializeBlock(node, frozenSources))
   }
 
+  // If there's a remaining buffered list at the bottom of the doc, flush it.
   if (listBuffer.length > 0) {
-    parts.push(serializeListItems(listBuffer))
+    lines.push(serializeListItems(listBuffer))
   }
 
-  return parts.join("\n")
+  return lines.join("\n")
 }

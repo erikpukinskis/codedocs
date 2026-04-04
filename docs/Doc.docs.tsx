@@ -1,7 +1,6 @@
 // @codedocs include-wrapper-in-source
 // eslint-disable-next-line no-restricted-imports
 import { Demo, Doc, Placeholder } from "../macro"
-import { Code } from "~/Code"
 
 export const DocDocs = (
   <Doc path="/Docs/Doc">
@@ -14,19 +13,20 @@ export const DocDocs = (
       <code>components/Button/Button.tsx</code> then your docs would go in{" "}
       <code>components/Button/Button.docs.tsx</code>:
     </p>
-    <Code
-      mode="tsx"
-      source={`import { Button } from "./Button"
+    <code data-language="tsx">
+      {`
+        import { Button } from "./Button"
 
-export const ButtonDocs = (
-  <Doc path="/Docs/Button">
-    <p>Buttons are actuators for actions (exception page transitions:</p>
-    <Demo>
-      <Button>OK</Button>
-    </Demo>
-  </Doc>
-)`}
-    />
+        export const ButtonDocs = (
+          <Doc path="/Docs/Button">
+            <p>Buttons are actuators for actions (exception page transitions:</p>
+            <Demo>
+              <Button>OK</Button>
+            </Demo>
+          </Doc>
+        )
+      `}
+    </code>
     <h2>Document structure</h2>
     <p>
       You can write your docs however you like, using the full capabilities of
