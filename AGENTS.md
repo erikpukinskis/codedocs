@@ -1,4 +1,3 @@
-
 ## Depth of thinking and writing
 
 In each of your responses, choose the appropriate depth of response:

@@ -1,4 +1,5 @@
 # Rich text editor alternatives to Draft.js
+
 _Exported on 4/1/2026 at 16:40:09 PDT from Cursor (2.6.22)_
 
 ---
@@ -6,12 +7,14 @@ _Exported on 4/1/2026 at 16:40:09 PDT from Cursor (2.6.22)_
 **User**
 
 I'm looking for a spiritual successor to the draft.js rich text editor. What I love about Draft.js:
-1) It is a true React library, built around immutable state.
-2) It has a very clean block-based architecture, rather than an HTML-based one. HTML gets way too messy. I like the Draft.js has its own rock solid representation of the document, just an array of blocks, and each block has an array of characters, and that's it.
+
+1. It is a true React library, built around immutable state.
+2. It has a very clean block-based architecture, rather than an HTML-based one. HTML gets way too messy. I like the Draft.js has its own rock solid representation of the document, just an array of blocks, and each block has an array of characters, and that's it.
 
 I don't like
-1) that it is "headful" I would prefer if it was headless, but in practice it works OK.
-2) I don't like that you can't have overlapping entities. Ideally you can have a bold word inside a hyperlink. But in draft.js I don't think you can do that.
+
+1. that it is "headful" I would prefer if it was headless, but in practice it works OK.
+2. I don't like that you can't have overlapping entities. Ideally you can have a bold word inside a hyperlink. But in draft.js I don't think you can do that.
 
 What would you recommend? It seems like the closest thing to what I want is TipTap, but I tried pasting a bullet list into TipTap, and the whole list is a single block? I would expect each bullet to be a block.
 
@@ -51,7 +54,7 @@ bulletList (single node)
 
 The whole list is a parent node containing child list items. This is architecturally different from Draft.js's flat `[block, block, block]` model. ProseMirror's nesting is powerful for some use cases, but if you loved Draft.js's flat block array, it's going to feel foreign and overly complex.
 
-TipTap *does* support overlapping marks and is headless, so it checks those boxes. But the document model is the heart of a rich text editor, and it sounds like the flat model is what resonates with you.
+TipTap _does_ support overlapping marks and is headless, so it checks those boxes. But the document model is the heart of a rich text editor, and it sounds like the flat model is what resonates with you.
 
 ## What about Lexical?
 
@@ -76,12 +79,12 @@ I wouldn't blame you for sticking with Draft.js if it's working — but if you d
 
 **User**
 
-When I try to paste some rich text into the Slate demo at https://www.slatejs.org/examples/richtext  it does a terrible job of formatting it. I'm pasting the rich text, but the markdown of it is:
+When I try to paste some rich text into the Slate demo at https://www.slatejs.org/examples/richtext it does a terrible job of formatting it. I'm pasting the rich text, but the markdown of it is:
 
 **Daycare during Block 2:**
 
 - Before drop-off, call ahead and tell them the child is potty training commando (no underwear under pants) — most daycares will work with this
-   [Hocuspocus](https://github.com/ueberdosis/hocuspocus)
+  [Hocuspocus](https://github.com/ueberdosis/hocuspocus)
 
 - Share the child's specific cues so staff know what to watch for
 
@@ -97,25 +100,18 @@ Slate loses the bold, the bullets, the link, and also adds a bunch of whitespace
 
 Daycare during Block 2:
 
-
 Before drop-off, call ahead and tell them the child is potty training commando (no underwear under pants) — most daycares will work with this
 Hocuspocus
 
-
 Share the child’s specific cues so staff know what to watch for
-
 
 Ask how often they take kids to the potty, where the bathroom is, and what they do for accidents — the vibe of their answer matters more than the exact policy
 
-
 Pack 3-4 changes of pants, and a wet bag for soiled clothes
-
 
 Before walking in on Day 1, tell the child: “When you need to go potty, tap [teacher’s name] on the arm” and “Whatever you’re playing with will still be there when you get back”
 
-
 Daycare will handle it differently than home — that’s okay, kids adapt
-
 
 ---
 
@@ -145,13 +141,13 @@ In contrast, **ProseMirror** (and therefore TipTap) has a first-class `DOMParser
 
 Given your criteria again:
 
-| | Draft.js | Slate | TipTap/ProseMirror |
-|---|---|---|---|
-| React-first | ✅ | ✅ | ⚠️ (React adapter) |
-| Flat block model | ✅ | ✅ (configurable) | ❌ (nested) |
-| Headless | ❌ | ✅ | ✅ |
-| Overlapping marks | ❌ | ✅ | ✅ |
-| Paste HTML | ⚠️ | ❌ (DIY) | ✅ |
+|                   | Draft.js | Slate             | TipTap/ProseMirror |
+| ----------------- | -------- | ----------------- | ------------------ |
+| React-first       | ✅       | ✅                | ⚠️ (React adapter) |
+| Flat block model  | ✅       | ✅ (configurable) | ❌ (nested)        |
+| Headless          | ❌       | ✅                | ✅                 |
+| Overlapping marks | ❌       | ✅                | ✅                 |
+| Paste HTML        | ⚠️       | ❌ (DIY)          | ✅                 |
 
 Slate's paste problem is genuinely serious for a real app. If users ever paste from Google Docs, Notion, email, a website, or even another browser tab, you'll be chasing edge cases forever.
 
@@ -233,19 +229,19 @@ This is a clever idea, and it's more viable than it might seem — because `pros
 ProseMirror's paste intelligence lives primarily in `prosemirror-model`'s `DOMParser`. You can use it without an editor:
 
 ```javascript
-import { Schema, DOMParser, DOMSerializer } from 'prosemirror-model'
-import { schema as basicSchema } from 'prosemirror-schema-basic'
-import { addListNodes } from 'prosemirror-schema-list'
+import { Schema, DOMParser, DOMSerializer } from "prosemirror-model"
+import { schema as basicSchema } from "prosemirror-schema-basic"
+import { addListNodes } from "prosemirror-schema-list"
 
 const schema = new Schema({
   nodes: addListNodes(basicSchema.spec.nodes, "paragraph block*", "block"),
-  marks: basicSchema.spec.marks
+  marks: basicSchema.spec.marks,
 })
 
 function normalizeHTML(dirtyHtml) {
   // Parse messy HTML into a ProseMirror doc (schema-normalized)
   const parser = DOMParser.fromSchema(schema)
-  const dom = new window.DOMParser().parseFromString(dirtyHtml, 'text/html')
+  const dom = new window.DOMParser().parseFromString(dirtyHtml, "text/html")
   const doc = parser.parse(dom.body)
 
   // Serialize back to clean, predictable HTML
@@ -262,11 +258,11 @@ The output is **schema-normalized HTML** — no `<b style="font-weight:normal">`
 There's actually an official ProseMirror package — **[prosemirror-markdown](https://github.com/prosemirror/prosemirror-markdown)** — that serializes a ProseMirror doc to Markdown. So the full pipeline stays within the ProseMirror ecosystem:
 
 ```
-clipboard HTML 
-  → prosemirror-model DOMParser (normalizes quirky HTML) 
-  → ProseMirror doc 
-  → prosemirror-markdown serializer 
-  → clean Markdown 
+clipboard HTML
+  → prosemirror-model DOMParser (normalizes quirky HTML)
+  → ProseMirror doc
+  → prosemirror-markdown serializer
+  → clean Markdown
   → your Slate deserializer
 ```
 
@@ -294,8 +290,6 @@ Great point. I'll start with Slate, add Unified when I get to copy/pasting, and 
 
 Say more about Slate's flat block model... you said above that it's configurable?
 
-
-
 ---
 
 **Cursor**
@@ -318,11 +312,11 @@ There's nothing in Slate that forces nesting. You can structure your editor stat
 
 ```json
 [
-  { "type": "paragraph",   "children": [{ "text": "Intro paragraph" }] },
+  { "type": "paragraph", "children": [{ "text": "Intro paragraph" }] },
   { "type": "heading-one", "children": [{ "text": "A Title" }] },
-  { "type": "list-item",   "children": [{ "text": "Item 1" }] },
-  { "type": "list-item",   "children": [{ "text": "Item 2" }] },
-  { "type": "paragraph",   "children": [{ "text": "More text" }] }
+  { "type": "list-item", "children": [{ "text": "Item 1" }] },
+  { "type": "list-item", "children": [{ "text": "Item 2" }] },
+  { "type": "paragraph", "children": [{ "text": "More text" }] }
 ]
 ```
 
@@ -424,6 +418,7 @@ This is where the real complexity lives, and it has a few specific challenges:
 **2. JSX whitespace is terrible.** Look at your own code — you have `{" "}` in several places. JSX whitespace rules are unintuitive, and generating readable JSX means getting these right. This is solvable but annoying. You'd essentially build a small JSX printer for your supported element subset.
 
 **3. The write path needs a dev server.** The macro runs at build time, but edits happen in the browser. So you need:
+
 - A dev server endpoint that accepts POST with the new Slate document
 - A serializer (running in Node) that converts Slate → JSX source
 - File writing back to the `.docs.tsx` file
@@ -481,7 +476,7 @@ The riskiest piece to prototype first would be the **Slate → JSX serializer + 
 **User**
 
 > Do you freeze the whole paragraph?
-Ya, freeze the whole block (paragraph).
+> Ya, freeze the whole block (paragraph).
 
 Only blocks that are fully comprehended by our parser would be editable. Everything else can just be frozen.
 
@@ -515,7 +510,9 @@ So this:
 ```tsx
 <Doc path="/Docs/Doc">
   <p>Some text</p>
-  <Demo><Button /></Demo>
+  <Demo>
+    <Button />
+  </Demo>
   <p>More text</p>
 </Doc>
 ```
@@ -531,7 +528,11 @@ Becomes this at compile time:
     { type: "paragraph", id: "b1", children: [{ text: "More text" }] },
   ]}
   frozenElements={{
-    "f0": <Demo><Button /></Demo>
+    "f0": (
+      <Demo>
+        <Button />
+      </Demo>
+    ),
   }}
 />
 ```
@@ -568,11 +569,11 @@ Now I have a complete picture. Let me create the plan.
 
 This is looking very promising! Couple questions:
 
-1) How would we deal with converting the nested JSX structure into flat blocks? I think lists are the only place where that would be an issue.
+1. How would we deal with converting the nested JSX structure into flat blocks? I think lists are the only place where that would be an issue.
 
-2) Can Slate handle "shift+enter" type deal where it just adds a line break to an existing block, rather than creating a new block? And then "enter" creates a new block?
+2. Can Slate handle "shift+enter" type deal where it just adds a line break to an existing block, rather than creating a new block? And then "enter" creates a new block?
 
-3) Don't worry about the whole dev server endpoint thing. For now let's just have a button that shows the JSX inside a <Code> element. We can have three tabs at the top of the document: "Static" is just the plain rendered {children}, "Edit" shows the Slate editor, and "Source" shows the TSX.
+3. Don't worry about the whole dev server endpoint thing. For now let's just have a button that shows the JSX inside a <Code> element. We can have three tabs at the top of the document: "Static" is just the plain rendered {children}, "Edit" shows the Slate editor, and "Source" shows the TSX.
 
 Curious to hear your answers. And see any updates you want to make to the plan.
 
@@ -650,4 +651,3 @@ Done. The approach is the same one Draft.js used — a `depth` field on each fla
 **Serializer (Slate → JSX):** Uses a depth-stack algorithm. When processing list-items in sequence, it opens a new `<ul>/<ol>` (nested inside the prior `<li>`) when depth increases, and closes them when depth decreases. This reconstructs proper HTML list nesting from the flat representation.
 
 **Edit tab:** `Tab` / `Shift+Tab` on a list-item node increments/decrements `depth`, which is the standard keyboard interaction for nested lists everywhere.
-

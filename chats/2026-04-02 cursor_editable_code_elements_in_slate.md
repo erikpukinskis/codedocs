@@ -1,4 +1,5 @@
 # Editable code elements in Slate editor
+
 _Exported on 4/2/2026 at 10:52:29 PDT from Cursor (2.6.22)_
 
 ---
@@ -14,10 +15,11 @@ I would like to work on these frozenElements here @lib/helpers/processDocNode.ts
 In particular, I want to catch these <Code>@docs/Demo.docs.tsx:14-21 elements and make them also editable within Slate.
 
 Requirements:
- - Copy/pasting between Slate documents should work.
- - We haven't done any work on copy/pasting outside of Slate, but clipboard contents should be pasteable as rich HTML, to the extent possible. Note that our plan for handling copy/paste is outlined here: @chats/2026-03-10 cursor_rich_text_editor_alternatives_to.md:219-293 
- - Continuous selections across code and text lines should work. If I have a paragraph followed by a code block, I should be able to select the paragraph and half the code block, and press delete.
- - Eventually, typing ``` and pressing enter should create a code block. In general, I want a bunch of these markdown-based formatting tools availalbe, although so far we have none.
+
+- Copy/pasting between Slate documents should work.
+- We haven't done any work on copy/pasting outside of Slate, but clipboard contents should be pasteable as rich HTML, to the extent possible. Note that our plan for handling copy/paste is outlined here: @chats/2026-03-10 cursor_rich_text_editor_alternatives_to.md:219-293
+- Continuous selections across code and text lines should work. If I have a paragraph followed by a code block, I should be able to select the paragraph and half the code block, and press delete.
+- Eventually, typing ``` and pressing enter should create a code block. In general, I want a bunch of these markdown-based formatting tools availalbe, although so far we have none.
 
 What is a good way to do this?
 
@@ -54,11 +56,12 @@ You're right that using `<pre><code>` makes more sense. Here's why and how:
 2. **Slate-native**: Treat code blocks as regular Slate block nodes (like paragraphs/headings), not frozen components
 3. **Selection continuity**: Since they're regular Slate blocks, selection across text and code "just works"
 4. **Copy/paste**: When you later implement clipboard handling with unified/rehype, `<pre><code>` will round-trip cleanly
-5. **Markdown compatibility**: ``` creates `<pre><code>` blocks, aligning with your eventual markdown shortcuts
+5. **Markdown compatibility**: ```creates`<pre><code>` blocks, aligning with your eventual markdown shortcuts
 
 ### Proposed Structure
 
 **In the Slate document**:
+
 ```typescript
 {
   type: "code-block",
@@ -71,6 +74,7 @@ You're right that using `<pre><code>` makes more sense. Here's why and how:
 ```
 
 **Storage options for language**:
+
 - Option A: Store as a property on the node itself (`language: "tsx"`)
 - Option B: Use `data-language` attribute when rendering to HTML (cleaner for serialization)
 
@@ -88,27 +92,32 @@ if (tagName === "Code") {
   const modeAttr = child.openingElement.attributes.find(
     (a): a is JSXAttribute => isNamedJSXAttribute(a, "mode")
   )
-  
-  const source = sourceAttr?.value && isStringLiteral(sourceAttr.value) 
-    ? sourceAttr.value.value 
-    : ""
-  const language = modeAttr?.value && isStringLiteral(modeAttr.value)
-    ? modeAttr.value.value
-    : "plaintext"
-  
+
+  const source =
+    sourceAttr?.value && isStringLiteral(sourceAttr.value)
+      ? sourceAttr.value.value
+      : ""
+  const language =
+    modeAttr?.value && isStringLiteral(modeAttr.value)
+      ? modeAttr.value.value
+      : "plaintext"
+
   processState.blockNodes.push(
     objectExpression([
       objectProperty(identifier("type"), stringLiteral("code-block")),
-      objectProperty(identifier("id"), stringLiteral(`b${processState.blockId++}`)),
+      objectProperty(
+        identifier("id"),
+        stringLiteral(`b${processState.blockId++}`)
+      ),
       objectProperty(identifier("language"), stringLiteral(language)),
       objectProperty(
         identifier("children"),
         arrayExpression([
           objectExpression([
-            objectProperty(identifier("text"), stringLiteral(source))
-          ])
+            objectProperty(identifier("text"), stringLiteral(source)),
+          ]),
         ])
-      )
+      ),
     ])
   )
   continue
@@ -150,20 +159,24 @@ function extractTextContent(children: Descendant[]): string {
 ### Key Considerations
 
 **1. Plain text editing**: Code blocks should only contain plain text (no bold/italic/links). You'll need to:
+
 - Disable marks when cursor is in a code block
 - Strip formatting when pasting into code blocks
 - Consider using a monospace font in CSS
 
 **2. Newline handling**: Code blocks need to preserve literal newlines. Slate handles this with:
+
 - Shift+Enter inserts soft breaks (`\n` in text)
 - Or, treat each line as a separate `code-line` child (like `slate-edit-code` plugin)
 
 **3. Language selection**: You'll eventually want a UI to change the language. Could be:
+
 - A dropdown that appears when code block is selected
 - A language label/button above the code block
 - Stored as a node property and rendered as `data-language="tsx"` attribute
 
 **4. Syntax highlighting**: For the editor view, you have options:
+
 - Keep plain text in edit mode, show highlighted version in static view
 - Use a library like Prism.js to add syntax classes to the rendered code
 - Or, use the Ace editor component you already have (but embedded in Slate is tricky)
@@ -199,19 +212,20 @@ Following your plan from the chat transcript, you'd eventually:
 
 ### Markdown Shortcuts
 
-For typing ``` to create code blocks, you'd add logic in the `onKeyDown` handler:
+For typing ```to create code blocks, you'd add logic in the`onKeyDown` handler:
 
-```typescript
+````typescript
 if (event.key === "Enter") {
   const [match] = Editor.nodes(editor, {
-    match: n => SlateElement.isElement(n) && n.type === "paragraph"
+    match: (n) => SlateElement.isElement(n) && n.type === "paragraph",
   })
   if (match) {
     const [node, path] = match
     const text = extractTextContent(node.children)
     if (text.trim() === "```") {
       event.preventDefault()
-      Transforms.setNodes(editor, 
+      Transforms.setNodes(
+        editor,
         { type: "code-block", language: "plaintext" },
         { at: path }
       )
@@ -220,7 +234,7 @@ if (event.key === "Enter") {
     }
   }
 }
-```
+````
 
 ## Summary
 
@@ -241,7 +255,7 @@ Let's explore the multi-line structure. I was going to ask about that anyway... 
 
 That said, I guess there is also the multi-line blocks you get if you press shift+enter to get a newline?
 
-And in that case as well as for the code block case, there is only one block, and one menu  hovering on the left. Which probably is better than having a separate menu for each line of code.
+And in that case as well as for the code block case, there is only one block, and one menu hovering on the left. Which probably is better than having a separate menu for each line of code.
 
 One thing that's a little tough in Notion is if you want to split a code block into two.... normally you would just press enter a couple times in the middle of a paragraph and you'd have two blocks with some empty blocks between.
 
@@ -262,20 +276,23 @@ This is a great question that touches on fundamental editor design philosophy. L
 **How it works**: One Slate block containing `"function hello() {\n  return 'world'\n}"` as a single text string.
 
 **Pros**:
+
 - **Familiar text editing**: Behaves exactly like editing in VS Code, Sublime, or any traditional code editor
 - **Natural operations**: Select across multiple lines, copy 5 lines, delete 3 lines — all work intuitively
 - **Simple splitting**: Detecting "user pressed Enter 3 times" → "split block" is straightforward
-- **One conceptual unit**: A code block *is* one thing semantically, so one Slate block makes sense
+- **One conceptual unit**: A code block _is_ one thing semantically, so one Slate block makes sense
 - **Simpler state**: Fewer nodes in the document tree
 - **Better for large blocks**: A 50-line code snippet is one node, not 50
 
 **Cons**:
+
 - **Line-specific operations harder**: Can't easily "delete line 5" as a block operation
 - **Can't intersperse**: You can't put a comment block between lines 2 and 3 of the code
 
 ### Line-by-Line Structure
 
-**How it works**: 
+**How it works**:
+
 ```typescript
 {
   type: "code-block",
@@ -288,13 +305,15 @@ This is a great question that touches on fundamental editor design philosophy. L
 ```
 
 **Pros**:
+
 - **Block operations per line**: Drag line 3 above line 1, delete line 2 as a block
 - **Potential for rich annotations**: Could theoretically add line-level comments, highlights, or other metadata between lines
 - **Cleaner mental model?**: Every line is a block, consistently throughout the editor
 
 **Cons**:
+
 - **Fighting Slate's grain**: Slate wants to treat each `code-line` as a separate block you can navigate between
-- **Enter key confusion**: Enter in a paragraph creates a new paragraph block. Enter in a code line should create a new code line *within the same code block*, but Slate will want to create a sibling
+- **Enter key confusion**: Enter in a paragraph creates a new paragraph block. Enter in a code line should create a new code line _within the same code block_, but Slate will want to create a sibling
 - **Selection awkwardness**: Selecting "lines 2-4" means selecting across 3 separate Slate blocks, which can have weird behavior at boundaries
 - **Complex operations**: Joining/splitting code blocks becomes complicated — you're managing parent-child relationships
 - **Notion-style restrictions needed**: You'd need custom logic to prevent turning a code-line into a paragraph, or extracting a line out of its parent code-block
@@ -305,13 +324,13 @@ I think you've identified the core tension: **block-based editors have a fundame
 
 1. You want to treat the whole code block as one unit (syntax highlighting, language setting, one drag handle)
 2. But you also want line breaks inside it to behave like soft breaks, not block breaks
-3. But you *also* sometimes want to split it into two blocks
+3. But you _also_ sometimes want to split it into two blocks
 
 The shift+Enter soft break is indeed similar, but there's a key difference:
 
-**Soft breaks in paragraphs**: These are usually rare and used for poetry, addresses, or forced line breaks. They're the *exception*.
+**Soft breaks in paragraphs**: These are usually rare and used for poetry, addresses, or forced line breaks. They're the _exception_.
 
-**Lines in code blocks**: Every line has a break. It's the *norm*. This creates more opportunities for confusion about whether Enter will create a soft break (stay in code) or hard break (exit code).
+**Lines in code blocks**: Every line has a break. It's the _norm_. This creates more opportunities for confusion about whether Enter will create a soft break (stay in code) or hard break (exit code).
 
 ## My Take: Single-Text Block with Smart Enter Detection
 
@@ -322,7 +341,7 @@ I'd recommend the **single-text block approach** with intelligent split detectio
 if (event.key === "Enter" && isInCodeBlock(editor)) {
   const text = getCurrentBlockText(editor)
   const cursorPosition = getCurrentCursorPosition(editor)
-  
+
   // Check if user is at a split point (multiple consecutive newlines)
   if (hasTwoNewlinesBeforeCursor(text, cursorPosition)) {
     // Split the code block into two
@@ -335,18 +354,20 @@ if (event.key === "Enter" && isInCodeBlock(editor)) {
 }
 ```
 
-**The split heuristic**: If the user has typed Enter twice (creating `\n\n`), the *third* Enter splits the block. This matches how you'd create separation in a regular text block.
+**The split heuristic**: If the user has typed Enter twice (creating `\n\n`), the _third_ Enter splits the block. This matches how you'd create separation in a regular text block.
 
 Alternatively, **Mod+Enter** (Cmd/Ctrl+Enter) could explicitly exit the code block, leaving regular Enter to always insert newlines. This is what many code editors do (and what `slate-edit-code` implements).
 
 ## Addressing the Notion Problem
 
 The awkwardness in Notion comes from:
+
 1. No visual indication you're "inside" a code block (until you look at the block menu)
 2. Enter behavior changes based on context but there's no clear signal
 3. Splitting requires knowing a special gesture
 
 **You can improve on this**:
+
 - **Visual containment**: A subtle border or background around code blocks makes it obvious you're "inside"
 - **Exit hint**: Show a subtle "Cmd+Enter to exit" tooltip when cursor enters a code block
 - **Smart splitting**: Detect multiple blank lines as intent to split
@@ -354,13 +375,14 @@ The awkwardness in Notion comes from:
 
 ## One More Consideration: Read-Only Display
 
-For your `<Code>` component with the Ace editor, you might want *different behavior in different contexts*:
+For your `<Code>` component with the Ace editor, you might want _different behavior in different contexts_:
 
-1. **In documentation prose** (what you have now): Frozen blocks make sense because these are *examples showing code*, not code you're writing. They have copy buttons, syntax highlighting, etc.
+1. **In documentation prose** (what you have now): Frozen blocks make sense because these are _examples showing code_, not code you're writing. They have copy buttons, syntax highlighting, etc.
 
 2. **In editable code blocks** (what you want to add): Simple `<pre><code>` with plain text editing, because you're authoring documentation content
 
 So you might end up with **both**:
+
 - `frozen` nodes containing `<Code>` components (for fancy read-only examples)
 - `code-block` nodes with `<pre><code>` (for editable code snippets)
 
@@ -369,12 +391,14 @@ Then you could have a way to "promote" an editable code block to a frozen `<Code
 ## My Recommendation
 
 Start with **single-text block** because:
+
 1. It's simpler to implement
 2. It matches user expectations from traditional editors
 3. Splitting can be added intelligently
 4. You avoid fighting Slate's event model
 
 Then add:
+
 - Visual styling to make code blocks feel contained
 - Cmd+Enter to exit code blocks
 - Smart detection of "3 Enters = split" or similar
@@ -417,6 +441,7 @@ Great observations! You're hitting on some deep structural questions. Let me thi
 Beyond line numbers and focus state, here are the line-level features:
 
 **Visual/UI**:
+
 - **Line highlighting**: Current line gets a background color
 - **Line numbers**: Obviously per-line
 - **Breakpoints**: Debugging markers on specific lines
@@ -425,6 +450,7 @@ Beyond line numbers and focus state, here are the line-level features:
 - **Folding controls**: Collapse/expand sections starting at specific lines
 
 **Editing operations**:
+
 - **Duplicate line**: Cmd+Shift+D duplicates the current line
 - **Move line up/down**: Alt+Up/Down moves lines
 - **Delete line**: Cmd+Shift+K deletes whole line
@@ -433,6 +459,7 @@ Beyond line numbers and focus state, here are the line-level features:
 - **Column selection**: Select a vertical rectangle of text across lines
 
 **Semantic features**:
+
 - **Go to line**: Jump to line 47
 - **Bookmarks**: Mark specific lines for quick navigation
 - **Coverage indicators**: Test coverage shown per-line
@@ -461,12 +488,14 @@ You're absolutely right. You could have:
 ```
 
 And then in your UI:
+
 - **One drag handle** on the left of the entire code block
 - **One language selector** for the whole thing
 - **Line numbers** as visual decoration, not individual block menus
-- The hover menu appears when you're over *any* line, but operates on the parent code-block
+- The hover menu appears when you're over _any_ line, but operates on the parent code-block
 
 Slate's `renderElement` for `code-line` would be minimal:
+
 ```tsx
 case "code-line":
   return <div {...attributes}>{children}</div>
@@ -480,7 +509,8 @@ Your list example is perfect:
 
 ```html
 <ul>
-  <li>Some text
+  <li>
+    Some text
     <pre><code>multi-line code</code></pre>
   </li>
 </ul>
@@ -488,8 +518,9 @@ Your list example is perfect:
 
 This is **completely valid HTML**, but most block editors can't represent it. Why?
 
-**The block-based assumption**: Each block can contain *either*:
-- Inline content (text, bold, links), OR  
+**The block-based assumption**: Each block can contain _either_:
+
+- Inline content (text, bold, links), OR
 - Child blocks (nested elements)
 
 But not both in sequence. Your list item wants: `[text] + [code block]`, which is "mixed content."
@@ -533,7 +564,7 @@ Your list items are flat blocks with `depth` properties:
 
 Not nested `<ul>` structures. This is smart! It avoids the complexity of nested block nodes.
 
-**But**: This means you *can't* put a code block inside a list item, because list items only contain inline content.
+**But**: This means you _can't_ put a code block inside a list item, because list items only contain inline content.
 
 ## Three Possible Approaches
 
@@ -541,7 +572,8 @@ Not nested `<ul>` structures. This is smart! It avoids the complexity of nested 
 
 **Decision**: List items, paragraphs, headings, and code-lines can only contain inline content (text, bold, links).
 
-**Result**: 
+**Result**:
+
 - Simple, predictable model
 - Can't nest blocks inside other blocks
 - Users learn to work around it: "exit the list, add code, start a new list"
@@ -550,16 +582,17 @@ This is what you currently have (except code blocks would be their own block typ
 
 ### 2. Allow Block Children in Certain Contexts
 
-**Decision**: List items can contain *both* inline text *and* child blocks.
+**Decision**: List items can contain _both_ inline text _and_ child blocks.
 
 **Structure**:
+
 ```typescript
 {
   type: "list-item",
   depth: 0,
   children: [
     { text: "Some text" },
-    { 
+    {
       type: "code-block",
       children: [
         { type: "code-line", children: [{ text: "code here" }] }
@@ -570,6 +603,7 @@ This is what you currently have (except code blocks would be their own block typ
 ```
 
 **Challenges**:
+
 - Slate doesn't naturally support this "mixed content" model
 - You'd need custom normalization rules
 - Keyboard navigation gets complex (cursor after "text", then what?)
@@ -577,9 +611,10 @@ This is what you currently have (except code blocks would be their own block typ
 
 ### 3. Indentation-Based Nesting (Keep Flat Structure)
 
-**Decision**: A code block *after* a list item with higher depth is "visually nested."
+**Decision**: A code block _after_ a list item with higher depth is "visually nested."
 
 **Structure**:
+
 ```typescript
 { type: "list-item", depth: 0, children: [{ text: "Some text" }] }
 { type: "code-block", depth: 1, language: "tsx", children: [...] }
@@ -589,11 +624,13 @@ This is what you currently have (except code blocks would be their own block typ
 **Rendering**: Use the `depth` property to add left margin, creating visual nesting without structural nesting.
 
 **Pros**:
+
 - Keeps the flat model (simpler)
 - Visual appearance matches nested HTML
 - Works for any block type (images, quotes, code)
 
 **Cons**:
+
 - Not semantically nested — when you serialize to HTML, you'd need logic to wrap depth-1 code blocks in the previous `<li>`
 - Might feel weird: "why is this code block a sibling to the list item?"
 
@@ -609,18 +646,21 @@ I think **line-by-line structure + single block UI** is the sweet spot for code 
 
 2. **Block-of-blocks solves the menu problem**: You get the benefits of line structure without UI clutter
 
-3. **Natural splitting**: 
+3. **Natural splitting**:
+
    - User types Enter → creates a new code-line (stays in code block)
    - User types Enter on empty line → exits code block (creates a paragraph after)
    - This matches user expectations from VS Code, GitHub, and most editors
 
 4. **Line operations become possible**: Later you could add:
+
    - Line numbers (easy: just render the index)
    - "Delete this line" button
    - Line-level comments or annotations
    - Syntax error markers per-line
 
 5. **Flat-with-depth handles nesting**: For your list example:
+
    ```typescript
    { type: "list-item", depth: 0, children: [{ text: "Some text" }] }
    { type: "code-block", depth: 1, children: [
@@ -629,7 +669,7 @@ I think **line-by-line structure + single block UI** is the sweet spot for code 
    ]}
    { type: "list-item", depth: 0, children: [{ text: "Next item" }] }
    ```
-   
+
    Then when serializing to JSX/HTML, you'd detect "this code-block has depth=1 and the previous block was a list-item at depth=0" and nest it accordingly in the output.
 
 ## The Tradeoff
@@ -639,12 +679,14 @@ I think **line-by-line structure + single block UI** is the sweet spot for code 
 **Line-by-line is better if**: You want to add rich code editing features later, want natural splitting behavior, and are willing to handle the Enter key complexity.
 
 Given that:
+
 - You're building a documentation tool (code examples are central)
 - You'll want good code block UX
 - You already have a flat depth-based model for lists
 - You can hide per-line menus and show block-level UI
 
 I'd lean toward **line-by-line structure**, with the understanding that you'd need to:
+
 1. Handle Enter key to create code-lines (not exit the block)
 2. Detect empty-line+Enter to exit the block
 3. Apply block-level styling (border, background) to the parent `code-block`
@@ -659,13 +701,13 @@ But this is definitely more work upfront. If you want to get something working q
 In your example:
 
 {
-  type: "code-block",
-  language: "tsx",
-  children: [
-    { type: "code-line", children: [{ text: "function hello() {" }] },
-    { type: "code-line", children: [{ text: "  return 'world'" }] },
-    { type: "code-line", children: [{ text: "}" }] },
-  ]
+type: "code-block",
+language: "tsx",
+children: [
+{ type: "code-line", children: [{ text: "function hello() {" }] },
+{ type: "code-line", children: [{ text: " return 'world'" }] },
+{ type: "code-line", children: [{ text: "}" }] },
+]
 }
 
 I don't quite understand... are those "code-line"s blocks?
@@ -681,14 +723,17 @@ Let me clarify the Slate terminology:
 ## Slate's Node Types
 
 **1. Editor** (root)
+
 - The top-level container
 
 **2. Elements** (blocks and inlines)
+
 - Have a `type` property
 - Have a `children` array
 - Can be blocks (paragraphs, headings, code-lines) or inlines (links)
 
 **3. Text** (leaves)
+
 - Have a `text` property
 - Can have marks (bold, italic, etc.)
 - No children — they're the bottom of the tree
@@ -700,13 +745,13 @@ Let me clarify the Slate terminology:
   type: "code-block",           // ← Block element (parent)
   language: "tsx",
   children: [
-    { 
+    {
       type: "code-line",        // ← Block element (child)
       children: [
         { text: "function hello() {" }  // ← Text node (leaf)
       ]
     },
-    { 
+    {
       type: "code-line",        // ← Block element (child)
       children: [
         { text: "  return 'world'" }    // ← Text node (leaf)
@@ -717,7 +762,7 @@ Let me clarify the Slate terminology:
 ```
 
 - **`code-block`**: Block element (container)
-- **`code-line`**: Block element (one per line of code)  
+- **`code-line`**: Block element (one per line of code)
 - **`{ text: "..." }`**: Text node (the actual characters)
 
 ## This Creates a 3-Level Hierarchy
@@ -757,6 +802,7 @@ Everything is at the same level under the Editor root.
 You're spot on about lists being analogous:
 
 **Current structure** (flat with depth):
+
 ```typescript
 { type: "list-item", depth: 0, children: [{ text: "Item 1" }] }
 { type: "list-item", depth: 1, children: [{ text: "Nested" }] }
@@ -764,13 +810,14 @@ You're spot on about lists being analogous:
 ```
 
 **You could instead do** (nested structure):
+
 ```typescript
 {
   type: "list",
   listType: "ul",
   children: [
-    { 
-      type: "list-item", 
+    {
+      type: "list-item",
       children: [
         { text: "Item 1" },
         {
@@ -794,19 +841,21 @@ But you chose flat-with-depth for lists (smart choice IMO — simpler keyboard n
 **Should code blocks use the nested structure when lists don't?**
 
 Arguments **for** nesting code-lines inside code-block:
+
 - Lines have semantic meaning (line numbers, errors, etc.)
 - You want line-level operations (move line, delete line)
 - Cursor navigation between lines should be constrained to the code block
 - Makes adding a code block inside a list item easier (see below)
 
 Arguments **against** (flat depth-based, like lists):
+
 - Consistency: lists are flat, so code blocks should be flat too
 - Simpler: one level of block hierarchy
 - Easier splitting: just insert a paragraph between two code-lines
 
 ## Your Nesting Problem Revisited
 
-If you go with nested `code-line` blocks, you *can* solve the list nesting issue:
+If you go with nested `code-line` blocks, you _can_ solve the list nesting issue:
 
 ```typescript
 {
@@ -829,6 +878,7 @@ If you go with nested `code-line` blocks, you *can* solve the list nesting issue
 **But** this requires changing your model from "list items contain only inline content" to "list items can contain blocks."
 
 And if you allow that, you'd need to update:
+
 - `parseInlineChildren` to handle block children
 - `serializeInlineChildren` in `slateToJsx.ts`
 - Normalization rules to prevent invalid nesting
@@ -839,12 +889,14 @@ And if you allow that, you'd need to update:
 There are two philosophies here:
 
 ### Philosophy A: Strict Separation (Simpler)
+
 - Blocks contain ONLY inline content (text, marks, links)
 - No nesting of block-level elements
 - Use depth properties for visual indentation
 - Can't put code inside list items (or vice versa)
 
 ### Philosophy B: Rich Nesting (More Complex)
+
 - Certain blocks (list-items, maybe blockquotes) can contain child blocks
 - Enables HTML-like structure: list items with nested code, images, etc.
 - Requires careful normalization and navigation logic
@@ -855,19 +907,21 @@ There are two philosophies here:
 
 2. **Simpler is better for MVP** — you can always add nesting later if users demand it
 
-3. **The flat model extends naturally**: 
+3. **The flat model extends naturally**:
+
    ```typescript
    { type: "list-item", depth: 0, children: [{ text: "Item" }] }
    { type: "code-block", depth: 1, children: [
        { type: "code-line", children: [{ text: "code" }] }
    ]}
    ```
-   
+
    This "looks" nested when rendered (margin-left based on depth) but stays structurally flat.
 
 So yes, `code-line` would be blocks, but they'd be **nested inside** a `code-block` parent (not flat at the document root level), making them more like list items inside a list container — except your lists don't have a container, they're just sequential items with depth markers.
 
-**Alternative consistency play**: If you want perfect consistency with your list model, you *could* do:
+**Alternative consistency play**: If you want perfect consistency with your list model, you _could_ do:
+
 ```typescript
 { type: "code-line", depth: 0, language: "tsx", blockId: "cb1", children: [...] }
 { type: "code-line", depth: 0, language: "tsx", blockId: "cb1", children: [...] }
@@ -883,7 +937,7 @@ Does that clarify the structure question?
 **User**
 
 > Cursor navigation between lines should be constrained to the code block
-What do you mean by this?
+> What do you mean by this?
 
 > Philosophy A: Strict Separation (Simpler)
 > Can't put code inside list items (or vice versa)
@@ -927,6 +981,7 @@ Ah YES! I completely misunderstood. You're proposing something much more elegant
 ```
 
 And that `<pre>` container gets:
+
 - One hover menu (not three)
 - One language selector
 - Visual boundary styling
@@ -1062,11 +1117,11 @@ It buffers adjacent `list-item` blocks and wraps them in `<ul>/<ol>` tags!
 ```typescript
 const DocElement = ({ attributes, children, element, frozenElements }: DocElementProps) => {
   const node = element as SlateBlock
-  
+
   // Check if this code-line is the first in its group
   const isFirstCodeLine = /* detect if previous sibling is not a code-line */
   const isLastCodeLine = /* detect if next sibling is not a code-line */
-  
+
   if (node.type === "code-line") {
     return (
       <>
@@ -1091,26 +1146,33 @@ const DocElement = ({ attributes, children, element, frozenElements }: DocElemen
 **In `slateToJsx.ts` serialization**:
 
 ```typescript
-export function slateToJsx(nodes: Descendant[], frozenSources: Record<string, string>): string {
+export function slateToJsx(
+  nodes: Descendant[],
+  frozenSources: Record<string, string>
+): string {
   const parts: string[] = []
   let listBuffer: SlateBlock[] = []
-  let codeLineBuffer: SlateBlock[] = []  // ← New buffer
-  
+  let codeLineBuffer: SlateBlock[] = [] // ← New buffer
+
   for (const node of nodes) {
     // Flush code lines when we hit a non-code-line
-    if (isSlateBlock(node) && node.type !== "code-line" && codeLineBuffer.length > 0) {
+    if (
+      isSlateBlock(node) &&
+      node.type !== "code-line" &&
+      codeLineBuffer.length > 0
+    ) {
       parts.push(serializeCodeBlock(codeLineBuffer))
       codeLineBuffer = []
     }
-    
+
     if (isSlateBlock(node) && node.type === "code-line") {
       codeLineBuffer.push(node)
       continue
     }
-    
+
     // ... existing list logic ...
   }
-  
+
   // Flush any remaining code lines
   if (codeLineBuffer.length > 0) {
     parts.push(serializeCodeBlock(codeLineBuffer))
@@ -1120,7 +1182,7 @@ export function slateToJsx(nodes: Descendant[], frozenSources: Record<string, st
 function serializeCodeBlock(lines: SlateBlock[]): string {
   const language = lines[0]?.language ?? "plaintext"
   const code = lines
-    .map(line => serializeInlineChildren(line.children))
+    .map((line) => serializeInlineChildren(line.children))
     .join("\n")
   return `<Code mode="${language}" source={${JSON.stringify(code)}} />`
 }
@@ -1128,7 +1190,7 @@ function serializeCodeBlock(lines: SlateBlock[]): string {
 
 ## What I Meant by "Constrained Navigation"
 
-I was thinking about nested structure where pressing Down Arrow at the end of a code-line moves to the next code-line *within the code block*, and only exits when you reach the last line.
+I was thinking about nested structure where pressing Down Arrow at the end of a code-line moves to the next code-line _within the code block_, and only exits when you reach the last line.
 
 But in your flat structure, Down Arrow would naturally move to the next block (whether that's another code-line or a paragraph), which is actually **better** — it's consistent!
 
@@ -1159,7 +1221,7 @@ Is this the model you were envisioning?
 
 Yes, you got it!
 
-One note: slateToJsx is only used for exporting the slate state. Can you take a look at how the actual <ul> rendering happens in DocEditor? @lib/Doc.tsx:146-147 
+One note: slateToJsx is only used for exporting the slate state. Can you take a look at how the actual <ul> rendering happens in DocEditor? @lib/Doc.tsx:146-147
 
 ---
 
@@ -1213,6 +1275,7 @@ Just individual `<div>` elements, no wrapping `<pre>`.
 ## But Wait — How Do You Show Group-Level UI?
 
 For lists, you don't really need group-level UI (each item can have its own menu). But for code blocks, you want:
+
 - One language selector for the whole group
 - One hover menu
 - Visual containment (border/background around the whole group)
@@ -1225,7 +1288,9 @@ Use CSS to style the first/last/middle lines differently:
 
 ```css
 /* First code-line in a group */
-div[data-type="code-line"]:not(div[data-type="code-line"] + div[data-type="code-line"]) {
+div[data-type="code-line"]:not(
+    div[data-type="code-line"] + div[data-type="code-line"]
+  ) {
   border-top: 1px solid gray;
   padding-top: 8px;
 }
@@ -1247,7 +1312,7 @@ case "code-line": {
   // Not trivially available in renderElement callback
   const isFirst = /* somehow detect */
   const isLast = /* somehow detect */
-  
+
   return (
     <div {...attributes} className={styles.codeLine({ isFirst, isLast })}>
       {children}
@@ -1293,6 +1358,7 @@ Actually use a parent `code-block` element, but make it "transparent" to editing
 This isn't fully flat, but the `code-block` element is just a container with no editable content of its own. The editable units are still the individual `code-line` blocks.
 
 **Benefits**:
+
 - Easy to render group-level UI (language badge on the `code-block` element)
 - Easy to store group-level properties (language on parent, not duplicated on each line)
 - Natural place for hover menu and selection
@@ -1334,32 +1400,37 @@ Slate distinguishes elements along two axes:
 ### 1. Block vs. Inline (`editor.isInline`)
 
 **Block elements** (default):
+
 - Stack vertically
 - Can only be siblings with other blocks
 - Examples: paragraphs, headings, list-items, divs
 - Take up full width of their container
 
 **Inline elements**:
+
 - Flow horizontally with text
 - Can be siblings with Text nodes
 - Examples: links, inline code (though you're using marks for that)
 - Wrap and break across lines
 
 You specify inline elements by overriding:
+
 ```typescript
 editor.isInline = (element) => {
-  return element.type === 'link'
+  return element.type === "link"
 }
 ```
 
 ### 2. Void vs. Content (`editor.isVoid`)
 
 **Content elements** (default):
+
 - Slate manages the children
 - User can edit inside them
 - Examples: paragraphs, lists, code blocks
 
 **Void elements**:
+
 - Slate doesn't manage children (you do)
 - Set `contentEditable={false}`
 - Must have one empty text child for cursor positioning
@@ -1389,9 +1460,10 @@ If you do:
 ```
 
 By default, Slate would see:
+
 - `code-block` is a **block element** (default)
 - `code-line` is a **block element** (default)
-- "Block elements can't be children of block elements!" 
+- "Block elements can't be children of block elements!"
 - **Slate's normalizer would "fix" this** by either unwrapping or restructuring
 
 ## The Solution: Make Code-Lines Inline
@@ -1401,11 +1473,11 @@ You'd need to tell Slate that `code-line` elements should be treated as inline:
 ```typescript
 const editor = useMemo(() => {
   const e = withHistory(withReact(createEditor()))
-  
+
   e.isInline = (element) => {
-    return element.type === 'link' || element.type === 'code-line'
+    return element.type === "link" || element.type === "code-line"
   }
-  
+
   return e
 }, [])
 ```
@@ -1419,23 +1491,23 @@ Or you override the normalizer to allow this specific nesting:
 ```typescript
 const withCodeBlocks = (editor) => {
   const { normalizeNode } = editor
-  
+
   editor.normalizeNode = (entry) => {
     const [node, path] = entry
-    
+
     // Allow code-line blocks inside code-block blocks
     if (
       SlateElement.isElement(node) &&
-      node.type === 'code-block' &&
-      node.children.some(child => child.type === 'code-line')
+      node.type === "code-block" &&
+      node.children.some((child) => child.type === "code-line")
     ) {
       return // Don't normalize this case
     }
-    
+
     // Default normalization for everything else
     normalizeNode(entry)
   }
-  
+
   return editor
 }
 ```
@@ -1456,6 +1528,7 @@ By default: Block elements can only contain inline elements or text. But you can
 ## Back to Your Lists
 
 Your list items work because:
+
 - `list-item` is a block element
 - Its children are Text nodes or inline elements (links, formatted text)
 - No blocks nested inside, so no normalization issues
@@ -1490,16 +1563,17 @@ If `code-block` is **not a block element**, then Slate won't complain about havi
 ```typescript
 const withCodeBlocks = (editor) => {
   const { isVoid } = editor
-  
+
   editor.isVoid = (element) => {
-    return element.type === 'code-block' || isVoid(element)
+    return element.type === "code-block" || isVoid(element)
   }
-  
+
   return editor
 }
 ```
 
 **How it works**:
+
 - `code-block` is a **void element** (Slate doesn't manage its children)
 - `code-line` children are **block elements**
 - Slate says "okay, you're handling the rendering, not my problem"
@@ -1512,16 +1586,21 @@ const withCodeBlocks = (editor) => {
 ```typescript
 const withCodeBlocks = (editor) => {
   const { isInline } = editor
-  
+
   editor.isInline = (element) => {
-    return element.type === 'code-block' || element.type === 'link' || isInline(element)
+    return (
+      element.type === "code-block" ||
+      element.type === "link" ||
+      isInline(element)
+    )
   }
-  
+
   return editor
 }
 ```
 
 **How it works**:
+
 - `code-block` is an **inline element**
 - `code-line` children are **block elements**
 - Slate allows blocks inside inlines
@@ -1534,12 +1613,14 @@ Ah, so the rules are:
 
 ## Slate's Nesting Constraints
 
-1. **Block nodes can only contain**: 
+1. **Block nodes can only contain**:
+
    - Other block nodes (all children must be blocks), OR
    - Inline/text nodes (all children must be inline/text)
    - **Not a mix of both**
 
 2. **Inline nodes cannot**:
+
    - Be the first or last child of a parent block
    - Be siblings with text nodes
 
@@ -1561,6 +1642,7 @@ If you do:
 ```
 
 This **should work fine** as long as:
+
 - `code-block` is a **block element** (default)
 - `code-line` is a **block element** (default)
 - All children of `code-block` are blocks (✓ they are)
@@ -1570,6 +1652,7 @@ The constraint that "blocks can only contain blocks OR inlines, not both" is sat
 ## Where This Works vs. Doesn't
 
 **Works**:
+
 ```typescript
 // Block containing blocks ✓
 { type: "code-block", children: [
@@ -1585,6 +1668,7 @@ The constraint that "blocks can only contain blocks OR inlines, not both" is sat
 ```
 
 **Doesn't work**:
+
 ```typescript
 // Block containing BOTH blocks and text/inlines ✗
 { type: "list-item", children: [
@@ -1626,7 +1710,7 @@ Thank you so much for your help. You've helped me think through a number of key 
 
 Because you've (understandably, this is a long thread) started contradicting yourself (blocks cannot contain other block nodes/blocks CAN contain other blocks) I would like to start a new thread with a larger model.
 
-Please summarize 1) the  problem we are trying to solve, 2) the tradeoffs and challenges we have discussed, 3) other key considerations you think will be useful for another LLM trying to join the conversation and understand deeply.
+Please summarize 1) the problem we are trying to solve, 2) the tradeoffs and challenges we have discussed, 3) other key considerations you think will be useful for another LLM trying to join the conversation and understand deeply.
 
 ---
 
@@ -1639,6 +1723,7 @@ Please summarize 1) the  problem we are trying to solve, 2) the tradeoffs and ch
 **Goal**: Make `<Code>` elements (currently frozen/non-editable blocks in the Slate editor) editable within the SlateJS-based documentation editor.
 
 **Requirements**:
+
 - Copy/paste between Slate documents must work
 - Copy/paste from external sources should handle rich HTML (plan: use unified/rehype, potentially ProseMirror for normalization if needed)
 - Continuous selections across prose and code blocks (select a paragraph + half a code block, press delete)
@@ -1652,15 +1737,18 @@ Please summarize 1) the  problem we are trying to solve, 2) the tradeoffs and ch
 ### A. Representation Choice: Single-Text vs. Line-by-Line
 
 **Option 1: Single-text block** (one block, one text node with `\n` characters):
+
 ```typescript
 { type: "code-block", language: "tsx", children: [
     { text: "function hello() {\n  return 'world'\n}" }
 ]}
 ```
+
 - **Pros**: Simpler, familiar editing behavior, fewer nodes, easier copy/paste
 - **Cons**: Line-level features harder (line numbers, move line, per-line annotations)
 
 **Option 2: Line-by-line structure** (multiple code-line blocks):
+
 ```typescript
 { type: "code-block", language: "tsx", children: [
     { type: "code-line", children: [{ text: "function hello() {" }] },
@@ -1668,6 +1756,7 @@ Please summarize 1) the  problem we are trying to solve, 2) the tradeoffs and ch
     { type: "code-line", children: [{ text: "}" }] },
 ]}
 ```
+
 - **Pros**: Line-level operations natural (line numbers, move/delete line, per-line errors/annotations), splitting is cleaner, matches how code editors actually work
 - **Cons**: More complex, requires handling Enter key behavior, need to manage group-level properties (language)
 
@@ -1676,6 +1765,7 @@ Please summarize 1) the  problem we are trying to solve, 2) the tradeoffs and ch
 ### B. Flat vs. Nested Structure
 
 **User's current list model**: Flat blocks with `depth` property (no nested `<ul>` in Slate document):
+
 ```typescript
 { type: "list-item", depth: 0, listType: "ul", children: [{ text: "Item 1" }] }
 { type: "list-item", depth: 1, listType: "ul", children: [{ text: "Nested" }] }
@@ -1684,12 +1774,14 @@ Please summarize 1) the  problem we are trying to solve, 2) the tradeoffs and ch
 During serialization to JSX, `serializeListItems()` reconstructs the nested `<ul><li>` structure.
 
 **Code blocks could follow the same pattern** (flat code-lines as siblings):
+
 ```typescript
 { type: "code-line", language: "tsx", blockId: "cb1", children: [{ text: "line 1" }] }
 { type: "code-line", language: "tsx", blockId: "cb1", children: [{ text: "line 2" }] }
 ```
 
 **Or use nested structure**:
+
 ```typescript
 { type: "code-block", language: "tsx", children: [
     { type: "code-line", children: [{ text: "line 1" }] },
@@ -1706,6 +1798,7 @@ Valid HTML: `<li>Some text<pre><code>...</code></pre></li>`
 Block editors struggle with this because it requires "mixed content" — a list item containing both inline content (text) and block content (code block).
 
 **Solutions discussed**:
+
 1. **Don't support it** (strict separation: blocks contain only inline content)
 2. **Allow mixed content** (complex: requires custom normalization, careful cursor handling)
 3. **Visual nesting with depth** (flat structure, use margins to make code-lines appear nested under list items)
@@ -1717,10 +1810,12 @@ Option 3 aligns with the existing flat list model.
 ### Slate's Nesting Rules
 
 **Elements are classified as**:
+
 - **Block vs. Inline** (`editor.isInline` — defaults to false/block)
 - **Void vs. Content** (`editor.isVoid` — defaults to false/content)
 
 **Default normalization constraints**:
+
 - Block elements can contain: all block children OR all inline/text children (not mixed)
 - Inline elements cannot be first/last child or siblings with certain node types
 - **Block-inside-block nesting IS allowed** as long as there's no mixed content
@@ -1740,6 +1835,7 @@ With line-by-line structure, how do you keep language consistent across a group?
 ### Enter Key Behavior
 
 With nested line-by-line structure:
+
 - Enter on a code-line should create a new code-line (stay in code block)
 - Enter on an empty code-line should exit (create paragraph after code-block)
 - Requires custom `onKeyDown` logic
@@ -1747,6 +1843,7 @@ With nested line-by-line structure:
 ### Rendering Strategy for Flat Structure
 
 If using flat code-lines (like flat list-items), the renderer needs to detect grouping:
+
 - CSS adjacent sibling selectors for first/last styling
 - Or detect siblings in `renderElement` (but Slate doesn't provide sibling access)
 - Or use a decorator/plugin to add grouping metadata
@@ -1762,4 +1859,3 @@ If using flat code-lines (like flat list-items), the renderer needs to detect gr
 **Should code blocks use the nested structure (code-block → code-lines) or flat structure (sequential code-lines with grouping markers)?**
 
 Nested is more conventional and makes group-level UI easier. Flat would be consistent with the existing list model but requires solving the grouping-detection problem at render time.
-

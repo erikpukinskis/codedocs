@@ -9,7 +9,8 @@ export function formatTypescript(source: string): string {
     // Only wrap in fragment if the code starts with JSX (indicating it's a JSX-only snippet)
     // Don't wrap if it has imports, exports, or other statements
     const startsWithJSX = /^\s*</.test(sourceToFormat)
-    const hasMultipleRoots = startsWithJSX && /<\/\w+>\s*<\w+/.test(sourceToFormat)
+    const hasMultipleRoots =
+      startsWithJSX && /<\/\w+>\s*<\w+/.test(sourceToFormat)
 
     if (hasMultipleRoots) {
       sourceToFormat = `<>${sourceToFormat}</>`
