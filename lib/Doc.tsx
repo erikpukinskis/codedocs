@@ -202,25 +202,53 @@ const DocEditor = ({ slateDocument, frozenElements }: DocEditorProps) => {
           )
           Transforms.select(editor, [codeBlockPath[0] + 1, 0])
         } else {
-          Transforms.splitNodes(editor, { at: editor.selection?.anchor })
-          const newLinePath = [
-            ...codeLinePath.slice(0, -1),
-            codeLinePath[codeLinePath.length - 1] + 1,
-          ]
-          const [newLineNode] = Editor.node(editor, newLinePath)
-          // TODO: Parse with Zod, also is this a new node type? Or a ParagraphBlock?
-          const newLine = newLineNode as SlateBlock
-          const newLineText = newLine.children
-            .map((c) => ("text" in c ? c.text : ""))
-            .join("")
+          const anchor = editor.selection?.anchor
+          if (!anchor) return
 
-          if (!newLineText.startsWith(leadingWhitespace)) {
-            Transforms.insertText(editor, leadingWhitespace, {
-              at: {
-                path: [...newLinePath, 0],
-                offset: 0,
-              },
+          // TODO: Zod
+          const emptyLine = {
+            type: "code-line",
+            language: codeLineNode.language,
+            children: [{ text: "" }],
+          } as SlateBlock
+
+          const lineIndex = codeLinePath[codeLinePath.length - 1]
+
+          if (Editor.isStart(editor, anchor, codeLinePath)) {
+            Transforms.insertNodes(editor, emptyLine, { at: codeLinePath })
+            const shiftedLinePath = [
+              ...codeLinePath.slice(0, -1),
+              lineIndex + 1,
+            ]
+            Transforms.select(editor, {
+              path: [...shiftedLinePath, 0],
+              offset: 0,
             })
+          } else if (Editor.isEnd(editor, anchor, codeLinePath)) {
+            const newLinePath = [...codeLinePath.slice(0, -1), lineIndex + 1]
+            Transforms.insertNodes(editor, emptyLine, { at: newLinePath })
+            Transforms.select(editor, {
+              path: [...newLinePath, 0],
+              offset: 0,
+            })
+          } else {
+            Transforms.splitNodes(editor, { at: anchor })
+            const newLinePath = [...codeLinePath.slice(0, -1), lineIndex + 1]
+            const [newLineNode] = Editor.node(editor, newLinePath)
+            // TODO: Parse with Zod, also is this a new node type? Or a ParagraphBlock?
+            const newLine = newLineNode as SlateBlock
+            const newLineText = newLine.children
+              .map((c) => ("text" in c ? c.text : ""))
+              .join("")
+
+            if (!newLineText.startsWith(leadingWhitespace)) {
+              Transforms.insertText(editor, leadingWhitespace, {
+                at: {
+                  path: [...newLinePath, 0],
+                  offset: 0,
+                },
+              })
+            }
           }
         }
         return
