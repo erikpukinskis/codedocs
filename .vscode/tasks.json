@@ -20,7 +20,8 @@
       },
       "runOptions": {
         "runOn": "folderOpen"
-      }
+      },
+      "problemMatcher": []
     },
     {
       "label": "ESLint Watch",
