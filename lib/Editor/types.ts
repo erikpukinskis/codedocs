@@ -1,4 +1,4 @@
-import type { Node, Text } from "slate"
+import type { BaseElement, Node, Text } from "slate"
 import { Element } from "slate"
 
 /**
@@ -6,43 +6,43 @@ import { Element } from "slate"
  * used in the editor (paragraph, heading, list-item, link, frozen).
  */
 // TODO: would it make sense to make this much more restrictive, and only allow the specific blocks we support?
-export type ParagraphBlock = Element & {
+export type ParagraphBlock = BaseElement & {
   type: "paragraph"
   id: string
   depth?: number
 }
 
-export type HeadingBlock = Element & {
+export type HeadingBlock = BaseElement & {
   type: "heading"
   id: string
   level: number
 }
 
-export type ListItemBlock = Element & {
+export type ListItemBlock = BaseElement & {
   type: "list-item"
   id: string
   depth?: number
   listType: "ul" | "ol"
 }
 
-export type LinkElement = Element & {
+export type LinkElement = BaseElement & {
   type: "link"
   id: string
   url: string
 }
 
-export type FrozenBlock = Element & {
+export type FrozenBlock = BaseElement & {
   type: "frozen"
   id: string
 }
 
-export type CodeBlock = Element & {
+export type CodeBlock = BaseElement & {
   type: "code-block"
   id: string
   language: string
 }
 
-export type LineOfCodeElement = Element & {
+export type LineOfCodeElement = BaseElement & {
   // TODO: Change to "line-of-code"
   type: "code-line"
   language: string

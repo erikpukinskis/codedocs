@@ -15,25 +15,37 @@ export const frozenBlock = style({
   userSelect: "none",
 })
 
+/**
+ * Code Blocks own a two-column grid: "max-content 1fr". The max-content column
+ * sizes to the widest line number in the block, so single-digit blocks get a
+ * narrow gutter and it grows naturally for 2-digit numbers, etc.
+ */
 export const codeBlock = style({
   fontFamily: "monospace",
   whiteSpace: "pre",
-  backgroundColor: "#f5f5f5",
-  padding: "12px 0",
-  borderRadius: 4,
-  counterReset: "line-number",
+  backgroundColor: "#ede8ff",
+  color: "#6b54c0",
+  fontSize: "0.85em",
+  display: "grid",
+  gridTemplateColumns: "max-content 1fr",
 })
 
+/**
+ * Each Code Line spans both columns (grid-column: 1 / -1) and uses
+ * grid-template-columns: subgrid to inherit the parent's column tracks.
+ */
 export const codeLine = style({
-  "display": "grid",
-  "gridTemplateColumns": "2.5em 1fr",
-  "counterIncrement": "line-number",
+  display: "grid",
+  gridColumn: "1 / -1",
+  gridTemplateColumns: "subgrid",
+})
 
-  "::before": {
-    content: "counter(line-number)",
-    textAlign: "right",
-    paddingRight: "1em",
-    color: "#999",
-    userSelect: "none",
-  },
+export const lineNumber = style({
+  fontFamily: `-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"`,
+  backgroundColor: "#e2daff",
+  color: "#a696ff",
+  textAlign: "right",
+  paddingInline: "1em",
+  marginRight: "0.5em",
+  userSelect: "none",
 })

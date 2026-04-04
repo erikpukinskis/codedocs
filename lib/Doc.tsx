@@ -50,7 +50,7 @@ export const Doc = ({
   frozenElements,
   frozenSources,
 }: DocProps) => {
-  const [activeTab, setActiveTab] = useState<TabId>("static")
+  const [activeTab, setActiveTab] = useState<TabId>("edit")
 
   // TODO: Maybe use a callback so the editor can update this source string?
   const sourceString = useMemo(() => {

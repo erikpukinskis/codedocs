@@ -1,14 +1,14 @@
-import React, { useCallback, useMemo, useState } from "react"
+import React, { useCallback, useRef, useState } from "react"
+import type { Element } from "slate"
 import { createEditor, Editor, Range, Transforms } from "slate"
-import type { Descendant } from "slate"
 import { withHistory } from "slate-history"
-import { Editable, Slate, withReact } from "slate-react"
+import { Editable, ReactEditor, Slate, withReact, useSlate } from "slate-react"
 import type { RenderElementProps } from "slate-react"
 import * as styles from "./Editor.css"
 import { isLineOfCodeElement, isListItemBlock, type SlateBlock } from "./types"
 
 type DocEditorProps = {
-  slateDocument: SlateBlock[]
+  slateDocument: Element[]
   frozenElements: Record<string, React.ReactNode>
 }
 
@@ -16,8 +16,12 @@ export const DocEditor = ({
   slateDocument,
   frozenElements,
 }: DocEditorProps) => {
-  const editor = useMemo(() => withHistory(withReact(createEditor())), [])
-  const [value, setValue] = useState<Descendant[]>(slateDocument)
+  const editorRef = useRef<Editor | null>(null)
+  if (!editorRef.current) {
+    editorRef.current = withHistory(withReact(createEditor()))
+  }
+  const editor = editorRef.current
+  const [value, setValue] = useState(slateDocument)
 
   const renderElement = useCallback(
     (props: RenderElementProps) => (
@@ -223,7 +227,15 @@ export const DocEditor = ({
 
   return (
     <div className={styles.editorContainer}>
-      <Slate editor={editor} initialValue={value} onChange={setValue}>
+      <Slate
+        editor={editor}
+        initialValue={value}
+        onChange={(descendants) => {
+          // Descendant is a union of Element and Text, but Slate will never put
+          // text nodes at the root level, so this cast is safe:
+          setValue(descendants as SlateBlock[])
+        }}
+      >
         <Editable
           renderElement={renderElement}
           renderLeaf={renderLeaf}
@@ -232,6 +244,27 @@ export const DocEditor = ({
           className={styles.editor}
         />
       </Slate>
+    </div>
+  )
+}
+
+const CodeLineElement = ({
+  attributes,
+  element,
+  children,
+}: {
+  attributes: Record<string, unknown>
+  element: SlateBlock
+  children: React.ReactNode
+}) => {
+  const editor = useSlate()
+  const path = ReactEditor.findPath(editor, element)
+  const lineIndex = path[path.length - 1]
+
+  return (
+    <div {...attributes} className={styles.codeLine}>
+      <span className={styles.lineNumber}>{lineIndex + 1}</span>
+      {children}
     </div>
   )
 }
@@ -246,7 +279,7 @@ const DocElement = ({
   element,
   frozenElements,
 }: DocElementProps) => {
-  const node = element as SlateBlock
+  const node = element
 
   switch (node.type) {
     case "heading": {
@@ -266,9 +299,9 @@ const DocElement = ({
       )
     case "code-line":
       return (
-        <div {...attributes} className={styles.codeLine}>
+        <CodeLineElement attributes={attributes} element={node}>
           {children}
-        </div>
+        </CodeLineElement>
       )
     case "list-item": {
       const marginLeft = (node.depth ?? 0) * 24
