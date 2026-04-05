@@ -20,7 +20,7 @@ describe("slateToHtml", () => {
     ]
     const html = slateToHtml(slateDocument)
     expect(html).toBe(
-      '<pre style="font-family: Consolas, Monaco, \'Courier New\', monospace; color: #6b54c0"><code data-language="tsx">function hello() {\n  return &#39;world&#39;\n}</code></pre>'
+      '<pre style="font-family: Consolas, Menlo, \'Courier New\', monospace; color: #6b54c0"><code data-language="tsx">function hello() {\n  return &#39;world&#39;\n}</code></pre>'
     )
   })
 
@@ -34,7 +34,23 @@ describe("slateToHtml", () => {
     ]
     const html = slateToHtml(slateDocument)
     expect(html).toBe(
-      '<p>use <code style="font-family: Consolas, Monaco, \'Courier New\', monospace; color: #6b54c0">fn()</code></p>'
+      "<p>use <code style=\"font-family: Consolas, Menlo, 'Courier New', monospace; color: #6b54c0\">fn()</code></p>"
+    )
+  })
+
+  test("frozen blocks serialize like code blocks when frozenSources is provided", () => {
+    const slateDocument: SlateBlock[] = [
+      {
+        type: "frozen",
+        id: "f1",
+        children: [{ text: "" }],
+      },
+    ]
+    const html = slateToHtml(slateDocument, {
+      frozenSources: { f1: "const x = 1\nconsole.log(x)" },
+    })
+    expect(html).toBe(
+      '<pre style="font-family: Consolas, Menlo, \'Courier New\', monospace; color: #6b54c0"><code data-language="tsx">const x = 1\nconsole.log(x)</code></pre>'
     )
   })
 })

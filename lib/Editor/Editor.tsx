@@ -11,12 +11,17 @@ import { isLineOfCodeElement, isListItemBlock, type SlateBlock } from "./types"
 type DocEditorProps = {
   slateDocument: SlateElement[]
   frozenElements: Record<string, React.ReactNode>
+  frozenSources?: Record<string, string>
 }
 
 export const DocEditor = ({
   slateDocument,
   frozenElements,
+  frozenSources,
 }: DocEditorProps) => {
+  const frozenSourcesRef = useRef(frozenSources)
+  frozenSourcesRef.current = frozenSources
+
   // Lazy ref so the same editor instance survives Fast Refresh / re-renders; useMemo
   // would recreate when this module hot-reloads.
   const editorRef = useRef<(ReactEditor & HistoryEditor) | null>(null)
@@ -31,8 +36,8 @@ export const DocEditor = ({
       const { selection } = editor
       if (!selection || Range.isCollapsed(selection)) return
       // Always derive text/plain from the document (see clipboardPlainTextForRange).
-      const text = copyPlainText(editor, selection)
-      const html = copyHtml(editor, selection)
+      const text = copyPlainText(editor, selection, frozenSourcesRef.current)
+      const html = copyHtml(editor, selection, frozenSourcesRef.current)
       data.setData("text/plain", text)
       data.setData("text/html", html)
 

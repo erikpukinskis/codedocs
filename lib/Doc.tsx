@@ -90,6 +90,7 @@ export const Doc = ({
           key={path}
           slateDocument={slateDocument}
           frozenElements={frozenElements ?? {}}
+          frozenSources={frozenSources}
         />
       )}
 

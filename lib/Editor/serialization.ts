@@ -3,12 +3,94 @@ import { Text } from "slate"
 import type { ListItemBlock, SlateBlock, SlateLeaf } from "~/Editor/types"
 import { isLinkElement, isListItemBlock, isSlateBlock } from "~/Editor/types"
 
-type SerializeSlateFormat = "html" | "jsx"
+type SerializationFormat = "html" | "jsx"
+
+type SlateToJsxOptions = {
+  frozenSources: Record<string, string>
+}
+
+/**
+ * Converts our internal Slate nodes back into JSX, layering in the original
+ * sources for all the frozen blocks.
+ */
+export function slateToJsx(
+  nodes: Descendant[],
+  { frozenSources }: SlateToJsxOptions
+): string {
+  return serializeSlate(nodes, {
+    format: "jsx",
+    frozenSources,
+  })
+}
+
+type SlateToHtmlOptions = {
+  /** Original source for frozen blocks; when set, HTML matches code-block `<pre><code>` output */
+  frozenSources?: Record<string, string>
+}
+
+/**
+ * Converts our internal Slate nodes into HTML, with enough inline styles that
+ * it works well when pasted into various common rich text editors (Google Docs,
+ * etc)
+ */
+export function slateToHtml(
+  nodes: Descendant[],
+  { frozenSources }: SlateToHtmlOptions = {}
+): string {
+  return serializeSlate(nodes, {
+    format: "html",
+    frozenSources,
+  })
+}
 
 type SerializeSlateOptions = {
-  format: SerializeSlateFormat
+  format: SerializationFormat
   /** When omitted, frozen blocks serialize to "" */
   frozenSources?: Record<string, string>
+}
+
+/**
+ * Serialize a Slate fragment or document to an HTML-shaped string.
+ * Root must normally be block elements; stray `Text` roots become a single `<p>`.
+ */
+function serializeSlate(
+  nodes: Descendant[],
+  options: SerializeSlateOptions
+): string {
+  const lines: string[] = []
+  let listBuffer: ListItemBlock[] = []
+
+  for (const node of nodes) {
+    if (Text.isText(node)) {
+      if (listBuffer.length > 0) {
+        lines.push(serializeListItems(listBuffer, options))
+        listBuffer = []
+      }
+      const inner = serializeTextNode(node, options.format)
+      if (inner) lines.push(`<p>${inner}</p>`)
+      continue
+    }
+
+    if (!isSlateBlock(node)) continue
+
+    if (isListItemBlock(node)) {
+      listBuffer.push(node)
+      continue
+    }
+
+    if (listBuffer.length > 0) {
+      lines.push(serializeListItems(listBuffer, options))
+      listBuffer = []
+    }
+
+    lines.push(serializeBlock(node, options))
+  }
+
+  if (listBuffer.length > 0) {
+    lines.push(serializeListItems(listBuffer, options))
+  }
+
+  return lines.join("\n")
 }
 
 function escapeHtml(text: string): string {
@@ -31,7 +113,7 @@ export const CODE_STYLES = [
 
 function serializeTextNode(
   node: SlateLeaf,
-  format: SerializeSlateFormat
+  format: SerializationFormat
 ): string {
   let text = node.text
   if (!text) return ""
@@ -95,16 +177,23 @@ function serializeBlock(
         }
       }
       const joinedText = lines.join("\n")
-      const body = format === "html" ? escapeHtml(joinedText) : joinedText
-      const language = node.language ?? "tsx"
-      const langAttr = escapeAttrValue(language)
-      const pre =
-        format === "html" ? `<pre style="${CODE_STYLES.join("; ")}">` : "<pre>"
-      return `${pre}<code data-language="${langAttr}">${body}</code></pre>`
+      return serializeCodeBlock({
+        source: joinedText,
+        language: node.language,
+        format,
+      })
     }
-    case "frozen":
-      if (!frozenSources || !node.id) return ""
-      return frozenSources[node.id] ?? ""
+    case "frozen": {
+      if (!node.id) return ""
+      const source = frozenSources?.[node.id]
+      if (source === undefined) return ""
+
+      return serializeCodeBlock({
+        source,
+        language: "tsx",
+        format,
+      })
+    }
     default:
       return `<p>${children}</p>`
   }
@@ -158,66 +247,20 @@ function serializeListItems(
   return result
 }
 
-/**
- * Serialize a Slate fragment or document to an HTML-shaped string.
- * Root must normally be block elements; stray `Text` roots become a single `<p>`.
- */
-function serializeSlate(
-  nodes: Descendant[],
-  options: SerializeSlateOptions
-): string {
-  const lines: string[] = []
-  let listBuffer: ListItemBlock[] = []
-
-  for (const node of nodes) {
-    if (Text.isText(node)) {
-      if (listBuffer.length > 0) {
-        lines.push(serializeListItems(listBuffer, options))
-        listBuffer = []
-      }
-      const inner = serializeTextNode(node, options.format)
-      if (inner) lines.push(`<p>${inner}</p>`)
-      continue
-    }
-
-    if (!isSlateBlock(node)) continue
-
-    if (isListItemBlock(node)) {
-      listBuffer.push(node)
-      continue
-    }
-
-    if (listBuffer.length > 0) {
-      lines.push(serializeListItems(listBuffer, options))
-      listBuffer = []
-    }
-
-    lines.push(serializeBlock(node, options))
-  }
-
-  if (listBuffer.length > 0) {
-    lines.push(serializeListItems(listBuffer, options))
-  }
-
-  return lines.join("\n")
+type SerializeCodeBlockArgs = {
+  source: string
+  language?: string
+  format: SerializationFormat
 }
 
-type SlateToJsxOptions = {
-  frozenSources: Record<string, string>
-}
-
-export function slateToJsx(
-  nodes: Descendant[],
-  { frozenSources }: SlateToJsxOptions
-): string {
-  return serializeSlate(nodes, {
-    format: "jsx",
-    frozenSources,
-  })
-}
-
-export function slateToHtml(nodes: Descendant[]): string {
-  return serializeSlate(nodes, {
-    format: "html",
-  })
+function serializeCodeBlock({
+  source,
+  language = "tsx",
+  format,
+}: SerializeCodeBlockArgs): string {
+  const body = format === "html" ? escapeHtml(source) : source
+  const langAttr = escapeAttrValue(language)
+  const pre =
+    format === "html" ? `<pre style="${CODE_STYLES.join("; ")}">` : "<pre>"
+  return `${pre}<code data-language="${langAttr}">${body}</code></pre>`
 }

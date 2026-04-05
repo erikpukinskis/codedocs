@@ -1,6 +1,6 @@
 import { Editor, Element, Range } from "slate"
 import { slateToHtml } from "./serialization"
-import { isCodeBlock } from "./types"
+import { isCodeBlock, isFrozenBlock } from "./types"
 
 // TODO: rename to clipboard.ts
 
@@ -12,9 +12,13 @@ import { isCodeBlock } from "./types"
  * differently depending on selection. We always replace text/plain with this
  * after Slate runs so behavior is stable.
  */
-export function copyPlainText(editor: Editor, range: Range): string {
+export function copyPlainText(
+  editor: Editor,
+  range: Range,
+  frozenSources?: Record<string, string>
+): string {
   const chunks: string[] = []
-  for (const [, path] of Editor.nodes(editor, {
+  for (const [node, path] of Editor.nodes(editor, {
     at: range,
     match: (n) =>
       Element.isElement(n) && Editor.isBlock(editor, n) && !isCodeBlock(n),
@@ -22,12 +26,22 @@ export function copyPlainText(editor: Editor, range: Range): string {
     const blockRange = Editor.range(editor, path)
     const intersection = Range.intersection(range, blockRange)
     if (!intersection || Range.isCollapsed(intersection)) continue
+
+    if (isFrozenBlock(node) && frozenSources && node.id in frozenSources) {
+      chunks.push(frozenSources[node.id])
+      continue
+    }
+
     chunks.push(Editor.string(editor, intersection))
   }
   return chunks.join("\n")
 }
 
-export function copyHtml(editor: Editor, range: Range): string {
+export function copyHtml(
+  editor: Editor,
+  range: Range,
+  frozenSources?: Record<string, string>
+): string {
   const fragment = Editor.fragment(editor, range)
-  return slateToHtml(fragment)
+  return slateToHtml(fragment, { frozenSources })
 }
