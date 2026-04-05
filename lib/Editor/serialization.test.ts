@@ -20,7 +20,21 @@ describe("slateToHtml", () => {
     ]
     const html = slateToHtml(slateDocument)
     expect(html).toBe(
-      '<pre><code data-language="tsx">function hello() {\n  return &#39;world&#39;\n}</code></pre>'
+      '<pre style="font-family: Consolas, Monaco, \'Courier New\', monospace; color: #6b54c0"><code data-language="tsx">function hello() {\n  return &#39;world&#39;\n}</code></pre>'
+    )
+  })
+
+  test("inline code in paragraphs gets CODE_STYLES", () => {
+    const slateDocument: SlateBlock[] = [
+      {
+        type: "paragraph",
+        id: "b0",
+        children: [{ text: "use " }, { text: "fn()", code: true }],
+      },
+    ]
+    const html = slateToHtml(slateDocument)
+    expect(html).toBe(
+      '<p>use <code style="font-family: Consolas, Monaco, \'Courier New\', monospace; color: #6b54c0">fn()</code></p>'
     )
   })
 })

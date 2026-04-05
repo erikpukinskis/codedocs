@@ -24,6 +24,11 @@ function escapeAttrValue(text: string): string {
   return escapeHtml(text)
 }
 
+export const CODE_STYLES = [
+  "font-family: Consolas, Menlo, 'Courier New', monospace",
+  "color: #6b54c0",
+]
+
 function serializeTextNode(
   node: SlateLeaf,
   format: SerializeSlateFormat
@@ -32,7 +37,8 @@ function serializeTextNode(
   if (!text) return ""
 
   if (format === "html") text = escapeHtml(text)
-  if (node.code) text = `<code>${text}</code>`
+  if (node.code)
+    text = `<code${` style="${CODE_STYLES.join("; ")}"`}>${text}</code>`
   if (node.bold) text = `<strong>${text}</strong>`
   if (node.italic) text = `<em>${text}</em>`
 
@@ -92,7 +98,9 @@ function serializeBlock(
       const body = format === "html" ? escapeHtml(joinedText) : joinedText
       const language = node.language ?? "tsx"
       const langAttr = escapeAttrValue(language)
-      return `<pre><code data-language="${langAttr}">${body}</code></pre>`
+      const pre =
+        format === "html" ? `<pre style="${CODE_STYLES.join("; ")}">` : "<pre>"
+      return `${pre}<code data-language="${langAttr}">${body}</code></pre>`
     }
     case "frozen":
       if (!frozenSources || !node.id) return ""

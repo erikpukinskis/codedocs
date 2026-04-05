@@ -1,7 +1,7 @@
-import React, { useCallback, useMemo, useState } from "react"
+import React, { useCallback, useRef, useState } from "react"
 import { createEditor, Editor, Range, Transforms } from "slate"
 import type { Element as SlateElement } from "slate"
-import { withHistory } from "slate-history"
+import { withHistory, type HistoryEditor } from "slate-history"
 import { Editable, ReactEditor, Slate, withReact, useSlate } from "slate-react"
 import type { RenderElementProps } from "slate-react"
 import { copyHtml, copyPlainText } from "./copy"
@@ -17,8 +17,10 @@ export const DocEditor = ({
   slateDocument,
   frozenElements,
 }: DocEditorProps) => {
-  // One editor instance per mount (useMemo is the usual Slate pattern for this).
-  const editor = useMemo(() => {
+  // Lazy ref so the same editor instance survives Fast Refresh / re-renders; useMemo
+  // would recreate when this module hot-reloads.
+  const editorRef = useRef<(ReactEditor & HistoryEditor) | null>(null)
+  if (editorRef.current === null) {
     const editor = withHistory(withReact(createEditor()))
 
     const defaultSetFragmentData = editor.setFragmentData.bind(editor)
@@ -29,12 +31,20 @@ export const DocEditor = ({
       const { selection } = editor
       if (!selection || Range.isCollapsed(selection)) return
       // Always derive text/plain from the document (see clipboardPlainTextForRange).
-      data.setData("text/plain", copyPlainText(editor, selection))
-      data.setData("text/html", copyHtml(editor, selection))
+      const text = copyPlainText(editor, selection)
+      const html = copyHtml(editor, selection)
+      data.setData("text/plain", text)
+      data.setData("text/html", html)
+
+      // const fragment = Editor.fragment(editor, selection)
+      // const slateMime = data.getData("application/x-slate-fragment")
+      console.debug("Copied HTML to clipboard:")
+      console.debug(html)
     }
 
-    return editor
-  }, [])
+    editorRef.current = editor
+  }
+  const editor = editorRef.current
   const [value, setValue] = useState(slateDocument)
 
   const renderElement = useCallback(
