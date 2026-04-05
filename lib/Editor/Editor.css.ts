@@ -49,3 +49,7 @@ export const lineNumber = style({
   marginRight: "0.5em",
   userSelect: "none",
 })
+
+export const link = style({
+  textDecoration: "underline",
+})

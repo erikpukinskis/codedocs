@@ -41,7 +41,7 @@
     "lodash": "^4.17.21",
     "minisearch": "^5.0.0",
     "react-ace": "^14.0.1",
-    "react-laag": "^2.0.4",
+    "react-laag": "^2.0.5",
     "react-use": "^17.4.0",
     "short-uuid": "^4.2.2",
     "slate": "^0.123.0",

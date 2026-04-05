@@ -1,10 +1,17 @@
 // eslint-disable-next-line no-restricted-imports
 import { Demo, Doc } from "../macro"
 
-export const VeryLongDocumentPathDocs = (
+export const TestDocs = (
   <Doc path="/Docs/DocWithAVeryLongTitle">
     <p>...to test wrapping in the sidebar.</p>
     <h2>Two stateful demos in a row, to test the macro:</h2>
+    <p>
+      A{" "}
+      <a href="https://www.redhat.com/en/topics/cloud-native-apps/stateful-vs-stateless">
+        link about statefulness
+      </a>
+      .
+    </p>
     <Demo
       defaultValue={true}
       render={({ value, mock }) => (

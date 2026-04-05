@@ -1,12 +1,15 @@
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import React, { useCallback, useRef, useState } from "react"
 import { createEditor, Editor, Range, Transforms } from "slate"
 import type { Element as SlateElement } from "slate"
 import { withHistory, type HistoryEditor } from "slate-history"
 import { Editable, ReactEditor, Slate, withReact, useSlate } from "slate-react"
-import type { RenderElementProps } from "slate-react"
+import type { RenderElementProps, RenderLeafProps } from "slate-react"
 import { copyHtml, copyPlainText } from "./copy"
 import * as styles from "./Editor.css"
 import { isLineOfCodeElement, isListItemBlock, type SlateBlock } from "./types"
+import { useComponents } from "~/ComponentContext"
+import { useToolbar } from "~/Components/Toolbar"
 
 type DocEditorProps = {
   slateDocument: SlateElement[]
@@ -60,11 +63,9 @@ export const DocEditor = ({
   )
 
   const renderLeaf = useCallback(
-    (props: {
-      attributes: Record<string, unknown>
-      children: React.ReactNode
-      leaf: { text: string; bold?: boolean; italic?: boolean; code?: boolean }
-    }) => {
+    (
+      props: Omit<RenderLeafProps, "children"> & { children: React.ReactNode }
+    ) => {
       let { children: leafChildren } = props
       if (props.leaf.bold) leafChildren = <strong>{leafChildren}</strong>
       if (props.leaf.italic) leafChildren = <em>{leafChildren}</em>
@@ -277,30 +278,10 @@ export const DocEditor = ({
   )
 }
 
-const CodeLineElement = ({
-  attributes,
-  element,
-  children,
-}: {
-  attributes: Record<string, unknown>
-  element: SlateBlock
-  children: React.ReactNode
-}) => {
-  const editor = useSlate()
-  const path = ReactEditor.findPath(editor, element)
-  const lineIndex = path[path.length - 1]
-
-  return (
-    <div {...attributes} className={styles.codeLine}>
-      <span className={styles.lineNumber} contentEditable={false}>
-        {lineIndex + 1}
-      </span>
-      {children}
-    </div>
-  )
-}
-
-type DocElementProps = RenderElementProps & {
+type DocElementProps = Pick<
+  RenderElementProps,
+  "attributes" | "children" | "element"
+> & {
   frozenElements: Record<string, React.ReactNode>
 }
 
@@ -351,9 +332,9 @@ const DocElement = ({
     }
     case "link":
       return (
-        <a {...attributes} href={node.url}>
+        <LinkElement attributes={attributes} href={node.url}>
           {children}
-        </a>
+        </LinkElement>
       )
     case "frozen": {
       // TODO: Have a selected state when the cursor is over a frozen block
@@ -374,4 +355,75 @@ const DocElement = ({
     default:
       return <p {...attributes}>{children}</p>
   }
+}
+
+type CodeLineElementProps = RenderElementProps & {
+  element: SlateBlock
+  children: React.ReactNode
+}
+
+const CodeLineElement: React.FC<CodeLineElementProps> = ({
+  attributes,
+  element,
+  children,
+}) => {
+  const editor = useSlate()
+  const path = ReactEditor.findPath(editor, element)
+  const lineIndex = path[path.length - 1]
+
+  return (
+    <div {...attributes} className={styles.codeLine}>
+      <span className={styles.lineNumber} contentEditable={false}>
+        {lineIndex + 1}
+      </span>
+      {children}
+    </div>
+  )
+}
+
+type LinkElementProps = Pick<RenderElementProps, "attributes"> & {
+  href: string
+  children: React.ReactNode
+}
+
+const LinkElement: React.FC<LinkElementProps> = ({
+  attributes,
+  href,
+  children,
+}) => {
+  const Components = useComponents()
+
+  const { getTriggerProps, Toolbar } = useToolbar({
+    triggerOffset: 4,
+  })
+
+  return (
+    <>
+      <a
+        {...attributes}
+        {...getTriggerProps()}
+        href={href}
+        className={styles.link}
+      >
+        {children}
+      </a>
+      <Toolbar>
+        <Components.Button inline>
+          <FontAwesomeIcon icon="arrow-up-right-from-square" size="xs" />{" "}
+          {getHost(href)}
+        </Components.Button>
+        <Components.Button inline>
+          <FontAwesomeIcon icon="pen-to-square" size="xs" /> Edit
+        </Components.Button>
+        <Components.Button inline>
+          <FontAwesomeIcon icon="trash-can" size="xs" /> Remove
+        </Components.Button>
+      </Toolbar>
+    </>
+  )
+}
+
+function getHost(url: string) {
+  const match = url.match(/^https?:\/\/([^/]+)/)
+  return match ? match[1] : url.slice(0, 15)
 }

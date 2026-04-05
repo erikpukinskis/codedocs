@@ -73,6 +73,7 @@ export type LogoIconProps = Parameters<typeof FontAwesomeIcon>[0]
 
 export type ButtonProps = BaseButtonProps & {
   secondary?: boolean
+  inline?: boolean
 }
 
 export type PanelHeaderProps = BaseButtonProps & { isOpen: boolean | undefined }
