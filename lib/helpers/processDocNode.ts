@@ -30,6 +30,7 @@ import {
 } from "@babel/types"
 import { isNamedJSXAttribute, isNamedJSXElement } from "./babelJsxGuards"
 import { formatTypescript } from "./formatTypeScript"
+import { getSource } from "./processDemoNode"
 
 /**
  * AST checks in this helper follow `lib/macro.ts`: prefer `@babel/types` predicates,
@@ -50,12 +51,6 @@ function getJsxTagName(
 ): string | undefined {
   return isJSXIdentifier(name) ? name.name : undefined
 }
-
-/** Extracts source code for an AST node. */
-export type GetSource = (
-  node: { start?: number | null; end?: number | null },
-  code: string
-) => string
 
 /** Mutable state used while processing a single <Doc> element. */
 export interface ProcessDocState {
@@ -82,7 +77,6 @@ export interface ProcessCodedocsDocParams {
   nodePath: NodePath
   state: PluginPass
   code: string
-  getSource: GetSource
 }
 
 /**
@@ -93,7 +87,6 @@ export function processDocNode({
   nodePath,
   state,
   code,
-  getSource,
 }: ProcessCodedocsDocParams): void {
   const parentPath = nodePath.parentPath
   if (!parentPath || !isJSXOpeningElement(parentPath.node)) return
@@ -102,7 +95,7 @@ export function processDocNode({
     state.file.path.parent,
     {
       JSXIdentifier(path: NodePath) {
-        visitDocJSXIdentifier(path, { state, code, getSource })
+        visitDocJSXIdentifier(path, { state, code })
       },
     },
     nodePath.scope,
@@ -115,7 +108,7 @@ export function processDocNode({
  */
 function visitDocJSXIdentifier(
   path: NodePath,
-  ctx: { state: PluginPass; code: string; getSource: GetSource }
+  ctx: { state: PluginPass; code: string }
 ): void {
   const parentPath = path.parentPath
   if (!parentPath || !isJSXOpeningElement(parentPath.node)) return
@@ -145,7 +138,7 @@ function visitDocJSXIdentifier(
 
   const makeEmptyChildrenFn = () => makeEmptyChildren()
   const freezeBlockFn = (node: JSXElement) =>
-    freezeBlock(node, processState, ctx.code, ctx.getSource)
+    freezeBlock(node, processState, ctx.code)
   const parseInlineChildrenFn = (childNodes: JSXChild[]) =>
     parseInlineChildren(childNodes)
 
@@ -461,8 +454,6 @@ type GetJSXTextContentOptions = {
   preserveWhitespace?: boolean
 }
 
-console.debug("YESa")
-
 /**
  * Extract plain text from JSX children; return null if any non-text (e.g.
  * component) is present.
@@ -564,8 +555,7 @@ function makeEmptyChildren(): ObjectExpression[] {
 function freezeBlock(
   node: JSXElement,
   processState: ProcessDocState,
-  code: string,
-  getSource: GetSource
+  code: string
 ): void {
   const id = `f${processState.frozenId++}`
   processState.frozenElements[id] = node

@@ -13,17 +13,8 @@ import type { MacroParams } from "babel-plugin-macros"
 import { createMacro } from "babel-plugin-macros"
 import { isNamedJSXAttribute } from "./helpers/babelJsxGuards"
 import { formatTypescript } from "./helpers/formatTypeScript"
-import { processDemoNode } from "./helpers/processDemoNode"
+import { getSource, processDemoNode } from "./helpers/processDemoNode"
 import { processDocNode } from "./helpers/processDocNode"
-
-function getSource(
-  node: { start?: number | null; end?: number | null },
-  code: string
-): string {
-  const start = node.start ?? 0
-  const end = node.end ?? code.length
-  return code.slice(start, end)
-}
 
 /**
  * Detection & type guard conventions for this macro
@@ -116,11 +107,10 @@ export default createMacro(function codedocsMacro({
           prop.value as { start?: number | null; end?: number | null },
           code
         )
-        const formattedValueSource = formatTypescript(valueSource)
         return babel.types.objectProperty(
           babel.types.stringLiteral(keyName),
           babel.types.templateLiteral(
-            [babel.types.templateElement({ raw: formattedValueSource }, true)],
+            [babel.types.templateElement({ raw: valueSource }, true)],
             []
           )
         )
@@ -144,7 +134,7 @@ export default createMacro(function codedocsMacro({
   }
 
   Doc.forEach((nodePath: NodePath) => {
-    processDocNode({ nodePath, state, code, getSource })
+    processDocNode({ nodePath, state, code })
   })
 
   Demo.forEach((nodePath: NodePath) => {
@@ -153,7 +143,6 @@ export default createMacro(function codedocsMacro({
       state,
       code,
       includeWrapperInSource,
-      getSource,
       setSourceAttribute,
       setDependencySourcesAttribute,
     })

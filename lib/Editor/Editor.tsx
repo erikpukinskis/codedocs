@@ -43,8 +43,8 @@ export const DocEditor = ({
 
       // const fragment = Editor.fragment(editor, selection)
       // const slateMime = data.getData("application/x-slate-fragment")
-      console.debug("Copied HTML to clipboard:")
-      console.debug(html)
+      // console.debug("Copied HTML to clipboard:")
+      // console.debug(html)
     }
 
     editorRef.current = editor

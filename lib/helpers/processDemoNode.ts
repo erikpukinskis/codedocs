@@ -15,7 +15,7 @@ import {
   isNamedJSXElement,
   type MockCallbackCall,
 } from "./babelJsxGuards"
-import type { GetSource } from "./processDocNode"
+import { formatTypescript } from "./formatTypeScript"
 
 function findMockCallbacks(
   node: Node | null | undefined,
@@ -64,7 +64,6 @@ export interface ProcessDemoNodeParams {
   state: PluginPass
   code: string
   includeWrapperInSource: boolean
-  getSource: GetSource
   setSourceAttribute: (node: JSXOpeningElement, source: string) => void
   setDependencySourcesAttribute: (openingElement: JSXOpeningElement) => void
 }
@@ -78,7 +77,6 @@ export function processDemoNode({
   state,
   code,
   includeWrapperInSource,
-  getSource,
   setSourceAttribute,
   setDependencySourcesAttribute,
 }: ProcessDemoNodeParams): void {
@@ -179,4 +177,13 @@ export function processDemoNode({
     nodePath.scope,
     nodePath.parentPath
   )
+}
+
+export function getSource(
+  node: { start?: number | null; end?: number | null },
+  code: string
+): string {
+  const start = node.start ?? 0
+  const end = node.end ?? code.length
+  return formatTypescript(code.slice(start, end))
 }
