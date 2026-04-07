@@ -80,35 +80,40 @@ export type PanelHeaderProps = BaseButtonProps & { isOpen: boolean | undefined }
 
 export type PanelProps = ContainerProps & { hasNeighbors: boolean }
 
-export type LinkButtonProps = {
-  onClick?(event: React.MouseEvent): void
-  children: React.ReactNode
+export type LinkButtonProps = Omit<ButtonProps, "onClick"> & LinkProps
+
+export type TextInputProps = {
+  value: string
+  onChange: (value: string) => void
+  width?: string
 }
 
 export type Components = {
   Button: React.FC<ButtonProps>
-  GlobalStyles: React.FC<Record<string, never>>
+  Card: React.FC<CardProps>
+  CenterColumn: Container
+  Columns: Container
+  DemoHeading: Container
+  FixedTopHeader: Container
   Footer: React.FC<{ copyright: string }>
-  Search: React.FC<Record<string, never>>
-  SearchBox: React.FC<SearchBoxProps>
+  GlobalStyles: React.FC<Record<string, never>>
   Header: React.FC<HeaderProps>
   LayoutContainer: Container
-  LogoIcon: React.FC<LogoIconProps>
-  Columns: Container
-  FixedTopHeader: Container
   LeftColumn: Container
+  Link: React.FC<LinkProps>
+  LinkButton: React.FC<LinkButtonProps>
+  LogoIcon: React.FC<LogoIconProps>
   MainColumn: Container
-  CenterColumn: Container
-  NavLink: React.FC<NavLinkProps>
-  NavList: Container
   NavHeading: Container
   NavItem: Container
+  NavLink: React.FC<NavLinkProps>
+  NavList: Container
+  PageHeading: Container
   Panel: React.FC<PanelProps>
   PanelHeader: React.FC<PanelHeaderProps>
-  PageHeading: Container
-  DemoHeading: Container
-  Link: React.FC<LinkProps>
-  Social: React.FC<SocialProps>
   Popover: React.FC<PopoverProps>
-  Card: React.FC<CardProps>
+  Search: React.FC<Record<string, never>>
+  SearchBox: React.FC<SearchBoxProps>
+  Social: React.FC<SocialProps>
+  TextInput: React.FC<TextInputProps>
 }

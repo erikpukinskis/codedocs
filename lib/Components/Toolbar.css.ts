@@ -17,7 +17,7 @@ export const toolbarBuffer = style({
 })
 
 export const toolbarConent = style({
-  background: "#666",
+  background: "#444",
   color: "white",
   padding: "4px 6px",
   borderRadius: 5,

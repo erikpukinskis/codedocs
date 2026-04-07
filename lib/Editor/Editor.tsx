@@ -1,5 +1,5 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import React, { useCallback, useRef, useState } from "react"
+import React, { useCallback, useEffect, useRef, useState } from "react"
 import { createEditor, Editor, Range, Transforms } from "slate"
 import type { Element as SlateElement } from "slate"
 import { withHistory, type HistoryEditor } from "slate-history"
@@ -332,7 +332,12 @@ const DocElement = ({
     }
     case "link":
       return (
-        <LinkElement attributes={attributes} href={node.url}>
+        <LinkElement
+          attributes={attributes}
+          href={node.url}
+          onChangeHref={(newHref) => {}}
+          onClickRemove={() => {}}
+        >
           {children}
         </LinkElement>
       )
@@ -384,18 +389,35 @@ const CodeLineElement: React.FC<CodeLineElementProps> = ({
 type LinkElementProps = Pick<RenderElementProps, "attributes"> & {
   href: string
   children: React.ReactNode
+  onClickRemove: () => void
+  onChangeHref: (href: string) => void
 }
 
 const LinkElement: React.FC<LinkElementProps> = ({
   attributes,
-  href,
+  href: initialHref,
   children,
+  onClickRemove,
+  onChangeHref,
 }) => {
   const Components = useComponents()
+  const [isEditing, setEditing] = useState(false)
+  const [href, setHref] = useState(initialHref)
 
-  const { getTriggerProps, Toolbar } = useToolbar({
+  const { getTriggerProps, renderToolbar } = useToolbar({
+    // open: true,
     triggerOffset: 4,
   })
+
+  const save = () => {
+    onChangeHref(href)
+    setEditing(false)
+  }
+
+  const cancel = () => {
+    setHref(initialHref)
+    setEditing(false)
+  }
 
   return (
     <>
@@ -407,18 +429,36 @@ const LinkElement: React.FC<LinkElementProps> = ({
       >
         {children}
       </a>
-      <Toolbar>
-        <Components.Button inline>
-          <FontAwesomeIcon icon="arrow-up-right-from-square" size="xs" />{" "}
-          {getHost(href)}
-        </Components.Button>
-        <Components.Button inline>
-          <FontAwesomeIcon icon="pen-to-square" size="xs" /> Edit
-        </Components.Button>
-        <Components.Button inline>
-          <FontAwesomeIcon icon="trash-can" size="xs" /> Remove
-        </Components.Button>
-      </Toolbar>
+      {renderToolbar(
+        isEditing ? (
+          <>
+            <Components.TextInput
+              value={href}
+              onChange={setHref}
+              width="200px"
+            />
+            <Components.Button inline onClick={cancel}>
+              Cancel
+            </Components.Button>
+            <Components.Button inline onClick={save}>
+              Save
+            </Components.Button>
+          </>
+        ) : (
+          <>
+            <Components.LinkButton to={href} inline>
+              <FontAwesomeIcon icon="arrow-up-right-from-square" size="xs" />{" "}
+              {getHost(href)}
+            </Components.LinkButton>
+            <Components.Button inline onClick={() => setEditing(true)}>
+              <FontAwesomeIcon icon="pen-to-square" size="xs" /> Edit
+            </Components.Button>
+            <Components.Button inline onClick={onClickRemove}>
+              <FontAwesomeIcon icon="trash-can" size="xs" /> Remove
+            </Components.Button>
+          </>
+        )
+      )}
     </>
   )
 }

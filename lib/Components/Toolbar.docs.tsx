@@ -7,11 +7,11 @@ export const ToolbarDocs = (
     <h2>Toolbar</h2>
     <Demo
       render={() => {
-        const { getTriggerProps, Toolbar } = useToolbar()
+        const { getTriggerProps, renderToolbar } = useToolbar()
         return (
           <>
             <button {...getTriggerProps()}>hover me</button>
-            <Toolbar>👋</Toolbar>
+            {renderToolbar("👋")}
           </>
         )
       }}

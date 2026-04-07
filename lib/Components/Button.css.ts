@@ -6,6 +6,7 @@ export const styledButton = recipe({
     "border": "1px solid transparent",
     "borderRadius": 5,
     "fontSize": "0.8em",
+    "padding": "4px 6px",
     "cursor": "pointer",
     "display": "inline-flex",
     "alignItems": "center",
@@ -33,12 +34,10 @@ export const styledButton = recipe({
         "background": "transparent",
         "color": "white",
         ":hover": {
-          color: "#e9c6ff",
-          textShadow: "0 0 5px #fab6ff88",
+          color: "#cdcdff",
         },
       },
       false: {
-        padding: "4px 6px",
         color: "#43386e",
       },
     },
