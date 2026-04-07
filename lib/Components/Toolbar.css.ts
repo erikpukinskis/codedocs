@@ -19,7 +19,7 @@ export const toolbarBuffer = style({
 export const toolbarConent = style({
   background: "#444",
   color: "white",
-  padding: "4px 6px",
-  borderRadius: 5,
+  padding: 6,
+  borderRadius: 7,
   // marginBottom: "calc(var(--buffer-width) * -1)",
 })

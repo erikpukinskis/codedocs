@@ -7,7 +7,12 @@ import { Editable, ReactEditor, Slate, withReact, useSlate } from "slate-react"
 import type { RenderElementProps, RenderLeafProps } from "slate-react"
 import { copyHtml, copyPlainText } from "./copy"
 import * as styles from "./Editor.css"
-import { isLineOfCodeElement, isListItemBlock, type SlateBlock } from "./types"
+import {
+  isLineOfCodeElement,
+  isLinkElement,
+  isListItemBlock,
+  type SlateBlock,
+} from "./types"
 import { useComponents } from "~/ComponentContext"
 import { useToolbar } from "~/Components/Toolbar"
 
@@ -30,6 +35,7 @@ export const DocEditor = ({
   const editorRef = useRef<(ReactEditor & HistoryEditor) | null>(null)
   if (editorRef.current === null) {
     const editor = withHistory(withReact(createEditor()))
+    editor.isInline = (element) => isLinkElement(element)
 
     const defaultSetFragmentData = editor.setFragmentData.bind(editor)
 
@@ -332,12 +338,7 @@ const DocElement = ({
     }
     case "link":
       return (
-        <LinkElement
-          attributes={attributes}
-          href={node.url}
-          onChangeHref={(newHref) => {}}
-          onClickRemove={() => {}}
-        >
+        <LinkElement attributes={attributes} element={node}>
           {children}
         </LinkElement>
       )
@@ -387,36 +388,53 @@ const CodeLineElement: React.FC<CodeLineElementProps> = ({
 }
 
 type LinkElementProps = Pick<RenderElementProps, "attributes"> & {
-  href: string
+  element: SlateBlock & { type: "link" }
   children: React.ReactNode
-  onClickRemove: () => void
-  onChangeHref: (href: string) => void
 }
 
 const LinkElement: React.FC<LinkElementProps> = ({
   attributes,
-  href: initialHref,
+  element,
   children,
-  onClickRemove,
-  onChangeHref,
 }) => {
+  const editor = useSlate()
+  const path = ReactEditor.findPath(editor, element)
   const Components = useComponents()
   const [isEditing, setEditing] = useState(false)
-  const [href, setHref] = useState(initialHref)
+  const [href, setHref] = useState(element.url)
+
+  useEffect(() => {
+    if (!isEditing) setHref(element.url)
+  }, [element.url, isEditing])
 
   const { getTriggerProps, renderToolbar } = useToolbar({
-    // open: true,
+    open: isEditing ? true : undefined,
     triggerOffset: 4,
   })
 
   const save = () => {
-    onChangeHref(href)
+    if (href !== element.url) {
+      Transforms.setNodes(
+        editor,
+        { url: href },
+        {
+          at: path,
+        }
+      )
+    }
     setEditing(false)
   }
 
   const cancel = () => {
-    setHref(initialHref)
+    setHref(element.url)
     setEditing(false)
+  }
+
+  const remove = () => {
+    Transforms.unwrapNodes(editor, {
+      at: path,
+      match: isLinkElement,
+    })
   }
 
   return (
@@ -436,6 +454,7 @@ const LinkElement: React.FC<LinkElementProps> = ({
               value={href}
               onChange={setHref}
               width="200px"
+              onEnterPress={save}
             />
             <Components.Button inline onClick={cancel}>
               Cancel
@@ -450,10 +469,16 @@ const LinkElement: React.FC<LinkElementProps> = ({
               <FontAwesomeIcon icon="arrow-up-right-from-square" size="xs" />{" "}
               {getHost(href)}
             </Components.LinkButton>
-            <Components.Button inline onClick={() => setEditing(true)}>
+            <Components.Button
+              inline
+              onClick={() => {
+                setHref(element.url)
+                setEditing(true)
+              }}
+            >
               <FontAwesomeIcon icon="pen-to-square" size="xs" /> Edit
             </Components.Button>
-            <Components.Button inline onClick={onClickRemove}>
+            <Components.Button inline onClick={remove}>
               <FontAwesomeIcon icon="trash-can" size="xs" /> Remove
             </Components.Button>
           </>

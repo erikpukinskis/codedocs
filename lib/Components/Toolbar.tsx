@@ -17,13 +17,16 @@ export function useToolbar({
   triggerOffset = 8,
   open,
 }: UseToolbarOptions = {}): UseToolbarReturnType {
-  const [isOver, hoverProps] = useHover({ delayLeave: 100 })
+  const [isOver, hoverProps] = useHover({
+    delayLeave: 100,
+  })
 
   const isOpen = open ?? isOver
 
   const { triggerProps, layerProps, arrowProps, renderLayer } = useLayer({
     isOpen,
     triggerOffset,
+    overflowContainer: false,
   })
 
   return {

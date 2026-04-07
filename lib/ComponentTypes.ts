@@ -86,6 +86,7 @@ export type TextInputProps = {
   value: string
   onChange: (value: string) => void
   width?: string
+  onEnterPress?: () => void
 }
 
 export type Components = {
