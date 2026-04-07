@@ -121,6 +121,8 @@ function serializeTextNode(
   if (format === "html") text = escapeHtml(text)
   if (node.code)
     text = `<code${` style="${CODE_STYLES.join("; ")}"`}>${text}</code>`
+  if (node.strikethrough) text = `<s>${text}</s>`
+  if (node.underline) text = `<u>${text}</u>`
   if (node.bold) text = `<strong>${text}</strong>`
   if (node.italic) text = `<em>${text}</em>`
 

@@ -7,6 +7,7 @@ import { Editable, ReactEditor, Slate, withReact, useSlate } from "slate-react"
 import type { RenderElementProps, RenderLeafProps } from "slate-react"
 import { copyHtml, copyPlainText } from "./copy"
 import * as styles from "./Editor.css"
+import { SelectionFormattingToolbar } from "./SelectionFormattingToolbar"
 import {
   isLineOfCodeElement,
   isLinkElement,
@@ -73,9 +74,11 @@ export const DocEditor = ({
       props: Omit<RenderLeafProps, "children"> & { children: React.ReactNode }
     ) => {
       let { children: leafChildren } = props
+      if (props.leaf.code) leafChildren = <code>{leafChildren}</code>
+      if (props.leaf.strikethrough) leafChildren = <s>{leafChildren}</s>
+      if (props.leaf.underline) leafChildren = <u>{leafChildren}</u>
       if (props.leaf.bold) leafChildren = <strong>{leafChildren}</strong>
       if (props.leaf.italic) leafChildren = <em>{leafChildren}</em>
-      if (props.leaf.code) leafChildren = <code>{leafChildren}</code>
       return <span {...props.attributes}>{leafChildren}</span>
     },
     []
@@ -279,6 +282,7 @@ export const DocEditor = ({
           placeholder="Start writing..."
           className={styles.editor}
         />
+        <SelectionFormattingToolbar />
       </Slate>
     </div>
   )
@@ -456,21 +460,21 @@ const LinkElement: React.FC<LinkElementProps> = ({
               width="200px"
               onEnterPress={save}
             />
-            <Components.Button inline onClick={cancel}>
+            <Components.Button variant="borderless" onClick={cancel}>
               Cancel
             </Components.Button>
-            <Components.Button inline onClick={save}>
+            <Components.Button variant="borderless" onClick={save}>
               Save
             </Components.Button>
           </>
         ) : (
           <>
-            <Components.LinkButton to={href} inline>
+            <Components.LinkButton to={href} variant="borderless">
               <FontAwesomeIcon icon="arrow-up-right-from-square" size="xs" />{" "}
               {getHost(href)}
             </Components.LinkButton>
             <Components.Button
-              inline
+              variant="borderless"
               onClick={() => {
                 setHref(element.url)
                 setEditing(true)
@@ -478,7 +482,7 @@ const LinkElement: React.FC<LinkElementProps> = ({
             >
               <FontAwesomeIcon icon="pen-to-square" size="xs" /> Edit
             </Components.Button>
-            <Components.Button inline onClick={remove}>
+            <Components.Button variant="borderless" onClick={remove}>
               <FontAwesomeIcon icon="trash-can" size="xs" /> Remove
             </Components.Button>
           </>

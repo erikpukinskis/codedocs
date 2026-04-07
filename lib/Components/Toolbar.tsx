@@ -6,31 +6,45 @@ import * as styles from "./Toolbar.css"
 type UseToolbarOptions = {
   triggerOffset?: number
   open?: boolean
+  /**
+   * When set, the bubble is positioned from this rect (no DOM trigger or hover).
+   * Pass `open` explicitly; typically `true` when the rect is non-null.
+   */
+  getTriggerBounds?: () => DOMRect | ClientRect | null
 }
 
 type UseToolbarReturnType = {
-  getTriggerProps: () => TriggerProps & UseHoverProps
+  getTriggerProps: () => (TriggerProps & UseHoverProps) | undefined
   renderToolbar: (children: React.ReactNode) => React.ReactNode
 }
 
 export function useToolbar({
   triggerOffset = 8,
   open,
+  getTriggerBounds,
 }: UseToolbarOptions = {}): UseToolbarReturnType {
   const [isOver, hoverProps] = useHover({
     delayLeave: 100,
   })
 
-  const isOpen = open ?? isOver
+  const isOpen = getTriggerBounds ? Boolean(open) : open ?? isOver
 
   const { triggerProps, layerProps, arrowProps, renderLayer } = useLayer({
     isOpen,
     triggerOffset,
     overflowContainer: false,
+    ...(getTriggerBounds
+      ? {
+          trigger: {
+            getBounds: () => getTriggerBounds() ?? new DOMRect(0, 0, 0, 0),
+          },
+        }
+      : {}),
   })
 
   return {
-    getTriggerProps: () => ({ ...triggerProps, ...hoverProps }),
+    getTriggerProps: () =>
+      getTriggerBounds ? undefined : { ...triggerProps, ...hoverProps },
     renderToolbar: (children) => {
       if (!isOpen) return null
 

@@ -6,11 +6,10 @@ export const Link = ReactRouterLink
 
 export const LinkButton: React.FC<LinkButtonProps> = ({
   children,
-  secondary,
-  inline,
+  variant,
   ...props
 }) => (
-  <Link {...props} className={buttonStyles.styledButton({ secondary, inline })}>
+  <Link {...props} className={buttonStyles.styledButton({ variant })}>
     {children}
   </Link>
 )

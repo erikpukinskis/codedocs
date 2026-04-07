@@ -95,5 +95,7 @@ export function isLineOfCodeElement(node: Node): node is LineOfCodeElement {
 export type SlateLeaf = BaseText & {
   bold?: boolean
   italic?: boolean
+  underline?: boolean
+  strikethrough?: boolean
   code?: boolean
 }

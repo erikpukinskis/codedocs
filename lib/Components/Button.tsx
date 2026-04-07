@@ -5,12 +5,16 @@ import type { ButtonProps } from "~/ComponentTypes"
 export const Button = ({
   onClick,
   children,
-  secondary,
-  inline,
+  variant = "default",
+  "aria-label": ariaLabel,
+  disabled,
 }: ButtonProps) => (
   <button
+    type="button"
     onClick={onClick}
-    className={styles.styledButton({ secondary, inline })}
+    aria-label={ariaLabel}
+    disabled={disabled}
+    className={styles.styledButton({ variant })}
   >
     {children}
   </button>

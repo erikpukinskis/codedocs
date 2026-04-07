@@ -72,11 +72,14 @@ export type CardProps = {
 export type LogoIconProps = Parameters<typeof FontAwesomeIcon>[0]
 
 export type ButtonProps = BaseButtonProps & {
-  secondary?: boolean
-  inline?: boolean
+  variant?: "default" | "transparent" | "borderless"
+  /** Whether the button is considered "active" (for toggle buttons that stay in an "on" position) */
+  pressed?: boolean
 }
 
-export type PanelHeaderProps = BaseButtonProps & { isOpen: boolean | undefined }
+export type PanelHeaderProps = Omit<BaseButtonProps, "variant"> & {
+  isOpen: boolean | undefined
+}
 
 export type PanelProps = ContainerProps & { hasNeighbors: boolean }
 
