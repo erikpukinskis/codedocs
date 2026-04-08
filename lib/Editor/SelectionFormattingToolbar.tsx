@@ -29,11 +29,9 @@ function isMarkActiveInSelection(
   return leaves.every((n) => Boolean(n[key]))
 }
 
-function suppressesFormattingToolbar(editor: Editor): boolean {
-  const { selection } = editor
-  if (!selection) return true
+function suppressesFormattingToolbar(editor: Editor, range: Range): boolean {
   const [match] = Editor.nodes(editor, {
-    at: selection,
+    at: range,
     match: (n) => isLineOfCodeElement(n) || isCodeBlock(n) || isFrozenBlock(n),
   })
   return Boolean(match)
@@ -50,20 +48,21 @@ export function SelectionFormattingToolbar({
   const selection = useSlateSelection()
   const Components = useComponents()
 
+  const activeRange =
+    selection && !Range.isCollapsed(selection) ? selection : ghostSelection
+
   const triggerBounds = useMemo(() => {
-    if (!selection || Range.isCollapsed(selection)) return null
-    if (!ReactEditor.isFocused(editor)) return null
-    if (suppressesFormattingToolbar(editor)) return null
-    const rangeForPosition = ghostSelection ?? selection
+    if (!activeRange) return null
+    if (suppressesFormattingToolbar(editor, activeRange)) return null
     try {
-      const domRange = ReactEditor.toDOMRange(editor, rangeForPosition)
+      const domRange = ReactEditor.toDOMRange(editor, activeRange)
       const rect = domRange.getClientRects()[0]
       if (!rect || (rect.width === 0 && rect.height === 0)) return null
       return rect
     } catch {
       return null
     }
-  }, [editor, selection, ghostSelection])
+  }, [editor, activeRange])
 
   const { renderToolbar } = useToolbar({
     open: Boolean(triggerBounds),
@@ -71,10 +70,10 @@ export function SelectionFormattingToolbar({
     getTriggerBounds: () => triggerBounds,
   })
 
-  if (!triggerBounds || !selection) return null
+  if (!triggerBounds || !activeRange) return null
 
   const toggleMark = (key: FormatMark) => () => {
-    if (isMarkActiveInSelection(editor, key, selection)) {
+    if (isMarkActiveInSelection(editor, key, activeRange)) {
       Editor.removeMark(editor, key)
     } else {
       Editor.addMark(editor, key, true)

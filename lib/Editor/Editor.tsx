@@ -62,6 +62,7 @@ export const DocEditor = ({
   const editor = editorRef.current
   const [value, setValue] = useState(slateDocument)
   const [ghostSelection, setGhostSelection] = useState<Range | null>(null)
+  const [isFocused, setIsFocused] = useState(false)
 
   const renderElement = useCallback(
     (props: RenderElementProps) => (
@@ -96,7 +97,7 @@ export const DocEditor = ({
 
   const decorate = useCallback(
     ([node, path]: NodeEntry): Range[] => {
-      if (!ghostSelection || !Text.isText(node)) return []
+      if (isFocused || !ghostSelection || !Text.isText(node)) return []
 
       try {
         const intersection = Range.intersection(
@@ -109,7 +110,7 @@ export const DocEditor = ({
         return []
       }
     },
-    [editor, ghostSelection]
+    [editor, ghostSelection, isFocused]
   )
 
   const onKeyDown = useCallback(
@@ -312,6 +313,8 @@ export const DocEditor = ({
           renderElement={renderElement}
           renderLeaf={renderLeaf}
           decorate={decorate}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
           onKeyDown={onKeyDown}
           placeholder="Start writing..."
           className={styles.editor}

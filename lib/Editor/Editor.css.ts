@@ -55,5 +55,5 @@ export const link = style({
 })
 
 export const ghostSelection = style({
-  border: "1px solid red",
+  outline: "1px solid red",
 })
