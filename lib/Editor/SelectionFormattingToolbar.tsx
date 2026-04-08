@@ -48,8 +48,13 @@ export function SelectionFormattingToolbar({
   const selection = useSlateSelection()
   const Components = useComponents()
 
-  const activeRange =
-    selection && !Range.isCollapsed(selection) ? selection : ghostSelection
+  const focused = ReactEditor.isFocused(editor)
+  const hasExpandedSelection = selection && !Range.isCollapsed(selection)
+  const activeRange = hasExpandedSelection
+    ? selection
+    : focused
+    ? null
+    : ghostSelection
 
   const triggerBounds = useMemo(() => {
     if (!activeRange) return null

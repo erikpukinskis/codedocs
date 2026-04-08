@@ -271,7 +271,10 @@ export const DocEditor = ({
         return
       }
 
-      if (event.key === "Tab") {
+      if (
+        (event.key === "Tab" && !editor.selection) ||
+        (editor.selection && Range.isCollapsed(editor.selection))
+      ) {
         event.preventDefault()
         const [match] = Editor.nodes(editor, {
           match: isListItemBlock,
@@ -309,6 +312,7 @@ export const DocEditor = ({
           setValue(descendants as SlateBlock[])
         }}
       >
+        <SelectionFormattingToolbar ghostSelection={ghostSelection} />
         <Editable
           renderElement={renderElement}
           renderLeaf={renderLeaf}
@@ -319,7 +323,6 @@ export const DocEditor = ({
           placeholder="Start writing..."
           className={styles.editor}
         />
-        <SelectionFormattingToolbar ghostSelection={ghostSelection} />
       </Slate>
     </div>
   )
