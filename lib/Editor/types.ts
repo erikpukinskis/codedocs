@@ -98,4 +98,5 @@ export type SlateLeaf = BaseText & {
   underline?: boolean
   strikethrough?: boolean
   code?: boolean
+  ghostSelection?: boolean
 }

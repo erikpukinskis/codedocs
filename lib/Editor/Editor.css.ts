@@ -53,3 +53,7 @@ export const lineNumber = style({
 export const link = style({
   textDecoration: "underline",
 })
+
+export const ghostSelection = style({
+  border: "1px solid red",
+})

@@ -39,7 +39,13 @@ function suppressesFormattingToolbar(editor: Editor): boolean {
   return Boolean(match)
 }
 
-export function SelectionFormattingToolbar(): React.ReactElement | null {
+type SelectionFormattingToolbarProps = {
+  ghostSelection: Range | null
+}
+
+export function SelectionFormattingToolbar({
+  ghostSelection,
+}: SelectionFormattingToolbarProps): React.ReactElement | null {
   const editor = useSlate()
   const selection = useSlateSelection()
   const Components = useComponents()
@@ -48,15 +54,16 @@ export function SelectionFormattingToolbar(): React.ReactElement | null {
     if (!selection || Range.isCollapsed(selection)) return null
     if (!ReactEditor.isFocused(editor)) return null
     if (suppressesFormattingToolbar(editor)) return null
+    const rangeForPosition = ghostSelection ?? selection
     try {
-      const domRange = ReactEditor.toDOMRange(editor, selection)
-      const rect = domRange.getBoundingClientRect()
-      if (rect.width === 0 && rect.height === 0) return null
+      const domRange = ReactEditor.toDOMRange(editor, rangeForPosition)
+      const rect = domRange.getClientRects()[0]
+      if (!rect || (rect.width === 0 && rect.height === 0)) return null
       return rect
     } catch {
       return null
     }
-  }, [editor, selection])
+  }, [editor, selection, ghostSelection])
 
   const { renderToolbar } = useToolbar({
     open: Boolean(triggerBounds),

@@ -1,7 +1,7 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import React, { useCallback, useEffect, useRef, useState } from "react"
-import { createEditor, Editor, Range, Transforms } from "slate"
-import type { Element as SlateElement } from "slate"
+import { createEditor, Editor, Range, Text, Transforms } from "slate"
+import type { Element as SlateElement, NodeEntry } from "slate"
 import { withHistory, type HistoryEditor } from "slate-history"
 import { Editable, ReactEditor, Slate, withReact, useSlate } from "slate-react"
 import type { RenderElementProps, RenderLeafProps } from "slate-react"
@@ -61,6 +61,7 @@ export const DocEditor = ({
   }
   const editor = editorRef.current
   const [value, setValue] = useState(slateDocument)
+  const [ghostSelection, setGhostSelection] = useState<Range | null>(null)
 
   const renderElement = useCallback(
     (props: RenderElementProps) => (
@@ -79,9 +80,36 @@ export const DocEditor = ({
       if (props.leaf.underline) leafChildren = <u>{leafChildren}</u>
       if (props.leaf.bold) leafChildren = <strong>{leafChildren}</strong>
       if (props.leaf.italic) leafChildren = <em>{leafChildren}</em>
-      return <span {...props.attributes}>{leafChildren}</span>
+      return (
+        <span
+          {...props.attributes}
+          className={
+            props.leaf.ghostSelection ? styles.ghostSelection : undefined
+          }
+        >
+          {leafChildren}
+        </span>
+      )
     },
     []
+  )
+
+  const decorate = useCallback(
+    ([node, path]: NodeEntry): Range[] => {
+      if (!ghostSelection || !Text.isText(node)) return []
+
+      try {
+        const intersection = Range.intersection(
+          ghostSelection,
+          Editor.range(editor, path)
+        )
+        if (!intersection) return []
+        return [{ ...intersection, ghostSelection: true } as Range]
+      } catch {
+        return []
+      }
+    },
+    [editor, ghostSelection]
   )
 
   const onKeyDown = useCallback(
@@ -269,6 +297,11 @@ export const DocEditor = ({
       <Slate
         editor={editor}
         initialValue={value}
+        onSelectionChange={(selection) => {
+          if (selection && !Range.isCollapsed(selection)) {
+            setGhostSelection(selection)
+          }
+        }}
         onChange={(descendants) => {
           // Descendant is a union of Element and Text, but Slate will never put
           // text nodes at the root level, so this cast is safe:
@@ -278,11 +311,12 @@ export const DocEditor = ({
         <Editable
           renderElement={renderElement}
           renderLeaf={renderLeaf}
+          decorate={decorate}
           onKeyDown={onKeyDown}
           placeholder="Start writing..."
           className={styles.editor}
         />
-        <SelectionFormattingToolbar />
+        <SelectionFormattingToolbar ghostSelection={ghostSelection} />
       </Slate>
     </div>
   )
