@@ -219,7 +219,11 @@ function serializeListItems(
     const listType = item.listType ?? "ul"
     const tag = listType === "ol" ? "ol" : "ul"
 
-    while (stack.length > 0 && stack[stack.length - 1].depth >= depth) {
+    while (stack.length > 0) {
+      const top = stack[stack.length - 1]
+      if (top === undefined || top.depth < depth) {
+        break
+      }
       const popped = stack.pop()
       if (!popped) {
         throw new Error("Nothing popped?")
@@ -228,7 +232,12 @@ function serializeListItems(
       result += `</${closeTag}>`
     }
 
-    if (stack.length === 0 || stack[stack.length - 1].depth < depth) {
+    const stackTop = stack[stack.length - 1]
+    if (
+      stack.length === 0 ||
+      stackTop === undefined ||
+      stackTop.depth < depth
+    ) {
       result += `<${tag}>`
       stack.push({ listType, depth })
     }

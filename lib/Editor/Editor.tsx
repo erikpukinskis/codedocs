@@ -15,7 +15,9 @@ import {
   type SlateBlock,
 } from "./types"
 import { useComponents } from "~/ComponentContext"
-import { useToolbar } from "~/Components/Toolbar"
+import { Toolbar } from "~/Components/Toolbar"
+import { useMergedRefs } from "~/helpers/mergeRefs"
+import { useElementObserver } from "~/hooks/useElementObserver"
 
 type DocEditorProps = {
   slateDocument: SlateElement[]
@@ -141,9 +143,13 @@ export const DocEditor = ({
         // TODO: Use Zod for this when we migrate the types to Zod
         const codeBlock = codeBlockNode as SlateBlock
 
-        const isLastLine =
-          codeLinePath[codeLinePath.length - 1] ===
-          codeBlock.children.length - 1
+        const lineIdx = codeLinePath[codeLinePath.length - 1]
+        const codeBlockIndex = codeBlockPath[0]
+        if (lineIdx === undefined || codeBlockIndex === undefined) {
+          return
+        }
+
+        const isLastLine = lineIdx === codeBlock.children.length - 1
         const isEmpty = lineText.trim() === ""
 
         if (isEmpty && isLastLine) {
@@ -155,9 +161,9 @@ export const DocEditor = ({
               id: `b${Date.now()}`,
               children: [{ text: "" }],
             } as SlateBlock, // TODO: Zod
-            { at: [codeBlockPath[0] + 1] }
+            { at: [codeBlockIndex + 1] }
           )
-          Transforms.select(editor, [codeBlockPath[0] + 1, 0])
+          Transforms.select(editor, [codeBlockIndex + 1, 0])
         } else {
           const anchor = editor.selection?.anchor
           if (!anchor) return
@@ -169,20 +175,15 @@ export const DocEditor = ({
             children: [{ text: "" }],
           } as SlateBlock
 
-          const lineIndex = codeLinePath[codeLinePath.length - 1]
-
           if (Editor.isStart(editor, anchor, codeLinePath)) {
             Transforms.insertNodes(editor, emptyLine, { at: codeLinePath })
-            const shiftedLinePath = [
-              ...codeLinePath.slice(0, -1),
-              lineIndex + 1,
-            ]
+            const shiftedLinePath = [...codeLinePath.slice(0, -1), lineIdx + 1]
             Transforms.select(editor, {
               path: [...shiftedLinePath, 0],
               offset: 0,
             })
           } else if (Editor.isEnd(editor, anchor, codeLinePath)) {
-            const newLinePath = [...codeLinePath.slice(0, -1), lineIndex + 1]
+            const newLinePath = [...codeLinePath.slice(0, -1), lineIdx + 1]
             Transforms.insertNodes(editor, emptyLine, { at: newLinePath })
             Transforms.select(editor, {
               path: [...newLinePath, 0],
@@ -190,7 +191,7 @@ export const DocEditor = ({
             })
           } else {
             Transforms.splitNodes(editor, { at: anchor })
-            const newLinePath = [...codeLinePath.slice(0, -1), lineIndex + 1]
+            const newLinePath = [...codeLinePath.slice(0, -1), lineIdx + 1]
             const [newLineNode] = Editor.node(editor, newLinePath)
             // TODO: Parse with Zod, also is this a new node type? Or a ParagraphBlock?
             const newLine = newLineNode as SlateBlock
@@ -236,6 +237,9 @@ export const DocEditor = ({
             const startLineIndex =
               startCodeLinePath[startCodeLinePath.length - 1]
             const endLineIndex = endCodeLinePath[endCodeLinePath.length - 1]
+            if (startLineIndex === undefined || endLineIndex === undefined) {
+              return
+            }
 
             for (let i = startLineIndex; i <= endLineIndex; i++) {
               const linePath = [...startCodeLinePath.slice(0, -1), i]
@@ -248,8 +252,9 @@ export const DocEditor = ({
 
               if (event.shiftKey) {
                 const match = lineText.match(/^( {1,2})/)
-                if (match) {
-                  const spacesToRemove = match[1].length
+                const spacesChunk = match?.[1]
+                if (spacesChunk !== undefined) {
+                  const spacesToRemove = spacesChunk.length
                   Transforms.delete(editor, {
                     at: {
                       anchor: { path: [...linePath, 0], offset: 0 },
@@ -382,7 +387,7 @@ const DocElement = ({
     }
     case "link":
       return (
-        <LinkElement attributes={attributes} element={node}>
+        <LinkElement attributes={attributes} linkElement={node}>
           {children}
         </LinkElement>
       )
@@ -419,7 +424,7 @@ const CodeLineElement: React.FC<CodeLineElementProps> = ({
 }) => {
   const editor = useSlate()
   const path = ReactEditor.findPath(editor, element)
-  const lineIndex = path[path.length - 1]
+  const lineIndex = path[path.length - 1] ?? 0
 
   return (
     <div {...attributes} className={styles.codeLine}>
@@ -432,32 +437,35 @@ const CodeLineElement: React.FC<CodeLineElementProps> = ({
 }
 
 type LinkElementProps = Pick<RenderElementProps, "attributes"> & {
-  element: SlateBlock & { type: "link" }
+  linkElement: SlateBlock & { type: "link" }
   children: React.ReactNode
 }
 
 const LinkElement: React.FC<LinkElementProps> = ({
-  attributes,
-  element,
+  attributes: { ref: slateRef, ...attributes },
+  linkElement,
   children,
 }) => {
   const editor = useSlate()
-  const path = ReactEditor.findPath(editor, element)
+  const path = ReactEditor.findPath(editor, linkElement)
   const Components = useComponents()
   const [isEditing, setEditing] = useState(false)
-  const [href, setHref] = useState(element.url)
+  const [href, setHref] = useState(linkElement.url)
+  const {
+    ref: observerRef,
+    element,
+    hasFocus,
+    isHovered,
+  } = useElementObserver()
+
+  const ref = useMergedRefs(observerRef, slateRef)
 
   useEffect(() => {
-    if (!isEditing) setHref(element.url)
-  }, [element.url, isEditing])
-
-  const { getTriggerProps, renderToolbar } = useToolbar({
-    open: isEditing ? true : undefined,
-    triggerOffset: 4,
-  })
+    if (!isEditing) setHref(linkElement.url)
+  }, [linkElement.url, isEditing])
 
   const save = () => {
-    if (href !== element.url) {
+    if (href !== linkElement.url) {
       Transforms.setNodes(
         editor,
         { url: href },
@@ -470,7 +478,7 @@ const LinkElement: React.FC<LinkElementProps> = ({
   }
 
   const cancel = () => {
-    setHref(element.url)
+    setHref(linkElement.url)
     setEditing(false)
   }
 
@@ -483,51 +491,48 @@ const LinkElement: React.FC<LinkElementProps> = ({
 
   return (
     <>
-      <a
-        {...attributes}
-        {...getTriggerProps()}
-        href={href}
-        className={styles.link}
-      >
+      <a {...attributes} href={href} className={styles.link} ref={ref}>
         {children}
       </a>
-      {renderToolbar(
-        isEditing ? (
-          <>
-            <Components.TextInput
-              value={href}
-              onChange={setHref}
-              width="200px"
-              onEnterPress={save}
-            />
-            <Components.Button variant="borderless" onClick={cancel}>
-              Cancel
-            </Components.Button>
-            <Components.Button variant="borderless" onClick={save}>
-              Save
-            </Components.Button>
-          </>
-        ) : (
-          <>
-            <Components.LinkButton to={href} variant="borderless">
-              <FontAwesomeIcon icon="arrow-up-right-from-square" size="xs" />{" "}
-              {getHost(href)}
-            </Components.LinkButton>
-            <Components.Button
-              variant="borderless"
-              onClick={() => {
-                setHref(element.url)
-                setEditing(true)
-              }}
-            >
-              <FontAwesomeIcon icon="pen-to-square" size="xs" /> Edit
-            </Components.Button>
-            <Components.Button variant="borderless" onClick={remove}>
-              <FontAwesomeIcon icon="trash-can" size="xs" /> Remove
-            </Components.Button>
-          </>
-        )
-      )}
+      {
+        <Toolbar target={element} open={hasFocus || isHovered || isEditing}>
+          {isEditing ? (
+            <>
+              <Components.TextInput
+                value={href}
+                onChange={setHref}
+                width="200px"
+                onEnterPress={save}
+              />
+              <Components.Button variant="borderless" onClick={cancel}>
+                Cancel
+              </Components.Button>
+              <Components.Button variant="borderless" onClick={save}>
+                Save
+              </Components.Button>
+            </>
+          ) : (
+            <>
+              <Components.LinkButton to={href} variant="borderless">
+                <FontAwesomeIcon icon="arrow-up-right-from-square" size="xs" />{" "}
+                {getHost(href)}
+              </Components.LinkButton>
+              <Components.Button
+                variant="borderless"
+                onClick={() => {
+                  setHref(linkElement.url)
+                  setEditing(true)
+                }}
+              >
+                <FontAwesomeIcon icon="pen-to-square" size="xs" /> Edit
+              </Components.Button>
+              <Components.Button variant="borderless" onClick={remove}>
+                <FontAwesomeIcon icon="trash-can" size="xs" /> Remove
+              </Components.Button>
+            </>
+          )}
+        </Toolbar>
+      }
     </>
   )
 }

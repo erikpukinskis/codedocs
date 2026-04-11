@@ -117,7 +117,8 @@ export const SearchContextProvider = ({
     return results.map((result) => {
       const terms = query.split(" ").filter((term) => /[^\s]/.test(term))
 
-      const pattern = terms.length === 1 ? terms[0] : `/(${terms.join("|")})/gi`
+      const pattern =
+        terms.length === 1 ? terms[0] ?? query : `/(${terms.join("|")})/gi`
 
       const titleChunks = highlightWords({ text: result.title, query: pattern })
 

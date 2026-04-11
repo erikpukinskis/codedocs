@@ -1,70 +1,68 @@
-import React from "react"
-import type { ArrowProps, TriggerProps, UseHoverProps } from "react-laag"
-import { Arrow, useHover, useLayer } from "react-laag"
+import React, { useEffect, useState } from "react"
 import * as styles from "./Toolbar.css"
+import { useElementObserver } from "~/hooks/useElementObserver"
 
-type UseToolbarOptions = {
-  triggerOffset?: number
+type ToolbarProps = {
+  id?: string
+  children: React.ReactNode
+  target?: HTMLElement | DOMRect | null
   open?: boolean
-  /**
-   * When set, the bubble is positioned from this rect (no DOM trigger or hover).
-   * Pass `open` explicitly; typically `true` when the rect is non-null.
-   */
-  getTriggerBounds?: () => DOMRect | ClientRect | null
 }
 
-type UseToolbarReturnType = {
-  getTriggerProps: () => (TriggerProps & UseHoverProps) | undefined
-  renderToolbar: (children: React.ReactNode) => React.ReactNode
-}
-
-export function useToolbar({
-  triggerOffset = 8,
+export const Toolbar: React.FC<ToolbarProps> = ({
+  id,
+  children,
+  target,
   open,
-  getTriggerBounds,
-}: UseToolbarOptions = {}): UseToolbarReturnType {
-  const [isOver, hoverProps] = useHover({
-    delayLeave: 100,
-  })
+}) => {
+  const { ref, element: toolbar, hasFocus, isHovered } = useElementObserver()
+  const [didWait, setDidWait] = useState(false)
 
-  const isOpen = getTriggerBounds ? Boolean(open) : open ?? isOver
+  useEffect(() => {
+    if (!toolbar) return
 
-  const { triggerProps, layerProps, arrowProps, renderLayer } = useLayer({
-    isOpen,
-    triggerOffset,
-    overflowContainer: false,
-    ...(getTriggerBounds
-      ? {
-          trigger: {
-            getBounds: () => getTriggerBounds() ?? new DOMRect(0, 0, 0, 0),
-          },
-        }
-      : {}),
-  })
+    // We wait 200ms so we don't show the toolbar unless you actually pause on the target.
+    const timeout = setTimeout(() => {
+      setDidWait(true)
+    }, 200)
 
-  return {
-    getTriggerProps: () =>
-      getTriggerBounds ? undefined : { ...triggerProps, ...hoverProps },
-    renderToolbar: (children) => {
-      if (!isOpen) return null
+    return () => clearTimeout(timeout)
+  }, [toolbar])
 
-      return renderLayer(
-        <div {...layerProps} {...hoverProps} className={styles.toolbar}>
-          <div className={styles.toolbarBuffer}>
-            <div className={styles.toolbarConent}>{children}</div>
-          </div>
-          <Arrow
-            {...(arrowProps as unknown as React18ArrowProps)}
-            backgroundColor="#444"
-            size={5}
-          />
-        </div>
-      )
-    },
-  }
-}
+  if (!target) return null
+  if (!open && !hasFocus && !isHovered) return null
 
-type React18ArrowProps = ArrowProps & {
-  onPointerEnterCapture: () => void
-  onPointerLeaveCapture: () => void
+  const targetLeft =
+    target instanceof HTMLElement ? target.offsetLeft : target.left
+  const targetWidth =
+    target instanceof HTMLElement ? target.offsetWidth : target.width
+  const targetTop =
+    target instanceof HTMLElement ? target.offsetTop : target.top
+
+  return (
+    <span
+      ref={ref}
+      contentEditable={false}
+      className={styles.toolbar}
+      id={id}
+      style={
+        toolbar && didWait
+          ? {
+              left: `calc(${
+                targetLeft + targetWidth / 2
+              }px - var(--buffer-width) - ${toolbar.offsetWidth / 2}px)`,
+              top: `calc(${targetTop - toolbar.offsetHeight - 2}px)`,
+            }
+          : {
+              // We start off as hidden, then when we get a ref and find out the
+              // toolbar dimensions we can position it relative to the target.
+              visibility: "hidden",
+            }
+      }
+    >
+      <span className={styles.toolbarBuffer}>
+        <span className={styles.toolbarConent}>{children}</span>
+      </span>
+    </span>
+  )
 }

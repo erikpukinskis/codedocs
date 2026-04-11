@@ -204,7 +204,11 @@ function visitDocJSXIdentifier(
 
     const headingMatch = tagName.match(/^h([1-6])$/)
     if (headingMatch) {
-      const level = parseInt(headingMatch[1], 10)
+      const levelStr = headingMatch[1]
+      if (levelStr === undefined) {
+        continue
+      }
+      const level = parseInt(levelStr, 10)
       const inlineResult = parseInlineChildrenFn(child.children)
       if (inlineResult === null) {
         freezeBlockFn(child)
@@ -481,7 +485,11 @@ function getJSXTextContent(
         isTemplateLiteral(child.expression) &&
         child.expression.expressions.length === 0
       ) {
-        text += child.expression.quasis[0].value.cooked ?? ""
+        const quasi = child.expression.quasis[0]
+        if (quasi === undefined) {
+          return null
+        }
+        text += quasi.value.cooked ?? ""
       } else {
         return null
       }

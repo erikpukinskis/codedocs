@@ -28,7 +28,10 @@ export function copyPlainText(
     if (!intersection || Range.isCollapsed(intersection)) continue
 
     if (isFrozenBlock(node) && frozenSources && node.id in frozenSources) {
-      chunks.push(frozenSources[node.id])
+      const frozen = frozenSources[node.id]
+      if (frozen !== undefined) {
+        chunks.push(frozen)
+      }
       continue
     }
 

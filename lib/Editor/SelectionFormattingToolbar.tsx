@@ -4,7 +4,7 @@ import { Editor, Range, Text } from "slate"
 import { ReactEditor, useSlate, useSlateSelection } from "slate-react"
 import { isCodeBlock, isFrozenBlock, isLineOfCodeElement } from "./types"
 import { useComponents } from "~/ComponentContext"
-import { useToolbar } from "~/Components/Toolbar"
+import { Toolbar } from "~/Components/Toolbar"
 
 type FormatMark = "bold" | "italic" | "underline" | "strikethrough"
 
@@ -56,7 +56,7 @@ export function SelectionFormattingToolbar({
     ? null
     : ghostSelection
 
-  const triggerBounds = useMemo(() => {
+  const targetRect = useMemo(() => {
     if (!activeRange) return null
     if (suppressesFormattingToolbar(editor, activeRange)) return null
     try {
@@ -69,13 +69,7 @@ export function SelectionFormattingToolbar({
     }
   }, [editor, activeRange])
 
-  const { renderToolbar } = useToolbar({
-    open: Boolean(triggerBounds),
-    triggerOffset: 6,
-    getTriggerBounds: () => triggerBounds,
-  })
-
-  if (!triggerBounds || !activeRange) return null
+  if (!targetRect || !activeRange) return null
 
   const toggleMark = (key: FormatMark) => () => {
     if (isMarkActiveInSelection(editor, key, activeRange)) {
@@ -85,8 +79,8 @@ export function SelectionFormattingToolbar({
     }
   }
 
-  const toolbar = renderToolbar(
-    <>
+  return (
+    <Toolbar target={targetRect}>
       <Components.Button
         variant="borderless"
         aria-label="Bold"
@@ -115,8 +109,6 @@ export function SelectionFormattingToolbar({
       >
         <FontAwesomeIcon icon="strikethrough" />
       </Components.Button>
-    </>
+    </Toolbar>
   )
-
-  return toolbar ? <>{toolbar}</> : null
 }

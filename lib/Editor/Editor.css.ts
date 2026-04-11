@@ -51,9 +51,12 @@ export const lineNumber = style({
 })
 
 export const link = style({
-  textDecoration: "underline",
+  "textDecoration": "underline",
+  ":hover": {
+    backgroundColor: "#ede8ff",
+  },
 })
 
 export const ghostSelection = style({
-  outline: "1px solid red",
+  backgroundColor: "rgba(0,0,0,0.1)",
 })

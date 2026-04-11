@@ -4,6 +4,7 @@
     "resolveJsonModule": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
+    "noUncheckedIndexedAccess": true,
     "skipLibCheck": true,
     "lib": ["es2017", "dom"],
     "baseUrl": ".",

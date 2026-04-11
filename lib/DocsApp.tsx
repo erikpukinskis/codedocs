@@ -206,6 +206,9 @@ const getFirstPagePath = (parent: PageParent) => {
 
   while (parent) {
     const firstChild = parent.children[0]
+    if (firstChild === undefined) {
+      break
+    }
     path += `/${firstChild.name}`
     if (isPage(firstChild)) {
       break

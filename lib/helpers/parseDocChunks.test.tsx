@@ -13,7 +13,7 @@ describe("parseDocChunks", () => {
     const children = [<p key="1">Hello</p>, <p key="2">World</p>]
     const chunks = parseDocChunks(children)
     expect(chunks).toHaveLength(1)
-    expect(chunks[0].elements).toHaveLength(2)
+    expect(chunks[0]!.elements).toHaveLength(2)
   })
 
   test("splits at h2 boundaries", () => {
@@ -26,9 +26,9 @@ describe("parseDocChunks", () => {
     ]
     const chunks = parseDocChunks(children)
     expect(chunks).toHaveLength(3)
-    expect(chunks[0].elements).toHaveLength(1) // <p>Intro</p>
-    expect(chunks[1].elements).toHaveLength(2) // <h2> + <p>
-    expect(chunks[2].elements).toHaveLength(2) // <h2> + <p>
+    expect(chunks[0]!.elements).toHaveLength(1) // <p>Intro</p>
+    expect(chunks[1]!.elements).toHaveLength(2) // <h2> + <p>
+    expect(chunks[2]!.elements).toHaveLength(2) // <h2> + <p>
   })
 
   test("splits at h3 boundaries", () => {
@@ -107,7 +107,7 @@ describe("filterChunks", () => {
     ]
     const result = filterChunks(chunks)
     expect(result).toHaveLength(1)
-    expect(chunkHasOnly(result[0])).toBe(true)
+    expect(chunkHasOnly(result[0]!)).toBe(true)
   })
 
   test("returns multiple chunks when multiple have only", () => {

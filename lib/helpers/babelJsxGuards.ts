@@ -44,7 +44,7 @@ export function isMockCallbackNode(node: Node): node is MockCallbackCall {
   if (node.type !== "CallExpression") return false
   else if (node.start == null || node.end == null) return false
   else if (node.arguments.length !== 1) return false
-  else if (node.arguments[0].type !== "StringLiteral") return false
+  else if (node.arguments[0]?.type !== "StringLiteral") return false
 
   const { callee } = node
 
