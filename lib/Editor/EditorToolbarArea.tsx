@@ -1,18 +1,13 @@
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import React, { useCallback, useEffect, useRef, useState } from "react"
-import { Editor, Path, Range, Transforms } from "slate"
+import { Editor, Path, Range } from "slate"
 import type { DOMPoint } from "slate-dom"
 import type { HistoryEditor } from "slate-history"
 import { ReactEditor, useSlate, useSlateSelection } from "slate-react"
-import {
-  isMarkActiveInSelection,
-  resolveFormattingChrome,
-  type FormatMark,
-} from "./inlineChrome/resolveInlineChrome"
+import { FormattingToolbarContent } from "./FormattingToolbarContent"
+import { resolveFormattingChrome } from "./inlineChrome/resolveInlineChrome"
+import { LinkToolbarContent } from "./LinkToolbarContent"
 import { isLinkElement, type LinkElement as LinkElementNode } from "./types"
-import { useComponents } from "~/ComponentContext"
 import { ToolbarArea } from "~/Components/ToolbarArea"
-import type { Components } from "~/ComponentTypes"
 
 export type ToolbarContentProps = {
   pinOpen: () => void
@@ -82,7 +77,6 @@ export const EditorToolbarArea: React.FC<EditorToolbarAreaProps> = ({
   const toolbarListenerAreaRef = useRef<HTMLDivElement>(null)
   const editor = useSlate() as SlateEditor
   const selection = useSlateSelection()
-  const Components = useComponents()
 
   const [hoverLinkPath, setHoverLinkPath] = useState<Path | null>(null)
   const hoverLinkPathRef = useRef<Path | null>(null)
@@ -112,6 +106,7 @@ export const EditorToolbarArea: React.FC<EditorToolbarAreaProps> = ({
     return hoverLinkPath
   })()
 
+  // TODO: Inline this
   const { activeRange, targetRect } = resolveFormattingChrome(
     editor,
     selection,
@@ -173,53 +168,13 @@ export const EditorToolbarArea: React.FC<EditorToolbarAreaProps> = ({
     setPinnedLinkPath(null)
   }, [])
 
-  const toggleMark = (key: FormatMark) => () => {
-    if (!activeRange) return
-    if (isMarkActiveInSelection(editor, key, activeRange)) {
-      Editor.removeMark(editor, key)
-    } else {
-      Editor.addMark(editor, key, true)
-    }
-  }
-
   if (showFormatting && activeRange && targetRect) {
     return (
       <ToolbarArea
         target={targetRect}
         open
         ref={toolbarListenerAreaRef}
-        content={
-          <>
-            <Components.Button
-              variant="borderless"
-              aria-label="Bold"
-              onClick={toggleMark("bold")}
-            >
-              <FontAwesomeIcon icon="bold" />
-            </Components.Button>
-            <Components.Button
-              variant="borderless"
-              aria-label="Italic"
-              onClick={toggleMark("italic")}
-            >
-              <FontAwesomeIcon icon="italic" />
-            </Components.Button>
-            <Components.Button
-              variant="borderless"
-              aria-label="Underline"
-              onClick={toggleMark("underline")}
-            >
-              <FontAwesomeIcon icon="underline" />
-            </Components.Button>
-            <Components.Button
-              variant="borderless"
-              aria-label="Strikethrough"
-              onClick={toggleMark("strikethrough")}
-            >
-              <FontAwesomeIcon icon="strikethrough" />
-            </Components.Button>
-          </>
-        }
+        content={<FormattingToolbarContent activeRange={activeRange} />}
       >
         {children}
       </ToolbarArea>
@@ -256,12 +211,10 @@ export const EditorToolbarArea: React.FC<EditorToolbarAreaProps> = ({
         <>
           <LinkToolbarContent
             key={JSON.stringify(activeLinkPath)}
-            editor={editor}
             linkPath={activeLinkPath}
             linkNode={linkNode}
             pinOpen={pinOpen}
             unpinOpen={unpinOpen}
-            Components={Components}
           />
         </>
       }
@@ -269,96 +222,4 @@ export const EditorToolbarArea: React.FC<EditorToolbarAreaProps> = ({
       {children}
     </ToolbarArea>
   )
-}
-
-type LinkToolbarContentProps = ToolbarContentProps & {
-  editor: SlateEditor
-  linkPath: Path
-  linkNode: LinkElementNode
-  Components: Components
-}
-
-function LinkToolbarContent({
-  editor,
-  linkPath,
-  linkNode,
-  pinOpen,
-  unpinOpen,
-  Components,
-}: LinkToolbarContentProps) {
-  const [isEditing, setIsEditing] = useState(false)
-  const [url, setUrl] = useState(() => linkNode.url)
-
-  useEffect(() => {
-    return () => {
-      unpinOpen()
-    }
-  }, [unpinOpen])
-
-  const save = () => {
-    if (url !== linkNode.url) {
-      Transforms.setNodes(editor, { url }, { at: linkPath })
-    }
-    setIsEditing(false)
-    unpinOpen()
-  }
-
-  const cancel = () => {
-    setUrl(linkNode.url)
-    setIsEditing(false)
-    unpinOpen()
-  }
-
-  const remove = () => {
-    Transforms.unwrapNodes(editor, {
-      at: linkPath,
-      match: isLinkElement,
-    })
-    setIsEditing(false)
-    unpinOpen()
-  }
-
-  const href = isEditing ? url : linkNode.url
-
-  return isEditing ? (
-    <>
-      <Components.TextInput
-        value={url}
-        onChange={setUrl}
-        width="200px"
-        onEnterPress={save}
-      />
-      <Components.Button variant="borderless" onClick={cancel}>
-        Cancel
-      </Components.Button>
-      <Components.Button variant="borderless" onClick={save}>
-        Save
-      </Components.Button>
-    </>
-  ) : (
-    <>
-      <Components.LinkButton to={href} variant="borderless">
-        <FontAwesomeIcon icon="arrow-up-right-from-square" size="xs" />{" "}
-        {getHost(href)}
-      </Components.LinkButton>
-      <Components.Button
-        variant="borderless"
-        onClick={() => {
-          pinOpen()
-          setUrl(linkNode.url)
-          setIsEditing(true)
-        }}
-      >
-        <FontAwesomeIcon icon="pen-to-square" size="xs" /> Edit
-      </Components.Button>
-      <Components.Button variant="borderless" onClick={remove}>
-        <FontAwesomeIcon icon="trash-can" size="xs" /> Remove
-      </Components.Button>
-    </>
-  )
-}
-
-function getHost(url: string) {
-  const match = url.match(/^https?:\/\/([^/]+)/)
-  return match ? match[1] : url.slice(0, 15)
 }
