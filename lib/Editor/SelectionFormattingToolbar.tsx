@@ -1,5 +1,5 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import React, { useMemo } from "react"
+import React from "react"
 import { Editor, Range, Text } from "slate"
 import { ReactEditor, useSlate, useSlateSelection } from "slate-react"
 import { isCodeBlock, isFrozenBlock, isLineOfCodeElement } from "./types"
@@ -56,18 +56,18 @@ export function SelectionFormattingToolbar({
     ? null
     : ghostSelection
 
-  const targetRect = useMemo(() => {
-    if (!activeRange) return null
-    if (suppressesFormattingToolbar(editor, activeRange)) return null
+  let targetRect: DOMRect | undefined
+  if (activeRange && !suppressesFormattingToolbar(editor, activeRange)) {
     try {
       const domRange = ReactEditor.toDOMRange(editor, activeRange)
       const rect = domRange.getClientRects()[0]
-      if (!rect || (rect.width === 0 && rect.height === 0)) return null
-      return rect
+      if (rect && !(rect.width === 0 && rect.height === 0)) {
+        targetRect = rect
+      }
     } catch {
-      return null
+      // toDOMRange can throw when Slate’s range no longer maps cleanly to real DOM nodes
     }
-  }, [editor, activeRange])
+  }
 
   if (!targetRect || !activeRange) return null
 
@@ -80,7 +80,7 @@ export function SelectionFormattingToolbar({
   }
 
   return (
-    <Toolbar target={targetRect}>
+    <Toolbar id="inline-editor-tools" target={targetRect} open>
       <Components.Button
         variant="borderless"
         aria-label="Bold"

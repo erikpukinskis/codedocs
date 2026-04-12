@@ -15,7 +15,7 @@ import {
   type SlateBlock,
 } from "./types"
 import { useComponents } from "~/ComponentContext"
-import { Toolbar } from "~/Components/Toolbar"
+import { Toolbar, ToolbarOutlet } from "~/Components/Toolbar"
 import { useMergedRefs } from "~/helpers/mergeRefs"
 import { useElementObserver } from "~/hooks/useElementObserver"
 
@@ -277,8 +277,8 @@ export const DocEditor = ({
       }
 
       if (
-        (event.key === "Tab" && !editor.selection) ||
-        (editor.selection && Range.isCollapsed(editor.selection))
+        event.key === "Tab" &&
+        (!editor.selection || Range.isCollapsed(editor.selection))
       ) {
         event.preventDefault()
         const [match] = Editor.nodes(editor, {
@@ -303,6 +303,7 @@ export const DocEditor = ({
 
   return (
     <div className={styles.editorContainer}>
+      <ToolbarOutlet toolbar="inline-editor-tools" />
       <Slate
         editor={editor}
         initialValue={value}
@@ -495,7 +496,11 @@ const LinkElement: React.FC<LinkElementProps> = ({
         {children}
       </a>
       {
-        <Toolbar target={element} open={hasFocus || isHovered || isEditing}>
+        <Toolbar
+          id="inline-editor-tools"
+          target={element}
+          open={hasFocus || isHovered || isEditing}
+        >
           {isEditing ? (
             <>
               <Components.TextInput
