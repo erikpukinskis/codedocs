@@ -14,27 +14,11 @@ export type ToolbarContentProps = {
   unpinOpen: () => void
 }
 
-/** Firefox; Chromium uses `caretRangeFromPoint` instead. */
-type DomCaretPosition = {
-  readonly offsetNode: Node
-  readonly offset: number
-}
-
-type DocumentWithCaretPosition = Document & {
-  caretPositionFromPoint?: (x: number, y: number) => DomCaretPosition | null
-}
-
 function domPointFromClientXY(x: number, y: number): DOMPoint | null {
-  const pos = (document as DocumentWithCaretPosition).caretPositionFromPoint?.(
-    x,
-    y
-  )
-  if (pos) {
-    return [pos.offsetNode, pos.offset]
-  }
-  const range = document.caretRangeFromPoint(x, y)
-  if (!range) return null
-  return [range.startContainer, range.startOffset]
+  const doc = document
+  const pos = doc.caretPositionFromPoint?.(x, y)
+  if (!pos) return null
+  return [pos.offsetNode, pos.offset]
 }
 
 function pathsEqual(a: Path | null, b: Path | null): boolean {

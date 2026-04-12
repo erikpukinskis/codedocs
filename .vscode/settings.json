@@ -21,5 +21,7 @@
   "terminal.integrated.automationProfile.osx": {
     "path": "/bin/zsh",
     "args": ["-il"]
-  }
+  },
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true
 }
