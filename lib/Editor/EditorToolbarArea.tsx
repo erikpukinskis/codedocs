@@ -87,10 +87,6 @@ export const EditorToolbarArea: React.FC<EditorToolbarAreaProps> = ({
   const [hoverLinkPath, setHoverLinkPath] = useState<Path | null>(null)
   const hoverLinkPathRef = useRef<Path | null>(null)
   const [pinnedLinkPath, setPinnedLinkPath] = useState<Path | null>(null)
-  const [linkEdit, setLinkEdit] = useState<{
-    path: Path
-    url: string
-  } | null>(null)
 
   const focused = ReactEditor.isFocused(editor)
 
@@ -105,7 +101,6 @@ export const EditorToolbarArea: React.FC<EditorToolbarAreaProps> = ({
   useEffect(() => {
     if (pinnedLinkPath !== null && !pinStillValid) {
       setPinnedLinkPath(null)
-      setLinkEdit(null)
     }
   }, [pinnedLinkPath, pinStillValid])
 
@@ -260,11 +255,10 @@ export const EditorToolbarArea: React.FC<EditorToolbarAreaProps> = ({
       content={
         <>
           <LinkToolbarContent
+            key={JSON.stringify(activeLinkPath)}
             editor={editor}
             linkPath={activeLinkPath}
             linkNode={linkNode}
-            linkEdit={linkEdit}
-            setLinkEdit={setLinkEdit}
             pinOpen={pinOpen}
             unpinOpen={unpinOpen}
             Components={Components}
@@ -281,10 +275,6 @@ type LinkToolbarContentProps = ToolbarContentProps & {
   editor: SlateEditor
   linkPath: Path
   linkNode: LinkElementNode
-  linkEdit: { path: Path; url: string } | null
-  setLinkEdit: React.Dispatch<
-    React.SetStateAction<{ path: Path; url: string } | null>
-  >
   Components: Components
 }
 
@@ -292,17 +282,12 @@ function LinkToolbarContent({
   editor,
   linkPath,
   linkNode,
-  linkEdit,
-  setLinkEdit,
   pinOpen,
   unpinOpen,
   Components,
 }: LinkToolbarContentProps) {
-  useEffect(() => {
-    setLinkEdit((prev) =>
-      prev && !Path.equals(prev.path, linkPath) ? null : prev
-    )
-  }, [linkPath, setLinkEdit])
+  const [isEditing, setIsEditing] = useState(false)
+  const [url, setUrl] = useState(() => linkNode.url)
 
   useEffect(() => {
     return () => {
@@ -311,22 +296,16 @@ function LinkToolbarContent({
   }, [unpinOpen])
 
   const save = () => {
-    if (!linkEdit) return
-    if (linkEdit.url !== linkNode.url) {
-      Transforms.setNodes(
-        editor,
-        { url: linkEdit.url },
-        {
-          at: linkPath,
-        }
-      )
+    if (url !== linkNode.url) {
+      Transforms.setNodes(editor, { url }, { at: linkPath })
     }
-    setLinkEdit(null)
+    setIsEditing(false)
     unpinOpen()
   }
 
   const cancel = () => {
-    setLinkEdit(null)
+    setUrl(linkNode.url)
+    setIsEditing(false)
     unpinOpen()
   }
 
@@ -335,22 +314,17 @@ function LinkToolbarContent({
       at: linkPath,
       match: isLinkElement,
     })
-    setLinkEdit(null)
+    setIsEditing(false)
     unpinOpen()
   }
 
-  const isEditing = linkEdit !== null && Path.equals(linkEdit.path, linkPath)
-  const href = isEditing ? linkEdit.url : linkNode.url
+  const href = isEditing ? url : linkNode.url
 
   return isEditing ? (
     <>
       <Components.TextInput
-        value={href}
-        onChange={(url) =>
-          setLinkEdit((prev) =>
-            prev && Path.equals(prev.path, linkPath) ? { ...prev, url } : prev
-          )
-        }
+        value={url}
+        onChange={setUrl}
         width="200px"
         onEnterPress={save}
       />
@@ -371,7 +345,8 @@ function LinkToolbarContent({
         variant="borderless"
         onClick={() => {
           pinOpen()
-          setLinkEdit({ path: linkPath, url: linkNode.url })
+          setUrl(linkNode.url)
+          setIsEditing(true)
         }}
       >
         <FontAwesomeIcon icon="pen-to-square" size="xs" /> Edit
