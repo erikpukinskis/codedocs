@@ -1,5 +1,4 @@
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import React, { useCallback, useEffect, useRef, useState } from "react"
+import React, { useCallback, useRef, useState } from "react"
 import { createEditor, Editor, Range, Text, Transforms } from "slate"
 import type { Element as SlateElement, NodeEntry } from "slate"
 import { withHistory, type HistoryEditor } from "slate-history"
@@ -7,17 +6,13 @@ import { Editable, ReactEditor, Slate, withReact, useSlate } from "slate-react"
 import type { RenderElementProps, RenderLeafProps } from "slate-react"
 import { copyHtml, copyPlainText } from "./copy"
 import * as styles from "./Editor.css"
-import { SelectionFormattingToolbar } from "./SelectionFormattingToolbar"
+import { EditorToolbarArea } from "./EditorToolbarArea"
 import {
   isLineOfCodeElement,
   isLinkElement,
   isListItemBlock,
   type SlateBlock,
 } from "./types"
-import { useComponents } from "~/ComponentContext"
-import { Toolbar, ToolbarOutlet } from "~/Components/Toolbar"
-import { useMergedRefs } from "~/helpers/mergeRefs"
-import { useElementObserver } from "~/hooks/useElementObserver"
 
 type DocEditorProps = {
   slateDocument: SlateElement[]
@@ -302,35 +297,35 @@ export const DocEditor = ({
   )
 
   return (
-    <div className={styles.editorContainer}>
-      <ToolbarOutlet toolbar="inline-editor-tools" />
-      <Slate
-        editor={editor}
-        initialValue={value}
-        onSelectionChange={(selection) => {
-          if (selection && !Range.isCollapsed(selection)) {
-            setGhostSelection(selection)
-          }
-        }}
-        onChange={(descendants) => {
-          // Descendant is a union of Element and Text, but Slate will never put
-          // text nodes at the root level, so this cast is safe:
-          setValue(descendants as SlateBlock[])
-        }}
-      >
-        <SelectionFormattingToolbar ghostSelection={ghostSelection} />
-        <Editable
-          renderElement={renderElement}
-          renderLeaf={renderLeaf}
-          decorate={decorate}
-          onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
-          onKeyDown={onKeyDown}
-          placeholder="Start writing..."
-          className={styles.editor}
-        />
-      </Slate>
-    </div>
+    <Slate
+      editor={editor}
+      initialValue={value}
+      onSelectionChange={(selection) => {
+        if (selection && !Range.isCollapsed(selection)) {
+          setGhostSelection(selection)
+        }
+      }}
+      onChange={(descendants) => {
+        // Descendant is a union of Element and Text, but Slate will never put
+        // text nodes at the root level, so this cast is safe:
+        setValue(descendants as SlateBlock[])
+      }}
+    >
+      <div className={styles.editorContainer}>
+        <EditorToolbarArea ghostSelection={ghostSelection}>
+          <Editable
+            renderElement={renderElement}
+            renderLeaf={renderLeaf}
+            decorate={decorate}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
+            onKeyDown={onKeyDown}
+            placeholder="Start writing..."
+            className={styles.editor}
+          />
+        </EditorToolbarArea>
+      </div>
+    </Slate>
   )
 }
 
@@ -447,102 +442,14 @@ const LinkElement: React.FC<LinkElementProps> = ({
   linkElement,
   children,
 }) => {
-  const editor = useSlate()
-  const path = ReactEditor.findPath(editor, linkElement)
-  const Components = useComponents()
-  const [isEditing, setEditing] = useState(false)
-  const [href, setHref] = useState(linkElement.url)
-  const {
-    ref: observerRef,
-    element,
-    hasFocus,
-    isHovered,
-  } = useElementObserver()
-
-  const ref = useMergedRefs(observerRef, slateRef)
-
-  useEffect(() => {
-    if (!isEditing) setHref(linkElement.url)
-  }, [linkElement.url, isEditing])
-
-  const save = () => {
-    if (href !== linkElement.url) {
-      Transforms.setNodes(
-        editor,
-        { url: href },
-        {
-          at: path,
-        }
-      )
-    }
-    setEditing(false)
-  }
-
-  const cancel = () => {
-    setHref(linkElement.url)
-    setEditing(false)
-  }
-
-  const remove = () => {
-    Transforms.unwrapNodes(editor, {
-      at: path,
-      match: isLinkElement,
-    })
-  }
-
   return (
-    <>
-      <a {...attributes} href={href} className={styles.link} ref={ref}>
-        {children}
-      </a>
-      {
-        <Toolbar
-          id="inline-editor-tools"
-          target={element}
-          open={hasFocus || isHovered || isEditing}
-        >
-          {isEditing ? (
-            <>
-              <Components.TextInput
-                value={href}
-                onChange={setHref}
-                width="200px"
-                onEnterPress={save}
-              />
-              <Components.Button variant="borderless" onClick={cancel}>
-                Cancel
-              </Components.Button>
-              <Components.Button variant="borderless" onClick={save}>
-                Save
-              </Components.Button>
-            </>
-          ) : (
-            <>
-              <Components.LinkButton to={href} variant="borderless">
-                <FontAwesomeIcon icon="arrow-up-right-from-square" size="xs" />{" "}
-                {getHost(href)}
-              </Components.LinkButton>
-              <Components.Button
-                variant="borderless"
-                onClick={() => {
-                  setHref(linkElement.url)
-                  setEditing(true)
-                }}
-              >
-                <FontAwesomeIcon icon="pen-to-square" size="xs" /> Edit
-              </Components.Button>
-              <Components.Button variant="borderless" onClick={remove}>
-                <FontAwesomeIcon icon="trash-can" size="xs" /> Remove
-              </Components.Button>
-            </>
-          )}
-        </Toolbar>
-      }
-    </>
+    <a
+      {...attributes}
+      href={linkElement.url}
+      className={styles.link}
+      ref={slateRef as React.Ref<HTMLAnchorElement>}
+    >
+      {children}
+    </a>
   )
-}
-
-function getHost(url: string) {
-  const match = url.match(/^https?:\/\/([^/]+)/)
-  return match ? match[1] : url.slice(0, 15)
 }
