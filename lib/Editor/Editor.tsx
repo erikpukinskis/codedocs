@@ -58,7 +58,7 @@ export const DocEditor = ({
   }
   const editor = editorRef.current
   const [value, setValue] = useState(slateDocument)
-  const [ghostSelection, setGhostSelection] = useState<Range | null>(null)
+  const [ghostSelection, setGhostSelection] = useState<Range | undefined>()
   const [isFocused, setIsFocused] = useState(false)
 
   const renderElement = useCallback(

@@ -3,11 +3,9 @@ import React from "react"
 import type { Range } from "slate"
 import { Editor } from "slate"
 import { useSlate } from "slate-react"
-import {
-  isMarkActiveInSelection,
-  type FormatMark,
-} from "./inlineChrome/resolveInlineChrome"
 import { useComponents } from "~/ComponentContext"
+import type { FormatMark } from "~/helpers/range"
+import { isMarkActiveInSelection } from "~/helpers/range"
 
 type FormattingToolbarContentProps = { activeRange: Range }
 

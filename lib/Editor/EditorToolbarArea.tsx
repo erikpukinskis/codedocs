@@ -4,10 +4,10 @@ import type { DOMPoint } from "slate-dom"
 import type { HistoryEditor } from "slate-history"
 import { ReactEditor, useSlate, useSlateSelection } from "slate-react"
 import { FormattingToolbarContent } from "./FormattingToolbarContent"
-import { resolveFormattingChrome } from "./inlineChrome/resolveInlineChrome"
 import { LinkToolbarContent } from "./LinkToolbarContent"
 import { isLinkElement, type LinkElement as LinkElementNode } from "./types"
 import { ToolbarArea } from "~/Components/ToolbarArea"
+import { isFormattableRange } from "~/helpers/range"
 
 export type ToolbarContentProps = {
   pinOpen: () => void
@@ -66,7 +66,7 @@ function isValidLinkPath(editor: SlateEditor, path: Path): boolean {
 }
 
 type EditorToolbarAreaProps = {
-  ghostSelection: Range | null
+  ghostSelection: Range | undefined
   children: React.ReactNode
 }
 
@@ -106,13 +106,33 @@ export const EditorToolbarArea: React.FC<EditorToolbarAreaProps> = ({
     return hoverLinkPath
   })()
 
-  // TODO: Inline this
-  const { activeRange, targetRect } = resolveFormattingChrome(
-    editor,
-    selection,
-    ghostSelection,
-    focused
-  )
+  // Formatting toolbar: expanded selection while focused, else ghost selection
+  // when blurred; suppressed in code/frozen blocks; needs a non-empty DOM rect.
+  const hasExpandedSelection = selection && !Range.isCollapsed(selection)
+  const formattingCandidateRange = hasExpandedSelection
+    ? selection
+    : focused
+    ? undefined
+    : ghostSelection
+
+  let formattingTargetRect: DOMRect | undefined
+  if (isFormattableRange(editor, formattingCandidateRange)) {
+    try {
+      const domRange = ReactEditor.toDOMRange(editor, formattingCandidateRange)
+      const rect = domRange.getClientRects()[0]
+      if (rect && !(rect.width === 0 && rect.height === 0)) {
+        formattingTargetRect = rect
+      }
+    } catch {
+      // toDOMRange can throw when Slate's range no longer maps cleanly to DOM
+    }
+  }
+
+  const activeRange =
+    formattingTargetRect && formattingCandidateRange
+      ? formattingCandidateRange
+      : null
+  const targetRect = activeRange ? formattingTargetRect : undefined
   const showFormatting = Boolean(activeRange && targetRect)
 
   useEffect(() => {
