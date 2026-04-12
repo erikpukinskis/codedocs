@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import { Editor, Path, Range } from "slate"
 import type { DOMPoint } from "slate-dom"
 import type { HistoryEditor } from "slate-history"
@@ -164,13 +164,13 @@ export const EditorToolbarArea: React.FC<EditorToolbarAreaProps> = ({
     }
   }, [editor])
 
-  const pinOpen = useCallback(() => {
+  const pinOpen = () => {
     if (activePath) setPinnedPath(activePath)
-  }, [activePath])
+  }
 
-  const unpinOpen = useCallback(() => {
+  const unpinOpen = () => {
     setPinnedPath(null)
-  }, [])
+  }
 
   let toolbar:
     | { target: Element | DOMRectReadOnly; content: React.ReactNode }
