@@ -78,32 +78,32 @@ export const EditorToolbarArea: React.FC<EditorToolbarAreaProps> = ({
   const editor = useSlate() as SlateEditor
   const selection = useSlateSelection()
 
-  const [hoverLinkPath, setHoverLinkPath] = useState<Path | null>(null)
-  const hoverLinkPathRef = useRef<Path | null>(null)
-  const [pinnedLinkPath, setPinnedLinkPath] = useState<Path | null>(null)
+  const [hoverPath, setHoverPath] = useState<Path | null>(null)
+  const hoverPathRef = useRef<Path | null>(null)
+  const [pinnedPath, setPinnedPath] = useState<Path | null>(null)
 
   const focused = ReactEditor.isFocused(editor)
 
-  const caretLinkPath =
+  const pathAtCaret =
     selection == null || !focused || !Range.isCollapsed(selection)
       ? null
       : linkPathAtPoint(editor, selection.anchor)
 
   const pinStillValid =
-    pinnedLinkPath !== null && isValidLinkPath(editor, pinnedLinkPath)
+    pinnedPath !== null && isValidLinkPath(editor, pinnedPath)
 
   useEffect(() => {
-    if (pinnedLinkPath !== null && !pinStillValid) {
-      setPinnedLinkPath(null)
+    if (pinnedPath !== null && !pinStillValid) {
+      setPinnedPath(null)
     }
-  }, [pinnedLinkPath, pinStillValid])
+  }, [pinnedPath, pinStillValid])
 
-  const activeLinkPath = (() => {
-    if (pinnedLinkPath && isValidLinkPath(editor, pinnedLinkPath)) {
-      return pinnedLinkPath
+  const activePath = (() => {
+    if (pinnedPath && isValidLinkPath(editor, pinnedPath)) {
+      return pinnedPath
     }
-    if (focused && caretLinkPath) return caretLinkPath
-    return hoverLinkPath
+    if (focused && pathAtCaret) return pathAtCaret
+    return hoverPath
   })()
 
   // Formatting toolbar: expanded selection while focused, else ghost selection
@@ -140,9 +140,9 @@ export const EditorToolbarArea: React.FC<EditorToolbarAreaProps> = ({
     if (!area) return
 
     const setHoverIfChanged = (next: Path | null) => {
-      if (pathsEqual(hoverLinkPathRef.current, next)) return
-      hoverLinkPathRef.current = next
-      setHoverLinkPath(next)
+      if (pathsEqual(hoverPathRef.current, next)) return
+      hoverPathRef.current = next
+      setHoverPath(next)
     }
 
     const onPointerMove = (e: PointerEvent) => {
@@ -181,11 +181,11 @@ export const EditorToolbarArea: React.FC<EditorToolbarAreaProps> = ({
   }, [editor])
 
   const pinOpen = useCallback(() => {
-    if (activeLinkPath) setPinnedLinkPath(activeLinkPath)
-  }, [activeLinkPath])
+    if (activePath) setPinnedPath(activePath)
+  }, [activePath])
 
   const unpinOpen = useCallback(() => {
-    setPinnedLinkPath(null)
+    setPinnedPath(null)
   }, [])
 
   let toolbar:
@@ -197,10 +197,10 @@ export const EditorToolbarArea: React.FC<EditorToolbarAreaProps> = ({
       target: targetRect,
       content: <FormattingToolbarContent activeRange={activeRange} />,
     }
-  } else if (activeLinkPath && isValidLinkPath(editor, activeLinkPath)) {
+  } else if (activePath && isValidLinkPath(editor, activePath)) {
     let linkNode: LinkElementNode
     try {
-      const [n] = Editor.node(editor, activeLinkPath)
+      const [n] = Editor.node(editor, activePath)
       if (!isLinkElement(n)) return null
       linkNode = n
     } catch {
@@ -219,8 +219,8 @@ export const EditorToolbarArea: React.FC<EditorToolbarAreaProps> = ({
       content: (
         <>
           <LinkToolbarContent
-            key={JSON.stringify(activeLinkPath)}
-            linkPath={activeLinkPath}
+            key={JSON.stringify(activePath)}
+            linkPath={activePath}
             linkNode={linkNode}
             pinOpen={pinOpen}
             unpinOpen={unpinOpen}
