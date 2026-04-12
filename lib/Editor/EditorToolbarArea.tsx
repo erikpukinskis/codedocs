@@ -168,46 +168,35 @@ export const EditorToolbarArea: React.FC<EditorToolbarAreaProps> = ({
     setPinnedLinkPath(null)
   }, [])
 
+  let toolbar:
+    | { target: Element | DOMRectReadOnly; content: React.ReactNode }
+    | undefined
+
   if (showFormatting && activeRange && targetRect) {
-    return (
-      <ToolbarArea
-        target={targetRect}
-        open
-        ref={toolbarListenerAreaRef}
-        content={<FormattingToolbarContent activeRange={activeRange} />}
-      >
-        {children}
-      </ToolbarArea>
-    )
-  }
+    toolbar = {
+      target: targetRect,
+      content: <FormattingToolbarContent activeRange={activeRange} />,
+    }
+  } else if (activeLinkPath && isValidLinkPath(editor, activeLinkPath)) {
+    let linkNode: LinkElementNode
+    try {
+      const [n] = Editor.node(editor, activeLinkPath)
+      if (!isLinkElement(n)) return null
+      linkNode = n
+    } catch {
+      return null
+    }
 
-  if (!activeLinkPath || !isValidLinkPath(editor, activeLinkPath)) {
-    return children
-  }
+    let linkDom: HTMLElement
+    try {
+      linkDom = ReactEditor.toDOMNode(editor, linkNode)
+    } catch {
+      return null
+    }
 
-  let linkNode: LinkElementNode
-  try {
-    const [n] = Editor.node(editor, activeLinkPath)
-    if (!isLinkElement(n)) return null
-    linkNode = n
-  } catch {
-    return null
-  }
-
-  let linkDom: HTMLElement
-  try {
-    linkDom = ReactEditor.toDOMNode(editor, linkNode)
-  } catch {
-    return null
-  }
-
-  return (
-    // TODO: Unify this with the formatting toolbar. Just switch out the content.
-    <ToolbarArea
-      target={linkDom}
-      open
-      ref={toolbarListenerAreaRef}
-      content={
+    toolbar = {
+      target: linkDom,
+      content: (
         <>
           <LinkToolbarContent
             key={JSON.stringify(activeLinkPath)}
@@ -217,7 +206,20 @@ export const EditorToolbarArea: React.FC<EditorToolbarAreaProps> = ({
             unpinOpen={unpinOpen}
           />
         </>
-      }
+      ),
+    }
+  }
+
+  if (!toolbar) {
+    return <>{children}</>
+  }
+
+  return (
+    <ToolbarArea
+      target={toolbar.target}
+      open
+      ref={toolbarListenerAreaRef}
+      content={toolbar.content}
     >
       {children}
     </ToolbarArea>
