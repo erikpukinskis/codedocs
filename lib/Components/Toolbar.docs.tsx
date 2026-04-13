@@ -3,19 +3,27 @@ import { useRef } from "react"
 // eslint-disable-next-line no-restricted-imports
 import { Demo, Doc, Placeholder } from "../../macro"
 import { Button } from "./Button"
-import { ToolbarArea } from "./ToolbarArea"
+import { Toolbar } from "./Toolbar"
+import * as styles from "./Toolbar.css"
 
-export const ToolbarAreaDocs = (
+export const ToolbarDocs = (
   <Doc path="/Components/Toolbar">
     <h2>Toolbar</h2>
     <Demo
       boundingSelectors={["#toolbar-doc-demo"]}
       render={() => {
+        const rootRef = useRef<HTMLDivElement>(null)
         const ref = useRef<HTMLDivElement>(null)
 
         return (
-          <div id="toolbar-doc-demo" style={{ minHeight: 120 }}>
-            <ToolbarArea
+          <div
+            id="toolbar-doc-demo"
+            ref={rootRef}
+            className={styles.toolbarPositionRoot}
+            style={{ minHeight: 120 }}
+          >
+            <Toolbar
+              listenerAreaRef={rootRef}
               target={ref.current}
               open
               content={
@@ -31,9 +39,8 @@ export const ToolbarAreaDocs = (
                   </Button>
                 </>
               }
-            >
-              <Placeholder ref={ref}>Target element</Placeholder>
-            </ToolbarArea>
+            />
+            <Placeholder ref={ref}>Target element</Placeholder>
           </div>
         )
       }}

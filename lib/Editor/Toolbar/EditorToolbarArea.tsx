@@ -10,7 +10,8 @@ import type {
   ToolbarContext,
   ToolbarMatcher,
 } from "./types"
-import { ToolbarArea } from "~/Components/ToolbarArea"
+import { Toolbar } from "~/Components/Toolbar"
+import * as toolbarAreaStyles from "~/Components/Toolbar.css"
 
 type EditorToolbarAreaProps = {
   ghostSelection: Range | undefined
@@ -73,7 +74,8 @@ export const EditorToolbarArea: React.FC<EditorToolbarAreaProps> = ({
         setHoverIfChanged(null)
         return
       }
-      setHoverIfChanged(elementPathAtPoint(editor, slatePoint))
+      const linkPath = linkPathAtPoint(editor, slatePoint)
+      setHoverIfChanged(linkPath ?? elementPathAtPoint(editor, slatePoint))
     }
 
     const onPointerLeave = () => {
@@ -91,10 +93,12 @@ export const EditorToolbarArea: React.FC<EditorToolbarAreaProps> = ({
   const pathAtCaret =
     selection == null || !focused || !Range.isCollapsed(selection)
       ? null
-      : elementPathAtPoint(editor, selection.anchor)
+      : linkPathAtPoint(editor, selection.anchor) ??
+        elementPathAtPoint(editor, selection.anchor)
 
   const activePath = (() => {
     if (pinnedPath && isValidElementPath(editor, pinnedPath)) return pinnedPath
+    if (hoverPath && pathIsLink(editor, hoverPath)) return hoverPath
     if (focused && pathAtCaret) return pathAtCaret
     return hoverPath
   })()
@@ -118,6 +122,7 @@ export const EditorToolbarArea: React.FC<EditorToolbarAreaProps> = ({
 
   const matchers: ToolbarMatcher[] = [matchFormattingToolbar, matchLinkToolbar]
 
+  let matchedToolbar: ReturnType<ToolbarMatcher> = null
   for (const matcher of matchers) {
     const toolbar = matcher(matchContext)
 
@@ -125,25 +130,45 @@ export const EditorToolbarArea: React.FC<EditorToolbarAreaProps> = ({
       continue
     }
 
-    return (
-      <ToolbarArea
-        target={toolbar.target}
-        open
-        ref={areaRef}
-        content={toolbar.content}
-      >
-        {children}
-      </ToolbarArea>
-    )
+    matchedToolbar = toolbar
+    break
   }
 
-  return <>{children}</>
+  return (
+    <div ref={areaRef} className={toolbarAreaStyles.toolbarPositionRoot}>
+      {matchedToolbar && (
+        <Toolbar
+          listenerAreaRef={areaRef}
+          target={matchedToolbar.target}
+          open
+          content={matchedToolbar.content}
+        />
+      )}
+      {children}
+    </div>
+  )
 }
 
 function domPointFromClientXY(x: number, y: number): DOMPoint | null {
   const pos = document.caretPositionFromPoint?.(x, y)
-  if (!pos) return null
-  return [pos.offsetNode, pos.offset]
+  if (pos) return [pos.offsetNode, pos.offset]
+
+  const range = document.caretRangeFromPoint?.(x, y)
+  if (!range) return null
+
+  return [range.startContainer, range.startOffset]
+}
+
+function linkPathAtPoint(
+  editor: SlateEditor,
+  point: { path: Path; offset: number }
+): Path | null {
+  const above = Editor.above(editor, {
+    at: point,
+    match: isLinkNode,
+    mode: "lowest",
+  })
+  return above ? above[1] : null
 }
 
 function elementPathAtPoint(
@@ -155,6 +180,7 @@ function elementPathAtPoint(
     match: (node) =>
       SlateElement.isElement(node) &&
       (Editor.isBlock(editor, node) || Editor.isInline(editor, node)),
+    mode: "lowest",
   })
   return above ? above[1] : null
 }
@@ -166,6 +192,19 @@ function isValidElementPath(editor: SlateEditor, path: Path): boolean {
   } catch {
     return false
   }
+}
+
+function pathIsLink(editor: SlateEditor, path: Path): boolean {
+  try {
+    const [node] = Editor.node(editor, path)
+    return isLinkNode(node)
+  } catch {
+    return false
+  }
+}
+
+function isLinkNode(node: unknown): node is SlateElement & { type: "link" } {
+  return SlateElement.isElement(node) && node.type === "link"
 }
 
 function pathsEqual(a: Path | null, b: Path | null): boolean {

@@ -15,10 +15,14 @@ import {
 export function matchFormattingToolbar(
   context: MatchContext
 ): ToolbarDescriptor | null {
-  const { editor, selection, ghostSelection } = context
+  const { editor, selection, focused, ghostSelection } = context
 
   const hasExpandedSelection = selection && !SlateRange.isCollapsed(selection)
-  const candidateRange = hasExpandedSelection ? selection : ghostSelection
+  const candidateRange = hasExpandedSelection
+    ? selection
+    : focused
+    ? undefined
+    : ghostSelection
 
   if (!isFormattableRange(editor, candidateRange)) return null
 

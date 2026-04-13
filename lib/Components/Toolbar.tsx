@@ -1,12 +1,5 @@
-import React, {
-  useEffect,
-  useLayoutEffect,
-  useReducer,
-  useRef,
-  useState,
-} from "react"
-import * as styles from "./ToolbarArea.css"
-import { useMergedRefs } from "~/helpers/mergeRefs"
+import React, { useEffect, useLayoutEffect, useReducer, useState } from "react"
+import * as styles from "./Toolbar.css"
 import { useElementObserver } from "~/hooks/useElementObserver"
 
 type PositionRelativeRect = {
@@ -29,10 +22,9 @@ function getPositionRelativeToRoot(
   }
 }
 
-type ToolbarAreaProps = {
+type ToolbarProps = {
   content: React.ReactNode
-  children: React.ReactNode
-  ref?: React.RefObject<HTMLDivElement | null>
+  listenerAreaRef: React.RefObject<HTMLElement | null>
   /**
    * Either an HTMLElement if we have one (e.g. for a LinkElement) or a DOMRect
    * if there's not an element to position relative to. For example, when we
@@ -44,14 +36,12 @@ type ToolbarAreaProps = {
   open?: boolean
 }
 
-export const ToolbarArea: React.FC<ToolbarAreaProps> = ({
+export const Toolbar: React.FC<ToolbarProps> = ({
   content,
-  children,
-  ref,
+  listenerAreaRef,
   target,
   open,
 }): React.ReactNode => {
-  const toolbarAreaRef = useRef<HTMLDivElement>(null)
   const {
     ref: observerRef,
     element: toolbar,
@@ -81,44 +71,37 @@ export const ToolbarArea: React.FC<ToolbarAreaProps> = ({
     return () => clearTimeout(timeout)
   }, [toolbar])
 
-  if (!target) return children
-  if (!open && !hasFocus && !isHovered) return children
+  if (!target) return null
+  if (!open && !hasFocus && !isHovered) return null
 
-  const root = toolbarAreaRef?.current
+  const root = listenerAreaRef.current
   const viewportRect =
     target instanceof Element ? target.getBoundingClientRect() : target
   const relative = root ? getPositionRelativeToRoot(root, viewportRect) : null
   const showPosition = Boolean(toolbar && didWait && relative)
 
   return (
-    // TODO: Rename to ToolbarListenerArea
     <div
-      ref={useMergedRefs(ref, toolbarAreaRef)}
-      className={styles.toolbarPositionRoot}
+      ref={observerRef}
+      contentEditable={false}
+      className={styles.toolbar}
+      style={
+        showPosition && relative && toolbar
+          ? {
+              left: `calc(${
+                relative.left + relative.width / 2
+              }px - var(--buffer-width) - ${toolbar.offsetWidth / 2}px)`,
+              top: `calc(${relative.top - toolbar.offsetHeight - 2}px)`,
+            }
+          : {
+              // Hidden until the position root ref, toolbar ref, and delay are ready.
+              visibility: "hidden",
+            }
+      }
     >
-      <div
-        ref={observerRef}
-        contentEditable={false}
-        className={styles.toolbar}
-        style={
-          showPosition && relative && toolbar
-            ? {
-                left: `calc(${
-                  relative.left + relative.width / 2
-                }px - var(--buffer-width) - ${toolbar.offsetWidth / 2}px)`,
-                top: `calc(${relative.top - toolbar.offsetHeight - 2}px)`,
-              }
-            : {
-                // Hidden until the position root ref, toolbar ref, and delay are ready.
-                visibility: "hidden",
-              }
-        }
-      >
-        <div className={styles.toolbarBuffer}>
-          <div className={styles.toolbarConent}>{content}</div>
-        </div>
+      <div className={styles.toolbarBuffer}>
+        <div className={styles.toolbarConent}>{content}</div>
       </div>
-      {children}
     </div>
   )
 }
