@@ -21,7 +21,8 @@
       "error",
       {
         "args": "after-used",
-        "varsIgnorePattern": "^_+$"
+        "argsIgnorePattern": "^_",
+        "varsIgnorePattern": "^_"
       }
     ],
     "semi": ["error", "never"],

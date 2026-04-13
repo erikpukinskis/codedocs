@@ -1,6 +1,6 @@
 import React from "react"
 // eslint-disable-next-line no-restricted-imports
-import { Doc, Code } from "../macro"
+import { Doc } from "../macro"
 
 export const HomePageDocs = (
   <Doc path="/">
@@ -40,28 +40,30 @@ export const HomePageDocs = (
       so much worse?
     </p>
     <h2 id="markdown">In Markdown:</h2>
-    <Code
-      mode="markdown"
-      source={`---
-title: React
-description: A JavaScript library for building user interfaces
----
+    <code data-language="markdown">
+      {`
+        ---
+        title: React
+        description: A JavaScript library for building user interfaces
+        ---
 
-# React
+        # React
 
-A JavaScript library for building user interfaces`}
-    />
+        A JavaScript library for building user interfaces
+      `}
+    </code>
     <h2 id="codedocs">In Codedocs:</h2>
-    <Code
-      mode="tsx"
-      source={`import { Doc } from 'codedocs'
+    <code data-language="tsx">
+      {`
+        import { Doc } from 'codedocs'
 
-export default (
-	<Doc path="/React">
-		<p>A JavaScript library for building user interfaces</p>
-	</Doc>
-)`}
-    />
+        export default (
+          <Doc path="/React">
+            <p>A JavaScript library for building user interfaces</p>
+          </Doc>
+        )
+      `}
+    </code>
     <h2 id="benefits">Benefits</h2>
     <ul>
       <li>Codedocs are fully type checked.</li>

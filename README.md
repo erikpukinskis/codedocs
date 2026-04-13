@@ -12,6 +12,22 @@
 - [Future](#future)
 - [Inspiration](#inspiration)
 
+## Quick Start
+
+See a running example at [www.usecodedocs.com](https://www.usecodedocs.com/).
+
+To run Codedocs locally:
+
+```bash
+git clone https://github.com/erikpukinskis/codedocs.git
+cd codedocs
+yarn install
+yarn build
+yarn start:docs:dev
+```
+
+The dev server will be available at [http://localhost:2030](http://localhost:2030) by default.
+
 ## Features
 
 ### Public-facing documentation
@@ -139,8 +155,8 @@ For an example, check out Codedocs own docs in [/docs](/docs). You can see these
 
 The general philosophy of Codedocs is
 
-1. It's OK to manually maintain docs, not everything has to be magic
-2. This is really about explanation not "documentation"
+1. It's OK to manually maintain documentation, not everything has to be magic
+2. WYSYWIG editing is for designers to work with prose, tokens, and mockups. NOT components. Components are edited in code.
 3. Work within the existing build
 4. Give the best possible realtime feedback
 

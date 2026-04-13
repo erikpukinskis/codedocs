@@ -561,7 +561,11 @@ function findPropForElementText<Lookup extends PropsLookup>(
  */
 function getTextContent(element: HTMLElement) {
   for (let i = 0; i < element.childNodes.length; i++) {
-    const { nodeType, textContent } = element.childNodes[i]
+    const child = element.childNodes[i]
+    if (child === undefined) {
+      continue
+    }
+    const { nodeType, textContent } = child
     if (nodeType !== Node.TEXT_NODE) continue
     return textContent ?? undefined
   }

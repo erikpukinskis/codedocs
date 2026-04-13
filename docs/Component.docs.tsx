@@ -17,7 +17,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { useState } from "react"
 // eslint-disable-next-line no-restricted-imports
 import { Component, Demo, Doc } from "../macro"
-import { Code } from "~/Code"
 
 type TagProps = {
   label: string
@@ -197,14 +196,15 @@ export const ComponentDocs = (
       Also like demos, components obey the <code>only</code> prop, to allow you
       to focus on a specific component:
     </p>
-    <Code
-      mode="tsx"
-      source={`<Component
-  only
-  name="Button"
-  component={Button}
-  props={...}
-/>`}
-    />
+    <code data-language="tsx">
+      {`
+        <Component
+          only
+          name="Button"
+          component={Button}
+          props={...}
+        />
+      `}
+    </code>
   </Doc>
 )

@@ -32,7 +32,9 @@ export const useDropdown = <ItemType>(
       if (highlightedIndex === -1) return undefined
       if (!items) return undefined
       if (items.length < 1) return undefined
-      return getOptionId(items[highlightedIndex])
+      const activeItem = items[highlightedIndex]
+      if (activeItem === undefined) return undefined
+      return getOptionId(activeItem)
     },
     [items, highlightedIndex]
   )
@@ -60,6 +62,9 @@ export const useDropdown = <ItemType>(
     } else if (event.key === "Enter") {
       event.preventDefault()
       const selectedItem = items[highlightedIndex]
+      if (selectedItem === undefined) {
+        return
+      }
       setHidden(true)
       blur("input")
       onSelect?.(selectedItem)
@@ -112,13 +117,16 @@ export const useDropdown = <ItemType>(
       "aria-label": label,
       "onMouseOver": () => setHighlightedIndex(-1),
     }),
-    getOptionProps: (index: number) => ({
-      "role": "option",
-      ...focusGroupProps,
-      "onClick": handleResultClick,
-      "aria-selected": highlightedIndex === index,
-      "id": items ? getOptionId(items[index]) : undefined,
-    }),
+    getOptionProps: (index: number) => {
+      const option = items?.[index]
+      return {
+        "role": "option",
+        ...focusGroupProps,
+        "onClick": handleResultClick,
+        "aria-selected": highlightedIndex === index,
+        "id": option !== undefined ? getOptionId(option) : undefined,
+      }
+    },
     focus: () => {
       focus("input")
     },

@@ -16,6 +16,10 @@ export default defineConfig({
       }
     : {}),
 
+  server: {
+    port: 2030,
+  },
+
   resolve: {
     alias: {
       codedocs: path.resolve(__dirname, "lib", "index.ts"),

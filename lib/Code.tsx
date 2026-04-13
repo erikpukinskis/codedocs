@@ -83,7 +83,7 @@ const Buttons = ({ source, onClickClose }: ButtonsProps) => {
         <FontAwesomeIcon icon="copy" /> {buttonText}
       </Components.Button>
       {onClickClose && (
-        <Components.Button onClick={onClickClose} secondary>
+        <Components.Button onClick={onClickClose} variant="transparent">
           <FontAwesomeIcon icon="close" />
         </Components.Button>
       )}

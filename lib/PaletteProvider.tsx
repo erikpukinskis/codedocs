@@ -137,9 +137,13 @@ function Palette<ComponentDefs extends PropsLookup>({
   return (
     <Panel panel="left" title="Components">
       <div className={styles.componentGroup}>
-        {Object.keys(palette).map((key) => (
-          <ComponentSource key={key} name={key} slotDef={palette[key]} />
-        ))}
+        {Object.keys(palette).map((key) => {
+          const slotDef = palette[key]
+          if (!slotDef) {
+            return null
+          }
+          return <ComponentSource key={key} name={key} slotDef={slotDef} />
+        })}
       </div>
     </Panel>
   )

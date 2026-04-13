@@ -8,6 +8,8 @@ import { DocDocs } from "./Doc.docs"
 import { GettingStartedDocs } from "./GettingStarted.docs"
 import { HomePageDocs } from "./HomePage.docs"
 import { MockupDocs } from "./Mockup.docs"
+import { TestDocs } from "./Test.docs"
+import { ToolbarDocs } from "~/Components/Toolbar.docs"
 
 const root = document.getElementById("root")
 
@@ -27,7 +29,8 @@ createRoot(root).render(
       ComponentDocs,
       MockupDocs,
       HomePageDocs,
-      // VeryLongDocumentPathDocs,
+      TestDocs,
+      ToolbarDocs,
     ]}
     githubUrl="https://github.com/ambic-js/codedocs"
   />

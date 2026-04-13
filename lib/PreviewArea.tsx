@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useRef } from "react"
+import React, { useEffect, useLayoutEffect, useRef } from "react"
 import { CropMarks } from "./CropMarks"
 
 type PreviewAreaProps = {
@@ -14,10 +14,10 @@ export function PreviewArea({
 }: PreviewAreaProps) {
   const areaRef = useRef<HTMLDivElement>(null)
 
-  useLayoutEffect(() => {
-    if (!areaRef.current || !boundingSelectors?.length) return
-
-    const container = areaRef.current
+  const syncBoundingBoxes = (
+    container: HTMLDivElement,
+    selectors: string[]
+  ) => {
     const containerRect = container.getBoundingClientRect()
 
     let minX = 0
@@ -25,7 +25,7 @@ export function PreviewArea({
     let maxX = containerRect.width
     let maxY = containerRect.height
 
-    for (const selector of boundingSelectors) {
+    for (const selector of selectors) {
       const elements = Array.from(container.querySelectorAll(selector))
       for (const el of elements) {
         const rect = el.getBoundingClientRect()
@@ -45,6 +45,26 @@ export function PreviewArea({
     container.style.paddingTop = `${paddingTop}px`
     container.style.paddingRight = `${paddingRight}px`
     container.style.paddingBottom = `${paddingBottom}px`
+  }
+
+  useEffect(() => {
+    if (!areaRef.current || !boundingSelectors?.length) return
+
+    syncBoundingBoxes(areaRef.current, boundingSelectors)
+
+    const observer = new MutationObserver(() => {
+      if (!areaRef.current) return
+      syncBoundingBoxes(areaRef.current, boundingSelectors)
+    })
+
+    observer.observe(areaRef.current, {
+      childList: true,
+      subtree: true,
+    })
+
+    return () => {
+      observer.disconnect()
+    }
   }, [boundingSelectors])
 
   return (
