@@ -3,19 +3,27 @@ import { useEffect, useRef, useState } from "react"
 import { Editor, Transforms } from "slate"
 import type { Path } from "slate"
 import { ReactEditor, useSlate } from "slate-react"
-import { isLinkElement, type LinkElement as LinkElementNode } from "../types"
 import type { MatchContext, ToolbarDescriptor } from "./types"
 import { useComponents } from "~/ComponentContext"
+import {
+  isLinkElement,
+  type LinkElement as LinkElementNode,
+} from "~/Editor/types"
 
 export function matchLinkToolbar(
   context: MatchContext
 ): ToolbarDescriptor | null {
-  const { editor, activePath, controls } = context
-  if (!activePath) return null
+  const { editor, hoverPath, caretPath, pinnedPath, controls } = context
+  const activeLinkPath = resolveActiveLinkPath(editor, {
+    pinnedPath,
+    hoverPath,
+    caretPath,
+  })
+  if (!activeLinkPath) return null
 
   let linkNode: LinkElementNode
   try {
-    const [n] = Editor.node(editor, activePath)
+    const [n] = Editor.node(editor, activeLinkPath)
     if (!isLinkElement(n)) return null
     linkNode = n
   } catch {
@@ -33,19 +41,19 @@ export function matchLinkToolbar(
     target: linkDom,
     content: (
       <LinkToolbarContent
-        key={JSON.stringify(activePath)}
-        linkPath={activePath}
+        key={JSON.stringify(activeLinkPath)}
+        linkPath={activeLinkPath}
         linkNode={linkNode}
-        pinOpen={controls.pinOpen}
-        unpinOpen={controls.unpinOpen}
+        pinPath={controls.pinPath}
+        clearPinnedPath={controls.clearPinnedPath}
       />
     ),
   }
 }
 
 type LinkToolbarContentProps = {
-  pinOpen: () => void
-  unpinOpen: () => void
+  pinPath: (path: Path) => void
+  clearPinnedPath: () => void
   linkPath: Path
   linkNode: LinkElementNode
 }
@@ -53,19 +61,19 @@ type LinkToolbarContentProps = {
 const LinkToolbarContent: React.FC<LinkToolbarContentProps> = ({
   linkPath,
   linkNode,
-  pinOpen,
-  unpinOpen,
+  pinPath,
+  clearPinnedPath,
 }) => {
   const editor = useSlate()
   const Components = useComponents()
   const [isEditing, setIsEditing] = useState(false)
   const [url, setUrl] = useState(() => linkNode.url)
-  const unpinRef = useRef(unpinOpen)
-  unpinRef.current = unpinOpen
+  const clearPinnedPathRef = useRef(clearPinnedPath)
+  clearPinnedPathRef.current = clearPinnedPath
 
   useEffect(() => {
     return () => {
-      unpinRef.current()
+      clearPinnedPathRef.current()
     }
   }, [])
 
@@ -74,13 +82,13 @@ const LinkToolbarContent: React.FC<LinkToolbarContentProps> = ({
       Transforms.setNodes(editor, { url }, { at: linkPath })
     }
     setIsEditing(false)
-    unpinOpen()
+    clearPinnedPath()
   }
 
   const cancel = () => {
     setUrl(linkNode.url)
     setIsEditing(false)
-    unpinOpen()
+    clearPinnedPath()
   }
 
   const remove = () => {
@@ -89,7 +97,7 @@ const LinkToolbarContent: React.FC<LinkToolbarContentProps> = ({
       match: isLinkElement,
     })
     setIsEditing(false)
-    unpinOpen()
+    clearPinnedPath()
   }
 
   const href = isEditing ? url : linkNode.url
@@ -118,7 +126,7 @@ const LinkToolbarContent: React.FC<LinkToolbarContentProps> = ({
       <Components.Button
         variant="borderless"
         onClick={() => {
-          pinOpen()
+          pinPath(linkPath)
           setUrl(linkNode.url)
           setIsEditing(true)
         }}
@@ -135,4 +143,49 @@ const LinkToolbarContent: React.FC<LinkToolbarContentProps> = ({
 function getHost(url: string) {
   const match = url.match(/^https?:\/\/([^/]+)/)
   return match ? match[1] : url.slice(0, 15)
+}
+
+/**
+ * Picks the link path that should drive the link toolbar. We prefer a pinned
+ * link while editing, then the hovered link, then the link around a collapsed
+ * caret.
+ */
+function resolveActiveLinkPath(
+  editor: MatchContext["editor"],
+  candidates: {
+    pinnedPath: MatchContext["pinnedPath"]
+    hoverPath: MatchContext["hoverPath"]
+    caretPath: MatchContext["caretPath"]
+  }
+): Path | null {
+  const priorityOrder = [
+    candidates.pinnedPath,
+    candidates.hoverPath,
+    candidates.caretPath,
+  ]
+  for (const candidatePath of priorityOrder) {
+    if (!candidatePath) continue
+    const linkPath = linkPathFromElementPath(editor, candidatePath)
+    if (linkPath) return linkPath
+  }
+  return null
+}
+
+function linkPathFromElementPath(
+  editor: MatchContext["editor"],
+  elementPath: Path
+): Path | null {
+  try {
+    const [node] = Editor.node(editor, elementPath)
+    if (isLinkElement(node)) return elementPath
+
+    const above = Editor.above(editor, {
+      at: elementPath,
+      match: isLinkElement,
+      mode: "lowest",
+    })
+    return above ? above[1] : null
+  } catch {
+    return null
+  }
 }

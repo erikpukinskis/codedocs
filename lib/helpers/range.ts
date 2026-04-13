@@ -24,7 +24,8 @@ function textLeavesInRange(editor: Editor, selection: Range): Text[] {
     if (!Text.isText(node) || node.text.length === 0) continue
 
     // Editor.nodes can include leaves that only touch the selection boundary.
-    // Ignore leaves with zero-length overlap so mark checks match user intent.
+    // Ignore leaves that contribute no selected characters; users expect marks
+    // to reflect only text actually inside the selection.
     const intersection = Range.intersection(
       selection,
       Editor.range(editor, path)

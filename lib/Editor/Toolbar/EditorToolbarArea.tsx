@@ -74,8 +74,7 @@ export const EditorToolbarArea: React.FC<EditorToolbarAreaProps> = ({
         setHoverIfChanged(null)
         return
       }
-      const linkPath = linkPathAtPoint(editor, slatePoint)
-      setHoverIfChanged(linkPath ?? elementPathAtPoint(editor, slatePoint))
+      setHoverIfChanged(elementPathAtPoint(editor, slatePoint))
     }
 
     const onPointerLeave = () => {
@@ -90,24 +89,17 @@ export const EditorToolbarArea: React.FC<EditorToolbarAreaProps> = ({
     }
   }, [editor])
 
-  const pathAtCaret =
+  const caretPath =
     selection == null || !focused || !Range.isCollapsed(selection)
       ? null
-      : linkPathAtPoint(editor, selection.anchor) ??
-        elementPathAtPoint(editor, selection.anchor)
-
-  const activePath = (() => {
-    if (pinnedPath && isValidElementPath(editor, pinnedPath)) return pinnedPath
-    if (hoverPath && pathIsLink(editor, hoverPath)) return hoverPath
-    if (focused && pathAtCaret) return pathAtCaret
-    return hoverPath
-  })()
+      : elementPathAtPoint(editor, selection.anchor)
 
   const controls = {
-    pinOpen: () => {
-      if (activePath) setPinnedPath(activePath)
+    pinPath: (path: Path) => {
+      if (!isValidElementPath(editor, path)) return
+      setPinnedPath(path)
     },
-    unpinOpen: () => {
+    clearPinnedPath: () => {
       setPinnedPath(null)
     },
   }
@@ -115,7 +107,7 @@ export const EditorToolbarArea: React.FC<EditorToolbarAreaProps> = ({
   const matchContext: MatchContext = {
     ...context,
     hoverPath,
-    activePath,
+    caretPath,
     pinnedPath,
     controls,
   }
@@ -159,18 +151,6 @@ function domPointFromClientXY(x: number, y: number): DOMPoint | null {
   return [range.startContainer, range.startOffset]
 }
 
-function linkPathAtPoint(
-  editor: SlateEditor,
-  point: { path: Path; offset: number }
-): Path | null {
-  const above = Editor.above(editor, {
-    at: point,
-    match: isLinkNode,
-    mode: "lowest",
-  })
-  return above ? above[1] : null
-}
-
 function elementPathAtPoint(
   editor: SlateEditor,
   point: { path: Path; offset: number }
@@ -192,19 +172,6 @@ function isValidElementPath(editor: SlateEditor, path: Path): boolean {
   } catch {
     return false
   }
-}
-
-function pathIsLink(editor: SlateEditor, path: Path): boolean {
-  try {
-    const [node] = Editor.node(editor, path)
-    return isLinkNode(node)
-  } catch {
-    return false
-  }
-}
-
-function isLinkNode(node: unknown): node is SlateElement & { type: "link" } {
-  return SlateElement.isElement(node) && node.type === "link"
 }
 
 function pathsEqual(a: Path | null, b: Path | null): boolean {

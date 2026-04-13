@@ -14,13 +14,13 @@ export type ToolbarContext = {
 }
 
 export type ToolbarControls = {
-  pinOpen: () => void
-  unpinOpen: () => void
+  pinPath: (path: Path) => void
+  clearPinnedPath: () => void
 }
 
 export type MatchContext = ToolbarContext & {
   hoverPath: Path | null
-  activePath: Path | null
+  caretPath: Path | null
   pinnedPath: Path | null
   controls: ToolbarControls
 }
