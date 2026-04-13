@@ -6,7 +6,7 @@ import { Editable, ReactEditor, Slate, withReact, useSlate } from "slate-react"
 import type { RenderElementProps, RenderLeafProps } from "slate-react"
 import { copyHtml, copyPlainText } from "./copy"
 import * as styles from "./Editor.css"
-import { EditorToolbarArea } from "./EditorToolbarArea"
+import { EditorToolbarArea } from "./Toolbar/EditorToolbarArea"
 import {
   isLineOfCodeElement,
   isLinkElement,

@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from "react"
-import * as styles from "./ToolbarArea.css"
+import * as styles from "../../Components/ToolbarArea.css"
 import { useMergedRefs } from "~/helpers/mergeRefs"
 import { useElementObserver } from "~/hooks/useElementObserver"
 

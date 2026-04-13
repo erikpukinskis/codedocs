@@ -1,10 +1,47 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
+import { Editor, Transforms } from "slate"
 import type { Path } from "slate"
-import { Transforms } from "slate"
-import { useSlate } from "slate-react"
-import { isLinkElement, type LinkElement as LinkElementNode } from "./types"
+import { ReactEditor, useSlate } from "slate-react"
+import { isLinkElement, type LinkElement as LinkElementNode } from "../types"
+import type { MatchContext, ToolbarDescriptor } from "./types"
 import { useComponents } from "~/ComponentContext"
+
+export function matchLinkToolbar(
+  context: MatchContext
+): ToolbarDescriptor | null {
+  const { editor, activePath, controls } = context
+  if (!activePath) return null
+
+  let linkNode: LinkElementNode
+  try {
+    const [n] = Editor.node(editor, activePath)
+    if (!isLinkElement(n)) return null
+    linkNode = n
+  } catch {
+    return null
+  }
+
+  let linkDom: HTMLElement
+  try {
+    linkDom = ReactEditor.toDOMNode(editor, linkNode)
+  } catch {
+    return null
+  }
+
+  return {
+    target: linkDom,
+    content: (
+      <LinkToolbarContent
+        key={JSON.stringify(activePath)}
+        linkPath={activePath}
+        linkNode={linkNode}
+        pinOpen={controls.pinOpen}
+        unpinOpen={controls.unpinOpen}
+      />
+    ),
+  }
+}
 
 type LinkToolbarContentProps = {
   pinOpen: () => void
@@ -13,7 +50,7 @@ type LinkToolbarContentProps = {
   linkNode: LinkElementNode
 }
 
-export const LinkToolbarContent: React.FC<LinkToolbarContentProps> = ({
+const LinkToolbarContent: React.FC<LinkToolbarContentProps> = ({
   linkPath,
   linkNode,
   pinOpen,
@@ -23,12 +60,14 @@ export const LinkToolbarContent: React.FC<LinkToolbarContentProps> = ({
   const Components = useComponents()
   const [isEditing, setIsEditing] = useState(false)
   const [url, setUrl] = useState(() => linkNode.url)
-  // TODO: Use a ref to keep unpinOpen fresh so we don't rely on it being memoized. (remove the memoization on this and pinOpen)
+  const unpinRef = useRef(unpinOpen)
+  unpinRef.current = unpinOpen
+
   useEffect(() => {
     return () => {
-      unpinOpen()
+      unpinRef.current()
     }
-  }, [unpinOpen])
+  }, [])
 
   const save = () => {
     if (url !== linkNode.url) {

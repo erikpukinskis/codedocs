@@ -3,7 +3,7 @@ import { useRef } from "react"
 // eslint-disable-next-line no-restricted-imports
 import { Demo, Doc, Placeholder } from "../../macro"
 import { Button } from "./Button"
-import { ToolbarArea } from "./ToolbarArea"
+import { ToolbarArea } from "../Editor/Toolbar/ToolbarArea"
 
 export const ToolbarAreaDocs = (
   <Doc path="/Components/Toolbar">
