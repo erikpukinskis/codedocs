@@ -68,8 +68,6 @@ const FormattingToolbarContent: React.FC<FormattingToolbarContentProps> = ({
     Text.isText(node) && node.text.length > 0 && !node.code
 
   const toggleMark = (key: FormatMark) => {
-    if (!activeRange) return
-
     if (key === "code") {
       if (isMarkActiveInSelection(editor, key, activeRange)) {
         Transforms.unsetNodes(editor, key, {

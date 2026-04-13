@@ -1,5 +1,4 @@
-import { Editor, Text } from "slate"
-import type { Range } from "slate"
+import { Editor, Range, Text } from "slate"
 import { isCodeBlock, isFrozenBlock, isLineOfCodeElement } from "~/Editor/types"
 
 export type FormatMark =
@@ -18,11 +17,21 @@ export const NON_CODE_FORMAT_MARKS: Exclude<FormatMark, "code">[] = [
 
 function textLeavesInRange(editor: Editor, selection: Range): Text[] {
   const out: Text[] = []
-  for (const [node] of Editor.nodes(editor, {
+  for (const [node, path] of Editor.nodes(editor, {
     at: selection,
     match: Text.isText,
   })) {
-    if (Text.isText(node) && node.text.length > 0) out.push(node)
+    if (!Text.isText(node) || node.text.length === 0) continue
+
+    // Editor.nodes can include leaves that only touch the selection boundary.
+    // Ignore leaves with zero-length overlap so mark checks match user intent.
+    const intersection = Range.intersection(
+      selection,
+      Editor.range(editor, path)
+    )
+    if (!intersection || Range.isCollapsed(intersection)) continue
+
+    out.push(node)
   }
   return out
 }
