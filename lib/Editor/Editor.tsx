@@ -127,13 +127,15 @@ export const DocEditor = ({
       if (props.leaf.underline) leafChildren = <u>{leafChildren}</u>
       if (props.leaf.bold) leafChildren = <strong>{leafChildren}</strong>
       if (props.leaf.italic) leafChildren = <em>{leafChildren}</em>
+      const leafClassName = [
+        props.leaf.ghostSelection ? styles.ghostSelection : null,
+        props.leaf.text === "" ? styles.emptyTextLeaf : null,
+      ]
+        .filter(Boolean)
+        .join(" ")
+
       return (
-        <span
-          {...props.attributes}
-          className={
-            props.leaf.ghostSelection ? styles.ghostSelection : undefined
-          }
-        >
+        <span {...props.attributes} className={leafClassName || undefined}>
           {leafChildren}
         </span>
       )

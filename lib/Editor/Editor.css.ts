@@ -1,4 +1,4 @@
-import { style } from "@vanilla-extract/css"
+import { globalStyle, style } from "@vanilla-extract/css"
 import { recipe } from "@vanilla-extract/recipes"
 
 export const editorContainer = style({
@@ -27,6 +27,17 @@ export const frozenBlock = recipe({
       },
     },
   },
+})
+
+// Slate’s void spacer defaults to height:0 and transparent text; a collapsed caret
+// inside it is invisible. Scoped to our frozen wrapper via data-description.
+globalStyle('[data-description="frozen block"] [data-slate-spacer]', {
+  position: "relative",
+  height: "auto",
+  minHeight: "1.2em",
+  lineHeight: 1.2,
+  color: "#222",
+  verticalAlign: "top",
 })
 
 /**
@@ -73,4 +84,12 @@ export const link = style({
 
 export const ghostSelection = style({
   backgroundColor: "rgba(0,0,0,0.1)",
+})
+
+/** Empty text leaves have no box; browsers often hide the caret. Used in renderLeaf. */
+export const emptyTextLeaf = style({
+  display: "inline-block",
+  minHeight: "1.2em",
+  minWidth: "0.05em",
+  verticalAlign: "top",
 })
