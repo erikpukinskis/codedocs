@@ -1,4 +1,10 @@
-import React, { useEffect, useLayoutEffect, useReducer, useState } from "react"
+import React, {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useReducer,
+  useState,
+} from "react"
 import * as styles from "./Toolbar.css"
 import { useElementObserver } from "~/hooks/useElementObserver"
 
@@ -24,6 +30,8 @@ function getPositionRelativeToRoot(
 
 type ToolbarProps = {
   content: React.ReactNode
+  /** Toolbar root element; use to treat pointer hits on the toolbar like “still hovering” the editor target. */
+  rootRef?: React.Ref<HTMLDivElement | null>
   listenerAreaRef: React.RefObject<HTMLElement | null>
   /**
    * Either an HTMLElement if we have one (e.g. for a LinkElement) or a DOMRect
@@ -36,8 +44,15 @@ type ToolbarProps = {
   open?: boolean
 }
 
+function assignRef<T>(ref: React.Ref<T | null> | undefined, value: T | null) {
+  if (!ref) return
+  if (typeof ref === "function") ref(value)
+  else ref.current = value
+}
+
 export const Toolbar: React.FC<ToolbarProps> = ({
   content,
+  rootRef,
   listenerAreaRef,
   target,
   open,
@@ -48,6 +63,14 @@ export const Toolbar: React.FC<ToolbarProps> = ({
     hasFocus,
     isHovered,
   } = useElementObserver()
+
+  const setRoot = useCallback(
+    (el: HTMLDivElement | null) => {
+      observerRef(el)
+      assignRef(rootRef, el)
+    },
+    [observerRef, rootRef]
+  )
   const [didWait, setDidWait] = useState(false)
   const [, bumpAfterLayout] = useReducer((n: number) => n + 1, 0)
 
@@ -82,7 +105,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
 
   return (
     <div
-      ref={observerRef}
+      ref={setRoot}
       contentEditable={false}
       className={styles.toolbar}
       style={

@@ -23,6 +23,7 @@ export const EditorToolbarArea: React.FC<EditorToolbarAreaProps> = ({
   children,
 }) => {
   const areaRef = useRef<HTMLDivElement>(null)
+  const toolbarRootRef = useRef<HTMLDivElement | null>(null)
   const editor = useSlate() as SlateEditor
   const selection = useSlateSelection()
   const focused = ReactEditor.isFocused(editor)
@@ -59,6 +60,10 @@ export const EditorToolbarArea: React.FC<EditorToolbarAreaProps> = ({
       const el = document.elementFromPoint(e.clientX, e.clientY)
       if (!el || !area.contains(el)) {
         setHoverIfChanged(null)
+        return
+      }
+      // Toolbar is outside Slate; toSlatePoint would clear hover and unmount the toolbar.
+      if (toolbarRootRef.current?.contains(el)) {
         return
       }
       const domPoint = domPointFromClientXY(e.clientX, e.clientY)
@@ -130,6 +135,7 @@ export const EditorToolbarArea: React.FC<EditorToolbarAreaProps> = ({
     <div ref={areaRef} className={toolbarAreaStyles.toolbarPositionRoot}>
       {matchedToolbar && (
         <Toolbar
+          rootRef={toolbarRootRef}
           listenerAreaRef={areaRef}
           target={matchedToolbar.target}
           open
