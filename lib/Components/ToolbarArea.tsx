@@ -50,7 +50,7 @@ export const ToolbarArea: React.FC<ToolbarAreaProps> = ({
   ref,
   target,
   open,
-}) => {
+}): React.ReactNode => {
   const toolbarAreaRef = useRef<HTMLDivElement>(null)
   const {
     ref: observerRef,

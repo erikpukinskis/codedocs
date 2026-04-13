@@ -2,7 +2,19 @@ import { Editor, Text } from "slate"
 import type { Range } from "slate"
 import { isCodeBlock, isFrozenBlock, isLineOfCodeElement } from "~/Editor/types"
 
-export type FormatMark = "bold" | "italic" | "underline" | "strikethrough"
+export type FormatMark =
+  | "bold"
+  | "italic"
+  | "underline"
+  | "strikethrough"
+  | "code"
+
+export const NON_CODE_FORMAT_MARKS: Exclude<FormatMark, "code">[] = [
+  "bold",
+  "italic",
+  "underline",
+  "strikethrough",
+]
 
 function textLeavesInRange(editor: Editor, selection: Range): Text[] {
   const out: Text[] = []
@@ -20,7 +32,9 @@ export function isMarkActiveInSelection(
   key: FormatMark,
   selection: Range
 ): boolean {
-  const leaves = textLeavesInRange(editor, selection)
+  const leaves = textLeavesInRange(editor, selection).filter((leaf) =>
+    key === "code" ? true : !leaf.code
+  )
   if (leaves.length === 0) return false
   return leaves.every((n) => Boolean(n[key]))
 }

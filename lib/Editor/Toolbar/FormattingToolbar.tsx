@@ -1,12 +1,16 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import React from "react"
 import type { Range } from "slate"
-import { Editor, Range as SlateRange } from "slate"
+import { Range as SlateRange, Text, Transforms } from "slate"
 import { ReactEditor, useSlate } from "slate-react"
 import type { MatchContext, ToolbarDescriptor } from "./types"
 import { useComponents } from "~/ComponentContext"
 import type { FormatMark } from "~/helpers/range"
-import { isFormattableRange, isMarkActiveInSelection } from "~/helpers/range"
+import {
+  NON_CODE_FORMAT_MARKS,
+  isFormattableRange,
+  isMarkActiveInSelection,
+} from "~/helpers/range"
 
 export function matchFormattingToolbar(
   context: MatchContext
@@ -49,13 +53,59 @@ const FormattingToolbarContent: React.FC<FormattingToolbarContentProps> = ({
   const editor = useSlate()
   const Components = useComponents()
 
+  const matchAnyTextLeaf = (node: unknown) =>
+    Text.isText(node) && node.text.length > 0
+  const matchNonCodeTextLeaf = (node: unknown) =>
+    Text.isText(node) && node.text.length > 0 && !node.code
+
   const toggleMark = (key: FormatMark) => () => {
     if (!activeRange) return
-    if (isMarkActiveInSelection(editor, key, activeRange)) {
-      Editor.removeMark(editor, key)
-    } else {
-      Editor.addMark(editor, key, true)
+
+    if (key === "code") {
+      if (isMarkActiveInSelection(editor, key, activeRange)) {
+        Transforms.unsetNodes(editor, key, {
+          at: activeRange,
+          match: matchAnyTextLeaf,
+          split: true,
+        })
+        return
+      }
+
+      Transforms.unsetNodes(editor, NON_CODE_FORMAT_MARKS as string[], {
+        at: activeRange,
+        match: matchAnyTextLeaf,
+        split: true,
+      })
+      Transforms.setNodes(
+        editor,
+        { code: true },
+        {
+          at: activeRange,
+          match: matchAnyTextLeaf,
+          split: true,
+        }
+      )
+      return
     }
+
+    if (isMarkActiveInSelection(editor, key, activeRange)) {
+      Transforms.unsetNodes(editor, key, {
+        at: activeRange,
+        match: matchNonCodeTextLeaf,
+        split: true,
+      })
+      return
+    }
+
+    Transforms.setNodes(
+      editor,
+      { [key]: true },
+      {
+        at: activeRange,
+        match: matchNonCodeTextLeaf,
+        split: true,
+      }
+    )
   }
 
   return (
@@ -87,6 +137,13 @@ const FormattingToolbarContent: React.FC<FormattingToolbarContentProps> = ({
         onClick={toggleMark("strikethrough")}
       >
         <FontAwesomeIcon icon="strikethrough" />
+      </Components.Button>
+      <Components.Button
+        variant="borderless"
+        aria-label="Code"
+        onClick={toggleMark("code")}
+      >
+        <FontAwesomeIcon icon="code" />
       </Components.Button>
     </>
   )
