@@ -1,5 +1,13 @@
 import React, { useCallback, useLayoutEffect, useRef, useState } from "react"
-import { createEditor, Editor, Range, Text, Transforms } from "slate"
+import {
+  createEditor,
+  Editor,
+  Element,
+  Path,
+  Range,
+  Text,
+  Transforms,
+} from "slate"
 import type { Element as SlateElement, NodeEntry } from "slate"
 import { withHistory, type HistoryEditor } from "slate-history"
 import {
@@ -22,6 +30,101 @@ import {
   isSlateBlock,
   type SlateBlock,
 } from "./types"
+
+/** Block types that can host inline frozen voids beside text leaves. */
+function isHostBlockForInlineFrozen(node: unknown): node is SlateElement {
+  return (
+    Element.isElement(node) &&
+    (node.type === "paragraph" ||
+      node.type === "heading" ||
+      node.type === "list-item")
+  )
+}
+
+function newParagraphBlock(): SlateBlock {
+  return {
+    type: "paragraph",
+    id: `b${Date.now()}`,
+    children: [{ text: "" }],
+  } as SlateBlock
+}
+
+/**
+ * If the user types into the empty text leaf directly before or after an inline
+ * frozen void, move that text into a new block-level paragraph so the frozen
+ * stays alone on its line (modulo required placeholder leaves).
+ */
+function redirectTypingFromFrozenAdjacentEmptyLeaf(
+  editor: ReactEditor & HistoryEditor,
+  text: string,
+  baseInsertText: (t: string) => void
+): boolean {
+  const { selection } = editor
+  if (!selection || !Range.isCollapsed(selection)) return false
+
+  const { path, offset } = selection.anchor
+  const textNodeEntry = Editor.node(editor, path)
+  if (!Text.isText(textNodeEntry[0])) return false
+  const [leaf] = textNodeEntry
+  if (leaf.text !== "" || offset !== 0) return false
+
+  const parentEntry = Editor.parent(editor, path)
+  const [parentNode, parentPath] = parentEntry
+  if (!isHostBlockForInlineFrozen(parentNode)) return false
+
+  const index = path[path.length - 1]
+  if (index === undefined) return false
+  const children = parentNode.children
+  const next = children[index + 1]
+  const prev = children[index - 1]
+  const nextIsFrozen = next !== undefined && isFrozenBlock(next)
+  const prevIsFrozen = prev !== undefined && isFrozenBlock(prev)
+
+  if (nextIsFrozen && prevIsFrozen) return false
+
+  if (nextIsFrozen) {
+    Transforms.insertNodes(editor, newParagraphBlock(), { at: parentPath })
+    const shiftedBlockPath = Path.next(parentPath)
+    Transforms.select(editor, { path: [...parentPath, 0], offset: 0 })
+    baseInsertText(text)
+    const [shifted] = Editor.node(editor, shiftedBlockPath)
+    if (
+      Element.isElement(shifted) &&
+      shifted.children[0] &&
+      Text.isText(shifted.children[0]) &&
+      shifted.children[0].text === "" &&
+      shifted.children[1] &&
+      isFrozenBlock(shifted.children[1])
+    ) {
+      Transforms.removeNodes(editor, { at: [...shiftedBlockPath, 0] })
+    }
+    return true
+  }
+
+  if (prevIsFrozen) {
+    const insertPath = Path.next(parentPath)
+    Transforms.insertNodes(editor, newParagraphBlock(), { at: insertPath })
+    Transforms.select(editor, { path: [...insertPath, 0], offset: 0 })
+    baseInsertText(text)
+    const [block] = Editor.node(editor, parentPath)
+    if (!Element.isElement(block)) return true
+    const len = block.children.length
+    if (len < 2) return true
+    const last = block.children[len - 1]
+    const secondLast = block.children[len - 2]
+    if (
+      secondLast !== undefined &&
+      Text.isText(last) &&
+      last.text === "" &&
+      isFrozenBlock(secondLast)
+    ) {
+      Transforms.removeNodes(editor, { at: [...parentPath, len - 1] })
+    }
+    return true
+  }
+
+  return false
+}
 
 type DocEditorProps = {
   slateDocument: SlateElement[]
@@ -74,6 +177,16 @@ export const DocEditor = ({
         }
       }
       normalizeNode(entry)
+    }
+
+    const baseInsertText = editor.insertText.bind(editor)
+    editor.insertText = (text) => {
+      if (
+        redirectTypingFromFrozenAdjacentEmptyLeaf(editor, text, baseInsertText)
+      ) {
+        return
+      }
+      baseInsertText(text)
     }
 
     const defaultSetFragmentData = editor.setFragmentData.bind(editor)
