@@ -14,13 +14,7 @@ export const editor = style({
 
 /** Paragraphs that contain an inline frozen block: flex row keeps the caret leaf on the same line as the demo (width:100% inline-block would force a line break above). */
 export const paragraphWithFrozen = style({
-  display: "flex",
-  flexDirection: "row",
-  flexWrap: "nowrap",
-  alignItems: "flex-start",
-  maxWidth: "42em",
-  marginTop: "1em",
-  marginBottom: "1em",
+  display: "block",
 })
 
 export const frozenBlock = recipe({
@@ -42,15 +36,20 @@ export const frozenBlock = recipe({
   },
 })
 
-// Slate’s void spacer defaults to height:0 and transparent text; a collapsed caret
-// inside it is invisible. Scoped to our frozen wrapper via data-description.
-globalStyle('[data-description="frozen block"] [data-slate-spacer]', {
-  position: "relative",
-  height: "auto",
-  minHeight: "1.2em",
-  lineHeight: 1.2,
-  color: "#222",
-  verticalAlign: "top",
+/**
+ * These are stuck at the end of Slate blocks, and have to be there so the
+ * cursor has somewhere to go. However when selected they kind of stick out, so
+ * we make the selection background transparent.
+ */
+export const emptyTextLeaf = style({
+  "display": "inline-block",
+  "minHeight": "1.2em",
+  "minWidth": "0.05em",
+  "verticalAlign": "top",
+  "flexShrink": 0,
+  "::selection": {
+    background: "transparent",
+  },
 })
 
 /**
@@ -97,13 +96,4 @@ export const link = style({
 
 export const ghostSelection = style({
   backgroundColor: "rgba(0,0,0,0.1)",
-})
-
-/** Empty text leaves have no box; browsers often hide the caret. Used in renderLeaf. */
-export const emptyTextLeaf = style({
-  display: "inline-block",
-  minHeight: "1.2em",
-  minWidth: "0.05em",
-  verticalAlign: "top",
-  flexShrink: 0,
 })

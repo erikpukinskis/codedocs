@@ -551,10 +551,7 @@ const FrozenBlockElement: React.FC<FrozenBlockElementProps> = ({
       data-description="frozen block"
       className={styles.frozenBlock({ selected })}
     >
-      <div
-        contentEditable={false}
-        style={{ userSelect: "none", display: "inline-block" }}
-      >
+      <div contentEditable={false} style={{ userSelect: "none" }}>
         {frozenContent}
       </div>
       {children}
