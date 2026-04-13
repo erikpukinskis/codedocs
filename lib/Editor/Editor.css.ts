@@ -12,12 +12,25 @@ export const editor = style({
   },
 })
 
+/** Paragraphs that contain an inline frozen block: flex row keeps the caret leaf on the same line as the demo (width:100% inline-block would force a line break above). */
+export const paragraphWithFrozen = style({
+  display: "flex",
+  flexDirection: "row",
+  flexWrap: "nowrap",
+  alignItems: "flex-start",
+  maxWidth: "42em",
+  marginTop: "1em",
+  marginBottom: "1em",
+})
+
 export const frozenBlock = recipe({
   base: {
     background: "white",
     position: "relative",
     display: "inline-block",
-    width: "100%",
+    flex: "1 1 0%",
+    minWidth: 0,
+    alignSelf: "stretch",
   },
   variants: {
     selected: {
@@ -92,4 +105,5 @@ export const emptyTextLeaf = style({
   minHeight: "1.2em",
   minWidth: "0.05em",
   verticalAlign: "top",
+  flexShrink: 0,
 })

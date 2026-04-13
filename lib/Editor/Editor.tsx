@@ -508,7 +508,20 @@ const DocElement = ({
     default: {
       const hasFrozen = node.children.some(isFrozenBlock)
       if (hasFrozen) {
-        return <div {...attributes}>{children}</div>
+        const { className: slateClass, ...rest } =
+          attributes as typeof attributes & {
+            className?: string
+          }
+        return (
+          <div
+            {...rest}
+            className={[slateClass, styles.paragraphWithFrozen]
+              .filter(Boolean)
+              .join(" ")}
+          >
+            {children}
+          </div>
+        )
       }
       return <p {...attributes}>{children}</p>
     }
@@ -538,7 +551,10 @@ const FrozenBlockElement: React.FC<FrozenBlockElementProps> = ({
       data-description="frozen block"
       className={styles.frozenBlock({ selected })}
     >
-      <div contentEditable={false} style={{ userSelect: "none" }}>
+      <div
+        contentEditable={false}
+        style={{ userSelect: "none", display: "inline-block" }}
+      >
         {frozenContent}
       </div>
       {children}
