@@ -15,6 +15,7 @@ import {
   ReactEditor,
   Slate,
   withReact,
+  useFocused,
   useSelected,
   useSlate,
 } from "slate-react"
@@ -654,7 +655,9 @@ const FrozenBlockElement: React.FC<FrozenBlockElementProps> = ({
   element,
   frozenElements,
 }) => {
-  const selected = useSelected()
+  const isSelected = useSelected()
+  const isFocused = useFocused()
+  const selected = isSelected && isFocused
   const frozenBlock = element as Extract<SlateBlock, { type: "frozen" }>
   const frozenContent = frozenBlock.id ? frozenElements[frozenBlock.id] : null
 

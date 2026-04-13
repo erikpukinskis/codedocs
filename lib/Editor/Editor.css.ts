@@ -15,6 +15,7 @@ export const editor = style({
 /** Paragraphs that contain an inline frozen block: flex row keeps the caret leaf on the same line as the demo (width:100% inline-block would force a line break above). */
 export const paragraphWithFrozen = style({
   display: "block",
+  marginBlock: "1em",
 })
 
 export const frozenBlock = recipe({
@@ -35,6 +36,13 @@ export const frozenBlock = recipe({
     },
   },
 })
+
+globalStyle(
+  '[data-description="frozen block"] [data-slate-spacer]::selection',
+  {
+    background: "transparent",
+  }
+)
 
 /**
  * These are stuck at the end of Slate blocks, and have to be there so the

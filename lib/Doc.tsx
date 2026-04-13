@@ -77,7 +77,9 @@ export const Doc = ({
         </button>
         <button
           className={styles.tab({ active: activeTab === "source" })}
-          onClick={() => setActiveTab("source")}
+          onClick={() => {
+            setActiveTab("source")
+          }}
         >
           Source
         </button>

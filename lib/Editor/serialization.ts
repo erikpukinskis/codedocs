@@ -305,5 +305,5 @@ function serializeCodeBlock({
   const langAttr = escapeAttrValue(language)
   const pre =
     format === "html" ? `<pre style="${CODE_STYLES.join("; ")}">` : "<pre>"
-  return `${pre}<code data-language="${langAttr}">${body}</code></pre>`
+  return `${pre}<code data-language="${langAttr}">${body}</code></pre><br />`
 }

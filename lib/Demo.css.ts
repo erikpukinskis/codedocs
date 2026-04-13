@@ -9,7 +9,7 @@ export const demo = style({
    * This allows the crop marks from one variant to overlap the variant below
    * precisely, so they can be packed a little tighter.
    */
-  marginTop: 12,
+  // marginTop: 12,
   position: "relative",
 })
 
