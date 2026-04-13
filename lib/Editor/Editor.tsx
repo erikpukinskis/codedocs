@@ -1,16 +1,25 @@
-import React, { useCallback, useRef, useState } from "react"
+import React, { useCallback, useLayoutEffect, useRef, useState } from "react"
 import { createEditor, Editor, Range, Text, Transforms } from "slate"
 import type { Element as SlateElement, NodeEntry } from "slate"
 import { withHistory, type HistoryEditor } from "slate-history"
-import { Editable, ReactEditor, Slate, withReact, useSlate } from "slate-react"
+import {
+  Editable,
+  ReactEditor,
+  Slate,
+  withReact,
+  useSelected,
+  useSlate,
+} from "slate-react"
 import type { RenderElementProps, RenderLeafProps } from "slate-react"
 import { copyHtml, copyPlainText } from "./copy"
 import * as styles from "./Editor.css"
 import { EditorToolbarArea } from "./Toolbar/EditorToolbarArea"
 import {
+  isFrozenBlock,
   isLineOfCodeElement,
   isLinkElement,
   isListItemBlock,
+  isSlateBlock,
   type SlateBlock,
 } from "./types"
 
@@ -33,7 +42,39 @@ export const DocEditor = ({
   const editorRef = useRef<(ReactEditor & HistoryEditor) | null>(null)
   if (editorRef.current === null) {
     const editor = withHistory(withReact(createEditor()))
-    editor.isInline = (element) => isLinkElement(element)
+    editor.isInline = (element) =>
+      isLinkElement(element) || isFrozenBlock(element)
+    const { isVoid, normalizeNode } = editor
+    editor.isVoid = (element) =>
+      isFrozenBlock(element) ? true : isVoid(element)
+
+    editor.normalizeNode = (entry) => {
+      const [node, path] = entry
+      if (Editor.isEditor(node)) {
+        for (const [child, childPath] of Editor.nodes(editor, {
+          at: path,
+          mode: "highest",
+          match: (n) => !Editor.isEditor(n),
+        })) {
+          if (
+            Text.isText(child) ||
+            (isSlateBlock(child) && editor.isInline(child))
+          ) {
+            Transforms.wrapNodes(
+              editor,
+              {
+                type: "paragraph",
+                id: `b${Date.now()}`,
+                children: [],
+              } as SlateBlock,
+              { at: childPath }
+            )
+            return
+          }
+        }
+      }
+      normalizeNode(entry)
+    }
 
     const defaultSetFragmentData = editor.setFragmentData.bind(editor)
 
@@ -60,6 +101,14 @@ export const DocEditor = ({
   const [value, setValue] = useState(slateDocument)
   const [ghostSelection, setGhostSelection] = useState<Range | undefined>()
   const [isFocused, setIsFocused] = useState(false)
+
+  // Slate assigns `editor.children = initialValue` on first mount without running
+  // normalization. Root-level inline frozens from the macro must be wrapped before
+  // caret placement works; `force` walks the full tree once.
+  useLayoutEffect(() => {
+    Editor.normalize(editor, { force: true })
+    setValue(editor.children as SlateBlock[])
+  }, [editor])
 
   const renderElement = useCallback(
     (props: RenderElementProps) => (
@@ -112,6 +161,62 @@ export const DocEditor = ({
 
   const onKeyDown = useCallback(
     (event: React.KeyboardEvent) => {
+      if (
+        event.key === "ArrowRight" &&
+        !event.shiftKey &&
+        editor.selection &&
+        Range.isCollapsed(editor.selection)
+      ) {
+        const { path, offset } = editor.selection.anchor
+        const [node] = Editor.node(editor, path)
+        if (Text.isText(node) && offset === node.text.length) {
+          const nextNodeEntry = Editor.next(editor, { at: path })
+          if (nextNodeEntry) {
+            const [nextNode, nextPath] = nextNodeEntry
+            if (isFrozenBlock(nextNode)) {
+              event.preventDefault()
+              const afterVoidEntry = Editor.next(editor, { at: nextPath })
+              if (afterVoidEntry) {
+                Transforms.select(editor, {
+                  path: afterVoidEntry[1],
+                  offset: 0,
+                })
+                return
+              }
+            }
+          }
+        }
+      }
+
+      if (
+        event.key === "ArrowLeft" &&
+        !event.shiftKey &&
+        editor.selection &&
+        Range.isCollapsed(editor.selection)
+      ) {
+        const { path, offset } = editor.selection.anchor
+        if (offset === 0) {
+          const prevNodeEntry = Editor.previous(editor, { at: path })
+          if (prevNodeEntry) {
+            const [prevNode, prevPath] = prevNodeEntry
+            if (isFrozenBlock(prevNode)) {
+              event.preventDefault()
+              const beforeVoidEntry = Editor.previous(editor, { at: prevPath })
+              if (beforeVoidEntry) {
+                const [beforeNode] = beforeVoidEntry
+                if (Text.isText(beforeNode)) {
+                  Transforms.select(editor, {
+                    path: beforeVoidEntry[1],
+                    offset: beforeNode.text.length,
+                  })
+                  return
+                }
+              }
+            }
+          }
+        }
+      }
+
       if (event.key === "Enter" && event.shiftKey) {
         event.preventDefault()
         editor.insertText("\n")
@@ -387,25 +492,56 @@ const DocElement = ({
           {children}
         </LinkElement>
       )
-    case "frozen": {
-      // TODO: Have a selected state when the cursor is over a frozen block
-      const frozenContent = node.id ? frozenElements[node.id] : null
+    case "frozen":
       return (
-        <div
-          {...attributes}
-          data-description="frozen block"
-          contentEditable={false}
-          className={styles.frozenBlock}
+        <FrozenBlockElement
+          attributes={attributes}
+          element={node}
+          frozenElements={frozenElements}
         >
-          {frozenContent}
           {children}
-        </div>
+        </FrozenBlockElement>
       )
-    }
     case "paragraph":
-    default:
+    default: {
+      const hasFrozen = node.children.some(isFrozenBlock)
+      if (hasFrozen) {
+        return <div {...attributes}>{children}</div>
+      }
       return <p {...attributes}>{children}</p>
+    }
   }
+}
+
+type FrozenBlockElementProps = Pick<
+  RenderElementProps,
+  "attributes" | "children" | "element"
+> & {
+  frozenElements: Record<string, React.ReactNode>
+}
+
+const FrozenBlockElement: React.FC<FrozenBlockElementProps> = ({
+  attributes,
+  children,
+  element,
+  frozenElements,
+}) => {
+  const selected = useSelected()
+  const frozenBlock = element as Extract<SlateBlock, { type: "frozen" }>
+  const frozenContent = frozenBlock.id ? frozenElements[frozenBlock.id] : null
+
+  return (
+    <div
+      {...attributes}
+      data-description="frozen block"
+      className={styles.frozenBlock({ selected })}
+    >
+      <div contentEditable={false} style={{ userSelect: "none" }}>
+        {frozenContent}
+      </div>
+      {children}
+    </div>
+  )
 }
 
 type CodeLineElementProps = RenderElementProps & {

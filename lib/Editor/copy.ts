@@ -1,4 +1,4 @@
-import { Editor, Element, Range } from "slate"
+import { Editor, Element, Range, Text } from "slate"
 import { slateToHtml } from "./serialization"
 import { isCodeBlock, isFrozenBlock } from "./types"
 
@@ -27,15 +27,29 @@ export function copyPlainText(
     const intersection = Range.intersection(range, blockRange)
     if (!intersection || Range.isCollapsed(intersection)) continue
 
-    if (isFrozenBlock(node) && frozenSources && node.id in frozenSources) {
-      const frozen = frozenSources[node.id]
-      if (frozen !== undefined) {
-        chunks.push(frozen)
+    const blockChunks: string[] = []
+    for (const [inlineNode, inlinePath] of Editor.nodes(editor, {
+      at: intersection,
+      match: (n) => Text.isText(n) || isFrozenBlock(n),
+    })) {
+      if (
+        isFrozenBlock(inlineNode) &&
+        frozenSources &&
+        inlineNode.id in frozenSources
+      ) {
+        const frozen = frozenSources[inlineNode.id]
+        if (frozen !== undefined) {
+          blockChunks.push(frozen)
+        }
+      } else if (Text.isText(inlineNode)) {
+        const textRange = Editor.range(editor, inlinePath)
+        const textIntersection = Range.intersection(intersection, textRange)
+        if (textIntersection) {
+          blockChunks.push(Editor.string(editor, textIntersection))
+        }
       }
-      continue
     }
-
-    chunks.push(Editor.string(editor, intersection))
+    chunks.push(blockChunks.join(""))
   }
   return chunks.join("\n")
 }

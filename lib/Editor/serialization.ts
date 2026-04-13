@@ -1,7 +1,12 @@
 import type { Descendant } from "slate"
 import { Text } from "slate"
 import type { ListItemBlock, SlateBlock, SlateLeaf } from "~/Editor/types"
-import { isLinkElement, isListItemBlock, isSlateBlock } from "~/Editor/types"
+import {
+  isFrozenBlock,
+  isLinkElement,
+  isListItemBlock,
+  isSlateBlock,
+} from "~/Editor/types"
 
 type SerializationFormat = "html" | "jsx"
 
@@ -147,6 +152,20 @@ function serializeInlineChildren(
         const href = escapeAttrValue(child.url)
         return `<a href="${href}">${inner}</a>`
       }
+      if (isFrozenBlock(child)) {
+        if (!child.id) return ""
+        const source = options.frozenSources?.[child.id]
+        if (source === undefined) return ""
+
+        if (format === "html") {
+          return serializeCodeBlock({
+            source,
+            language: "tsx",
+            format,
+          })
+        }
+        return source
+      }
       return ""
     })
     .join("")
@@ -162,8 +181,18 @@ function serializeBlock(
   const { format, frozenSources } = options
 
   switch (node.type) {
-    case "paragraph":
+    case "paragraph": {
+      const hasFrozen = node.children.some(isFrozenBlock)
+      if (
+        hasFrozen &&
+        node.children.every(
+          (c) => isFrozenBlock(c) || (Text.isText(c) && c.text === "")
+        )
+      ) {
+        return children
+      }
       return `<p>${children}</p>`
+    }
     case "heading": {
       const level: number = node.level
       return `<h${level}>${children}</h${level}>`
@@ -190,11 +219,14 @@ function serializeBlock(
       const source = frozenSources?.[node.id]
       if (source === undefined) return ""
 
-      return serializeCodeBlock({
-        source,
-        language: "tsx",
-        format,
-      })
+      if (format === "html") {
+        return serializeCodeBlock({
+          source,
+          language: "tsx",
+          format,
+        })
+      }
+      return source
     }
     default:
       return `<p>${children}</p>`

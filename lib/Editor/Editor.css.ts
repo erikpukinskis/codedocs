@@ -1,4 +1,5 @@
 import { style } from "@vanilla-extract/css"
+import { recipe } from "@vanilla-extract/recipes"
 
 export const editorContainer = style({
   // TODO: Make this some variant of full page height minus the chrome
@@ -11,8 +12,21 @@ export const editor = style({
   },
 })
 
-export const frozenBlock = style({
-  userSelect: "none",
+export const frozenBlock = recipe({
+  base: {
+    background: "white",
+    position: "relative",
+    display: "inline-block",
+    width: "100%",
+  },
+  variants: {
+    selected: {
+      true: {
+        filter:
+          "contrast(0.8) brightness(0.78) sepia(1) saturate(1.05) hue-rotate(178deg)",
+      },
+    },
+  },
 })
 
 /**
