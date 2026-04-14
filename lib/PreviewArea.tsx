@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useRef } from "react"
+import React, { useEffect, useRef } from "react"
 import { CropMarks } from "./CropMarks"
 
 type PreviewAreaProps = {
@@ -73,40 +73,39 @@ export function PreviewArea({
       data-component="PreviewArea"
       style={{
         display: "inline-block",
+        position: "relative",
         width: inline ? "auto" : "100%",
         maxWidth: "100%",
       }}
     >
-      <div style={{ position: "relative" }}>
-        <div
-          data-description="content wrapper"
-          style={{
-            isolation: "isolate",
-            position: "relative",
-            zIndex: 1,
-            /**
-             * If this is display: block then it will have line height, which
-             * effectively gives the PreviewArea a min-height.
-             */
-            display: "flex",
-          }}
-        >
-          {children}
-        </div>
-        <div
-          data-description="crop marks wrapper"
-          style={{
-            zIndex: 0,
-            isolation: "isolate",
-            position: "absolute",
-            left: 0,
-            top: 0,
-            bottom: 0,
-            right: 0,
-          }}
-        >
-          <CropMarks />
-        </div>
+      <div
+        data-description="content wrapper"
+        style={{
+          isolation: "isolate",
+          position: "relative",
+          zIndex: 1,
+          /**
+           * If this is display: block then it will have line height, which
+           * effectively gives the PreviewArea a min-height.
+           */
+          display: "flex",
+        }}
+      >
+        {children}
+      </div>
+      <div
+        data-description="crop marks wrapper"
+        style={{
+          zIndex: 0,
+          isolation: "isolate",
+          position: "absolute",
+          left: 0,
+          top: 0,
+          bottom: 0,
+          right: 0,
+        }}
+      >
+        <CropMarks />
       </div>
     </div>
   )
