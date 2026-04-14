@@ -16,6 +16,7 @@ type CodeProps = EditorProps & {
 }
 
 export const Code = ({ className, source, mode, onClickClose }: CodeProps) => (
+  // TODO: This code container should fill the width of the main column
   <div className={`${styles.codeContainer} ${className || ""}`}>
     <div className={styles.codeInnerContainer}>
       <Editor source={source} mode={mode} />

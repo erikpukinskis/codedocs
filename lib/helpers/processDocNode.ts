@@ -29,6 +29,7 @@ import {
   type ObjectProperty,
 } from "@babel/types"
 import { isNamedJSXAttribute, isNamedJSXElement } from "./babelJsxGuards"
+import { formatPlainTextCodeBlock } from "./formatPlainText"
 import { formatTypescript } from "./formatTypeScript"
 import { getSource } from "./processDemoNode"
 
@@ -508,6 +509,8 @@ function makeCodeBlockNode(
   let textToSplit = rawText
   if (language === "tsx" || language === "typescript") {
     textToSplit = formatTypescript(rawText)
+  } else {
+    textToSplit = formatPlainTextCodeBlock(rawText)
   }
 
   const lines = textToSplit.split("\n")

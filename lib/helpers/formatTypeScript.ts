@@ -1,5 +1,6 @@
 import prettier from "prettier"
 import parserTypescript from "prettier/parser-typescript"
+import { formatPlainTextCodeBlock } from "./formatPlainText"
 
 export function formatTypescript(source: string): string {
   try {
@@ -33,6 +34,6 @@ export function formatTypescript(source: string): string {
 
     return formatted
   } catch {
-    return source
+    return formatPlainTextCodeBlock(source)
   }
 }

@@ -708,6 +708,8 @@ export const DocEditor = ({
         event.key === "Tab" &&
         (!editor.selection || Range.isCollapsed(editor.selection))
       ) {
+        // TODO: Shift+tab when range is collapsed and in the leading whitespace of a line of code should dedent.
+        // TODO: Selecting a line and pressing tab shouldn't indent the line below
         event.preventDefault()
         const [match] = Editor.nodes(editor, {
           match: isListItemBlock,

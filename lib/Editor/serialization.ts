@@ -195,6 +195,7 @@ function serializeBlock(
     }
     case "heading": {
       const level: number = node.level
+      // TODO: These should not get <b> or font-size=17 when pasted into Google Docs.
       return `<h${level}>${children}</h${level}>`
     }
     case "code-block": {

@@ -202,7 +202,7 @@ export const ComponentDocs = (
           only
           name="Button"
           component={Button}
-          props={...}
+          /* ... */
         />
       `}
     </code>

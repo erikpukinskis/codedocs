@@ -23,4 +23,13 @@ describe("formatTypescript", () => {
       )"
     `)
   })
+
+  test("falls back to plain-text dedent when TS/Prettier cannot parse", () => {
+    const input = `
+        <Component
+          props={...}
+        />
+      `
+    expect(formatTypescript(input)).toBe("<Component\n  props={...}\n/>")
+  })
 })
