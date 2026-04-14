@@ -130,11 +130,19 @@ function redirectTypingFromFrozenAdjacentEmptyLeaf(
   return false
 }
 
-function isSameListRun(a: ListItemBlock, b: ListItemBlock): boolean {
-  return (a.depth ?? 0) === (b.depth ?? 0) && a.listType === b.listType
+/** Adjacent list-items with the same listType are one visual list (depth may vary). */
+function isSameListSequence(
+  sibling: SlateBlock | undefined,
+  node: ListItemBlock
+): sibling is ListItemBlock {
+  return (
+    sibling !== undefined &&
+    isListItemBlock(sibling) &&
+    sibling.listType === node.listType
+  )
 }
 
-/** First/last in a contiguous run of list items with matching depth + listType (mirrors serializeListItems). */
+/** First/last among consecutive list-items with matching listType (depth ignored). */
 function getListItemRunEdgeFlags(
   editor: ReactEditor & HistoryEditor,
   path: Path,
@@ -167,15 +175,8 @@ function getListItemRunEdgeFlags(
   const nextSibling =
     index < siblings.length - 1 ? siblings[index + 1] : undefined
 
-  const isFirstInRun =
-    prevSibling === undefined ||
-    !isListItemBlock(prevSibling) ||
-    !isSameListRun(prevSibling, node)
-
-  const isLastInRun =
-    nextSibling === undefined ||
-    !isListItemBlock(nextSibling) ||
-    !isSameListRun(nextSibling, node)
+  const isFirstInRun = !isSameListSequence(prevSibling, node)
+  const isLastInRun = !isSameListSequence(nextSibling, node)
 
   return { isFirstInRun, isLastInRun }
 }

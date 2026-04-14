@@ -126,7 +126,7 @@ export const ghostSelection = style({
 export const listItem = recipe({
   base: {
     display: "list-item",
-    marginBlock: "0.5em",
+    marginBlock: "0.25em",
   },
   variants: {
     listType: {
