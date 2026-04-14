@@ -16,7 +16,6 @@ export const editor = style({
 export const paragraphWithFrozen = style({
   display: "block",
   marginTop: "1em",
-  marginBottom: "-0.5em",
 })
 
 export const frozenBlock = recipe({
@@ -105,4 +104,31 @@ export const link = style({
 
 export const ghostSelection = style({
   backgroundColor: "rgba(0,0,0,0.1)",
+})
+
+export const listItem = recipe({
+  base: {
+    display: "list-item",
+    marginBlock: "0.5em",
+  },
+  variants: {
+    listType: {
+      ul: {
+        listStyleType: "disc",
+      },
+      ol: {
+        listStyleType: "decimal",
+      },
+    },
+    first: {
+      true: {
+        marginTop: "1em",
+      },
+    },
+    last: {
+      true: {
+        marginBottom: "1em",
+      },
+    },
+  },
 })

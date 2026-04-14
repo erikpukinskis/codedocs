@@ -125,7 +125,9 @@ export function Demo<
           key={variant ?? "__default"}
           className={styles.demo}
           data-component="Demo"
-          style={{ width: props.width }}
+          style={{
+            width: typeof props.width === "number" ? props.width : undefined,
+          }}
         >
           <div
             className={styles.demoContainer({

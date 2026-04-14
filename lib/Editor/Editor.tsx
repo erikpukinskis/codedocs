@@ -31,6 +31,7 @@ import {
   isListItemBlock,
   isParagraphBlock,
   isSlateBlock,
+  type ListItemBlock,
   type SlateBlock,
 } from "./types"
 
@@ -127,6 +128,56 @@ function redirectTypingFromFrozenAdjacentEmptyLeaf(
   }
 
   return false
+}
+
+function isSameListRun(a: ListItemBlock, b: ListItemBlock): boolean {
+  return (a.depth ?? 0) === (b.depth ?? 0) && a.listType === b.listType
+}
+
+/** First/last in a contiguous run of list items with matching depth + listType (mirrors serializeListItems). */
+function getListItemRunEdgeFlags(
+  editor: ReactEditor & HistoryEditor,
+  path: Path,
+  node: ListItemBlock
+): { isFirstInRun: boolean; isLastInRun: boolean } {
+  const [parent] = Editor.parent(editor, path)
+
+  let siblings: SlateBlock[]
+  let index: number
+
+  if (Editor.isEditor(parent)) {
+    siblings = parent.children as SlateBlock[]
+    const i = path[0]
+    if (i === undefined) {
+      return { isFirstInRun: true, isLastInRun: true }
+    }
+    index = i
+  } else if (Element.isElement(parent)) {
+    siblings = parent.children as SlateBlock[]
+    const i = path[path.length - 1]
+    if (i === undefined) {
+      return { isFirstInRun: true, isLastInRun: true }
+    }
+    index = i
+  } else {
+    return { isFirstInRun: true, isLastInRun: true }
+  }
+
+  const prevSibling = index > 0 ? siblings[index - 1] : undefined
+  const nextSibling =
+    index < siblings.length - 1 ? siblings[index + 1] : undefined
+
+  const isFirstInRun =
+    prevSibling === undefined ||
+    !isListItemBlock(prevSibling) ||
+    !isSameListRun(prevSibling, node)
+
+  const isLastInRun =
+    nextSibling === undefined ||
+    !isListItemBlock(nextSibling) ||
+    !isSameListRun(nextSibling, node)
+
+  return { isFirstInRun, isLastInRun }
 }
 
 function convertListItemToParagraph(
@@ -730,10 +781,7 @@ const DocElement = ({
       const level = node.level ?? 1
       if (level === 1) return <h1 {...attributes}>{children}</h1>
       if (level === 2) return <h2 {...attributes}>{children}</h2>
-      if (level === 3) return <h3 {...attributes}>{children}</h3>
-      if (level === 4) return <h4 {...attributes}>{children}</h4>
-      if (level === 5) return <h5 {...attributes}>{children}</h5>
-      return <h6 {...attributes}>{children}</h6>
+      return <h3 {...attributes}>{children}</h3>
     }
     case "code-block":
       return (
@@ -747,16 +795,24 @@ const DocElement = ({
           {children}
         </CodeLineElement>
       )
+    // TODO: Selecting multiple list items and pressing tab/shift+tab should change depth
     case "list-item": {
       const marginLeft = 20 + (node.depth ?? 0) * 24
+      const path = ReactEditor.findPath(editor, node)
+      const { isFirstInRun, isLastInRun } = getListItemRunEdgeFlags(
+        editor,
+        path,
+        node
+      )
       return (
         <div
           {...attributes}
-          style={{
-            marginLeft,
-            display: "list-item",
-            listStyleType: node.listType === "ol" ? "decimal" : "disc",
-          }}
+          className={styles.listItem({
+            listType: node.listType,
+            first: isFirstInRun,
+            last: isLastInRun,
+          })}
+          style={{ marginLeft }}
         >
           {children}
         </div>
