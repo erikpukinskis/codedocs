@@ -15,7 +15,8 @@ export const editor = style({
 /** Paragraphs that contain an inline frozen block: flex row keeps the caret leaf on the same line as the demo (width:100% inline-block would force a line break above). */
 export const paragraphWithFrozen = style({
   display: "block",
-  marginBlock: "1em",
+  marginTop: "1em",
+  marginBottom: "-0.5em",
 })
 
 export const frozenBlock = recipe({

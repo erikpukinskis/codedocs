@@ -56,6 +56,9 @@ const Editor = ({ source, mode }: EditorProps) => {
 
 const randomNumber = () => {
   const [, number] = Math.random().toString().split(".")
+  if (number === undefined) {
+    throw new Error("Math.random() didn't return a number?")
+  }
   return number
 }
 

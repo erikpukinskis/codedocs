@@ -48,14 +48,16 @@ export type ContainerProps = {
 
 export type Container = React.FC<ContainerProps>
 
-export type BaseButtonProps = {
-  "aria-label"?: string
-  "aria-controls"?: string
-  "aria-expanded"?: boolean
-  disabled?: boolean
-  onClick?: (event: React.MouseEvent) => void
-  children: React.ReactNode
-}
+export type BaseButtonProps = Pick<
+  React.ComponentPropsWithoutRef<"button">,
+  | "aria-label"
+  | "aria-controls"
+  | "aria-expanded"
+  | "disabled"
+  | "onClick"
+  | "onMouseDownCapture"
+  | "children"
+>
 
 export type PopoverProps = {
   target: JSX.Element

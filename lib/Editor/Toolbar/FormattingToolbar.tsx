@@ -1,16 +1,91 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import React from "react"
-import type { Range } from "slate"
-import { Range as SlateRange, Text, Transforms } from "slate"
+import type { Node, Range } from "slate"
+import { Editor, Range as SlateRange, Text, Transforms } from "slate"
 import { ReactEditor, useSlate } from "slate-react"
-import type { MatchContext, ToolbarDescriptor } from "./types"
+import type { MatchContext, SlateEditor, ToolbarDescriptor } from "./types"
 import { useComponents } from "~/ComponentContext"
+import * as buttonStyles from "~/Components/Button.css"
+import {
+  isHeadingBlock,
+  isListItemBlock,
+  isParagraphBlock,
+  type SlateBlock,
+} from "~/Editor/types"
 import type { FormatMark } from "~/helpers/range"
 import {
   NON_CODE_FORMAT_MARKS,
   isFormattableRange,
   isMarkActiveInSelection,
 } from "~/helpers/range"
+
+function isTextBlockNode(
+  node: Node
+): node is SlateBlock & { type: "paragraph" | "heading" | "list-item" } {
+  return isParagraphBlock(node) || isHeadingBlock(node) || isListItemBlock(node)
+}
+
+// TODO: This and toggleMark should be factored out as pure functions into a slate helpers file.
+function blockTypeSelectValue(editor: SlateEditor, at: Range): string {
+  const match = Editor.above(editor, {
+    at: SlateRange.start(at),
+    match: isTextBlockNode,
+  })
+  if (!match) return "paragraph"
+  const [node] = match
+  if (isHeadingBlock(node)) {
+    const level = node.level ?? 1
+    if (level <= 3) return `heading-${level}`
+    return "heading-3"
+  }
+  return "paragraph"
+}
+
+function applyBlockTypeSelectValue(
+  editor: SlateEditor,
+  at: Range,
+  value: string
+) {
+  const headingLevel =
+    value === "heading-1"
+      ? 1
+      : value === "heading-2"
+      ? 2
+      : value === "heading-3"
+      ? 3
+      : null
+
+  const seen = new Set<string>()
+  for (const [, path] of Editor.nodes(editor, {
+    at,
+    match: isTextBlockNode,
+  })) {
+    const key = path.join(",")
+    if (seen.has(key)) continue
+    seen.add(key)
+
+    if (value === "paragraph") {
+      Transforms.unsetNodes(editor, ["level", "listType", "depth"], {
+        at: path,
+      })
+      Transforms.setNodes(
+        editor,
+        { type: "paragraph" } as Partial<SlateBlock>,
+        { at: path }
+      )
+      continue
+    }
+
+    if (headingLevel !== null) {
+      Transforms.unsetNodes(editor, ["listType", "depth"], { at: path })
+      Transforms.setNodes(
+        editor,
+        { type: "heading", level: headingLevel } as Partial<SlateBlock>,
+        { at: path }
+      )
+    }
+  }
+}
 
 export function matchFormattingToolbar(
   context: MatchContext
@@ -63,7 +138,7 @@ type FormattingToolbarContentProps = { activeRange: Range }
 const FormattingToolbarContent: React.FC<FormattingToolbarContentProps> = ({
   activeRange,
 }) => {
-  const editor = useSlate()
+  const editor = useSlate() as SlateEditor
   const Components = useComponents()
 
   const matchAnyTextLeaf = (node: unknown) =>
@@ -120,7 +195,8 @@ const FormattingToolbarContent: React.FC<FormattingToolbarContentProps> = ({
   }
 
   const onMouseDownToolbarButton = (event: React.MouseEvent) => {
-    // Keep focus in the editor for pointer activation so selection stays active.
+    // Native <select> needs default mousedown to open; still keep editor focus for icon buttons.
+    if ((event.target as HTMLElement).closest("select")) return
     event.preventDefault()
   }
 
@@ -133,8 +209,25 @@ const FormattingToolbarContent: React.FC<FormattingToolbarContentProps> = ({
       }
     }
 
+  const blockType = blockTypeSelectValue(editor, activeRange)
+
   return (
     <div onMouseDownCapture={onMouseDownToolbarButton}>
+      <select
+        value={blockType}
+        onChange={(event) => {
+          const next = event.target.value
+          applyBlockTypeSelectValue(editor, activeRange, next)
+          ReactEditor.focus(editor)
+        }}
+        className={buttonStyles.button({ variant: "borderless" })}
+        style={{ width: "7.5em" }}
+      >
+        <option value="paragraph">Paragraph</option>
+        <option value="heading-1">Heading 1 (Page)</option>
+        <option value="heading-2">Heading 2 (Section)</option>
+        <option value="heading-3">Heading 3 (Subsection)</option>
+      </select>
       <Components.Button
         variant="borderless"
         aria-label="Bold"

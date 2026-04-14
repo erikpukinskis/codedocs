@@ -1,6 +1,6 @@
 import { recipe } from "@vanilla-extract/recipes"
 
-export const styledButton = recipe({
+export const button = recipe({
   base: {
     background: "#b7c2ff",
     border: "1px solid transparent",

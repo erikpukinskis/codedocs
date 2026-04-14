@@ -9,7 +9,7 @@ export const LinkButton: React.FC<LinkButtonProps> = ({
   variant,
   ...props
 }) => (
-  <Link {...props} className={buttonStyles.styledButton({ variant })}>
+  <Link {...props} className={buttonStyles.button({ variant })}>
     {children}
   </Link>
 )

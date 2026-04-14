@@ -14,7 +14,7 @@ export const Button = ({
     onClick={onClick}
     aria-label={ariaLabel}
     disabled={disabled}
-    className={styles.styledButton({ variant })}
+    className={styles.button({ variant })}
   >
     {children}
   </button>
