@@ -19,6 +19,25 @@ import {
   isMarkActiveInSelection,
 } from "~/helpers/range"
 
+/** Element fields for a given block discriminant (no `children`). */
+type SlateBlockFields<T extends SlateBlock["type"]> = Omit<
+  Extract<SlateBlock, { type: T }>,
+  "type" | "children"
+>
+
+/** Options for `applyBlockType` — `id` is taken from the existing node at each path. */
+type ApplyBlockTypeOptions<T extends SlateBlock["type"]> = Omit<
+  SlateBlockFields<T>,
+  "id"
+>
+
+const unsetBeforeApplyBlockType: Partial<Record<SlateBlock["type"], string[]>> =
+  {
+    "paragraph": ["level", "listType", "depth"],
+    "heading": ["listType", "depth"],
+    "list-item": ["level"],
+  }
+
 function isTextBlockNode(
   node: Node
 ): node is SlateBlock & { type: "paragraph" | "heading" | "list-item" } {
@@ -38,25 +57,21 @@ function blockTypeSelectValue(editor: SlateEditor, at: Range): string {
     if (level <= 3) return `heading-${level}`
     return "heading-3"
   }
+  if (isListItemBlock(node)) {
+    return "list"
+  }
   return "paragraph"
 }
 
-function applyBlockTypeSelectValue(
+function applyBlockType<T extends SlateBlock["type"]>(
   editor: SlateEditor,
   at: Range,
-  value: string
+  type: T,
+  options: ApplyBlockTypeOptions<T>
 ) {
-  const headingLevel =
-    value === "heading-1"
-      ? 1
-      : value === "heading-2"
-      ? 2
-      : value === "heading-3"
-      ? 3
-      : null
-
+  const toUnset = unsetBeforeApplyBlockType[type]
   const seen = new Set<string>()
-  for (const [, path] of Editor.nodes(editor, {
+  for (const [node, path] of Editor.nodes(editor, {
     at,
     match: isTextBlockNode,
   })) {
@@ -64,26 +79,24 @@ function applyBlockTypeSelectValue(
     if (seen.has(key)) continue
     seen.add(key)
 
-    if (value === "paragraph") {
-      Transforms.unsetNodes(editor, ["level", "listType", "depth"], {
-        at: path,
-      })
-      Transforms.setNodes(
-        editor,
-        { type: "paragraph" } as Partial<SlateBlock>,
-        { at: path }
-      )
-      continue
+    const id =
+      "id" in node && typeof (node as { id?: unknown }).id === "string"
+        ? (node as { id: string }).id
+        : `b${Date.now()}`
+
+    if (toUnset?.length) {
+      Transforms.unsetNodes(editor, toUnset, { at: path })
     }
 
-    if (headingLevel !== null) {
-      Transforms.unsetNodes(editor, ["listType", "depth"], { at: path })
-      Transforms.setNodes(
-        editor,
-        { type: "heading", level: headingLevel } as Partial<SlateBlock>,
-        { at: path }
-      )
-    }
+    Transforms.setNodes(
+      editor,
+      {
+        type,
+        id,
+        ...(options as Record<string, unknown>),
+      } as Partial<SlateBlock>,
+      { at: path }
+    )
   }
 }
 
@@ -216,8 +229,21 @@ const FormattingToolbarContent: React.FC<FormattingToolbarContentProps> = ({
       <select
         value={blockType}
         onChange={(event) => {
-          const next = event.target.value
-          applyBlockTypeSelectValue(editor, activeRange, next)
+          const newBlockType = event.target.value
+          if (newBlockType === "paragraph") {
+            applyBlockType(editor, activeRange, "paragraph", {})
+          } else if (newBlockType === "heading-1") {
+            applyBlockType(editor, activeRange, "heading", { level: 1 })
+          } else if (newBlockType === "heading-2") {
+            applyBlockType(editor, activeRange, "heading", { level: 2 })
+          } else if (newBlockType === "heading-3") {
+            applyBlockType(editor, activeRange, "heading", { level: 3 })
+          } else if (newBlockType === "list") {
+            applyBlockType(editor, activeRange, "list-item", {
+              listType: "ul",
+              depth: 0,
+            })
+          }
           ReactEditor.focus(editor)
         }}
         className={buttonStyles.button({ variant: "borderless" })}
@@ -227,6 +253,7 @@ const FormattingToolbarContent: React.FC<FormattingToolbarContentProps> = ({
         <option value="heading-1">Heading 1 (Page)</option>
         <option value="heading-2">Heading 2 (Section)</option>
         <option value="heading-3">Heading 3 (Subsection)</option>
+        <option value="list">List Item</option>
       </select>
       <Components.Button
         variant="borderless"
@@ -262,6 +289,32 @@ const FormattingToolbarContent: React.FC<FormattingToolbarContentProps> = ({
         onClick={onClickToolbarButton("code")}
       >
         <FontAwesomeIcon icon="code" />
+      </Components.Button>
+      <Components.Button
+        variant="borderless"
+        aria-label="List"
+        onClick={() => {
+          applyBlockType(editor, activeRange, "list-item", {
+            listType: "ul",
+            depth: 0,
+          })
+          ReactEditor.focus(editor)
+        }}
+      >
+        <FontAwesomeIcon icon="list-ul" />
+      </Components.Button>
+      <Components.Button
+        variant="borderless"
+        aria-label="Numbered List"
+        onClick={() => {
+          applyBlockType(editor, activeRange, "list-item", {
+            listType: "ol",
+            depth: 0,
+          })
+          ReactEditor.focus(editor)
+        }}
+      >
+        <FontAwesomeIcon icon="list-ol" />
       </Components.Button>
     </div>
   )
