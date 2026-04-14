@@ -34,6 +34,8 @@ export type LinkElement = BaseElement & {
 export type FrozenBlock = BaseElement & {
   type: "frozen"
   id: string
+  /** Set by macro for static `<Demo width="full" />` so the editor can stretch the preview. */
+  fullWidth?: boolean
 }
 
 export type CodeBlock = BaseElement & {

@@ -536,9 +536,31 @@ function makeCodeBlockNode(
   ])
 }
 
+/**
+ * True when this is `<Demo width="full" />` or `<Demo width={"full"} />` with a
+ * string literal only (dynamic widths stay unsupported).
+ */
+function isStaticDemoFullWidth(node: JSXElement): boolean {
+  if (!isNamedJSXElement(node, "Demo")) return false
+  const widthAttr = node.openingElement.attributes.find(
+    (a): a is JSXAttribute => isNamedJSXAttribute(a, "width")
+  )
+  const value = widthAttr?.value
+  if (value === undefined) return false
+  if (isStringLiteral(value) && value.value === "full") return true
+  if (
+    isJSXExpressionContainer(value) &&
+    isStringLiteral(value.expression) &&
+    value.expression.value === "full"
+  ) {
+    return true
+  }
+  return false
+}
+
 /** Build a Slate void node placeholder for a frozen block (Demo, Code, etc.). */
-function makeFrozenNode(id: string): ObjectExpression {
-  return objectExpression([
+function makeFrozenNode(id: string, fullWidth: boolean): ObjectExpression {
+  const props: ObjectProperty[] = [
     objectProperty(identifier("type"), stringLiteral("frozen")),
     objectProperty(identifier("id"), stringLiteral(id)),
     objectProperty(
@@ -549,7 +571,11 @@ function makeFrozenNode(id: string): ObjectExpression {
         ]),
       ])
     ),
-  ])
+  ]
+  if (fullWidth) {
+    props.push(objectProperty(identifier("fullWidth"), booleanLiteral(true)))
+  }
+  return objectExpression(props)
 }
 
 /** Single empty text leaf; used for empty paragraphs and list items. */
@@ -568,7 +594,7 @@ function freezeBlock(
   const id = `f${processState.frozenId++}`
   processState.frozenElements[id] = node
   processState.frozenSources[id] = getSource(node, code)
-  processState.blockNodes.push(makeFrozenNode(id))
+  processState.blockNodes.push(makeFrozenNode(id, isStaticDemoFullWidth(node)))
 }
 
 /**

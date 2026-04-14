@@ -67,30 +67,37 @@ export function PreviewArea({
     }
   }, [boundingSelectors])
 
+  const contentWrapperStyle: React.CSSProperties = inline
+    ? {
+        isolation: "isolate",
+        position: "relative",
+        zIndex: 1,
+        /**
+         * Flex avoids a block line-height strut that would give PreviewArea a
+         * spurious min-height for shrink-wrapped inline demos.
+         */
+        display: "flex",
+      }
+    : {
+        isolation: "isolate",
+        position: "relative",
+        zIndex: 1,
+        display: "block",
+        width: "100%",
+      }
+
   return (
     <div
       ref={areaRef}
       data-component="PreviewArea"
       style={{
-        display: "inline-block",
+        display: inline ? "inline-block" : "block",
         position: "relative",
         width: inline ? "auto" : "100%",
         maxWidth: "100%",
       }}
     >
-      <div
-        data-description="content wrapper"
-        style={{
-          isolation: "isolate",
-          position: "relative",
-          zIndex: 1,
-          /**
-           * If this is display: block then it will have line height, which
-           * effectively gives the PreviewArea a min-height.
-           */
-          display: "flex",
-        }}
-      >
+      <div data-description="content wrapper" style={contentWrapperStyle}>
         {children}
       </div>
       <div

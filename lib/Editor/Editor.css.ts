@@ -12,9 +12,15 @@ export const editor = style({
   },
 })
 
-/** Paragraphs that contain an inline frozen block: flex row keeps the caret leaf on the same line as the demo (width:100% inline-block would force a line break above). */
+/**
+ * Paragraphs that contain an inline frozen block: flex row keeps the caret leaf
+ * on the same line as the demo (width:100% inline-block would force a line break above).
+ */
 export const paragraphWithFrozen = style({
-  display: "block",
+  display: "flex",
+  flexDirection: "row",
+  alignItems: "flex-start",
+  flexWrap: "nowrap",
   marginTop: "1em",
 })
 
@@ -22,10 +28,6 @@ export const frozenBlock = recipe({
   base: {
     background: "white",
     position: "relative",
-    display: "inline-block",
-    flex: "1 1 0%",
-    minWidth: 0,
-    alignSelf: "stretch",
   },
   variants: {
     selected: {
@@ -34,6 +36,21 @@ export const frozenBlock = recipe({
           "contrast(0.8) brightness(0.78) sepia(1) saturate(1.05) hue-rotate(178deg)",
       },
     },
+    fullWidth: {
+      true: {
+        flex: "1 1 0%",
+        minWidth: 0,
+        alignSelf: "stretch",
+        display: "block",
+      },
+      false: {
+        display: "inline-block",
+        flex: "0 1 auto",
+      },
+    },
+  },
+  defaultVariants: {
+    fullWidth: false,
   },
 })
 

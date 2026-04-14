@@ -775,6 +775,7 @@ const DocElement = ({
   frozenElements,
 }: DocElementProps) => {
   const node = element
+  const editor = useSlate()
 
   switch (node.type) {
     case "heading": {
@@ -881,7 +882,10 @@ const FrozenBlockElement: React.FC<FrozenBlockElementProps> = ({
     <div
       {...attributes}
       data-description="frozen block"
-      className={styles.frozenBlock({ selected })}
+      className={styles.frozenBlock({
+        selected,
+        fullWidth: frozenBlock.fullWidth === true,
+      })}
     >
       <div contentEditable={false} style={{ userSelect: "none" }}>
         {frozenContent}
