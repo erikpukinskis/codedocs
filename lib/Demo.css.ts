@@ -36,27 +36,18 @@ export const demoContainer = recipe({
 })
 
 /**
- * This container positions the tabs all the way to the right edge of the demo.
- * However, it has a max-width of 100% to ensure it doesn't grow past the *left*
- * edge of the demo.
+ * The tabs row is positioned at the right edge of the demo and capped to the
+ * demo width, then allowed to overflow to the right when labels are too wide.
  *
- * Then, tabs element below gets whitespace: nowrap and is allowed to overflow.
- *
- * This means the tabs will, in most cases, be aligned to the right of the demo,
- * but if they're too wide to fit they'll stick out the right side rather than
- * the left.
+ * In most cases tabs are right-aligned to the demo edge; if they are too wide
+ * they stick out the right side rather than the left.
  */
-export const tabsContainer = style({
+export const tabs = style({
   position: "absolute",
   bottom: 0,
   right: 0,
   maxWidth: "100%",
-})
-
-export const tabs = style({
   whiteSpace: "nowrap",
-  position: "relative",
-  left: 0,
   display: "flex",
   flexDirection: "row",
   justifyContent: "flex-start",

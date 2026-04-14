@@ -147,42 +147,40 @@ export function Demo<
             </ErrorBoundary>
 
             {i === variantsToRender.length - 1 && (
-              <div className={styles.tabsContainer}>
-                <div className={styles.tabs}>
+              <div className={styles.tabs}>
+                <button
+                  className={styles.tab({
+                    active: showCode && activeTab === "__source",
+                  })}
+                  onClick={() => {
+                    if (showCode && activeTab === "__source") {
+                      setShowCode(false)
+                    } else {
+                      setActiveTab("__source")
+                      setShowCode(true)
+                    }
+                  }}
+                >
+                  Source
+                </button>
+                {dependencyNames.map((name) => (
                   <button
+                    key={name}
                     className={styles.tab({
-                      active: showCode && activeTab === "__source",
+                      active: showCode && activeTab === name,
                     })}
                     onClick={() => {
-                      if (showCode && activeTab === "__source") {
+                      if (showCode && activeTab === name) {
                         setShowCode(false)
                       } else {
-                        setActiveTab("__source")
+                        setActiveTab(name)
                         setShowCode(true)
                       }
                     }}
                   >
-                    Source
+                    {name}
                   </button>
-                  {dependencyNames.map((name) => (
-                    <button
-                      key={name}
-                      className={styles.tab({
-                        active: showCode && activeTab === name,
-                      })}
-                      onClick={() => {
-                        if (showCode && activeTab === name) {
-                          setShowCode(false)
-                        } else {
-                          setActiveTab(name)
-                          setShowCode(true)
-                        }
-                      }}
-                    >
-                      {name}
-                    </button>
-                  ))}
-                </div>
+                ))}
               </div>
             )}
             <EventLog events={events} />
