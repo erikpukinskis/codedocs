@@ -25,9 +25,11 @@ import * as styles from "./Editor.css"
 import { EditorToolbarArea } from "./Toolbar/EditorToolbarArea"
 import {
   isFrozenBlock,
+  isHeadingBlock,
   isLineOfCodeElement,
   isLinkElement,
   isListItemBlock,
+  isParagraphBlock,
   isSlateBlock,
   type SlateBlock,
 } from "./types"
@@ -125,6 +127,44 @@ function redirectTypingFromFrozenAdjacentEmptyLeaf(
   }
 
   return false
+}
+
+function convertListItemToParagraph(
+  editor: ReactEditor & HistoryEditor,
+  path: Path
+) {
+  Transforms.unsetNodes(editor, ["listType", "depth"], { at: path })
+  Transforms.setNodes(editor, { type: "paragraph" } as Partial<SlateBlock>, {
+    at: path,
+  })
+}
+
+/** Move root block's children into an empty preceding list item and remove the block. */
+function mergeRootBlockIntoEmptyPrecedingListItem(
+  editor: ReactEditor & HistoryEditor,
+  emptyListPath: Path,
+  sourceBlockPath: Path
+) {
+  const [listItem] = Editor.node(editor, emptyListPath)
+  const [sourceBlock] = Editor.node(editor, sourceBlockPath)
+  if (!Element.isElement(listItem) || !Element.isElement(sourceBlock)) return
+
+  const copies = sourceBlock.children.map((c) => structuredClone(c))
+
+  Editor.withoutNormalizing(editor, () => {
+    for (let i = listItem.children.length - 1; i >= 0; i--) {
+      Transforms.removeNodes(editor, { at: [...emptyListPath, i] })
+    }
+    for (let i = 0; i < copies.length; i++) {
+      const child = copies[i]
+      if (child !== undefined) {
+        Transforms.insertNodes(editor, child, { at: [...emptyListPath, i] })
+      }
+    }
+    Transforms.removeNodes(editor, { at: sourceBlockPath })
+  })
+
+  Transforms.select(editor, Editor.start(editor, emptyListPath))
 }
 
 type DocEditorProps = {
@@ -333,6 +373,56 @@ export const DocEditor = ({
         }
       }
 
+      if (
+        event.key === "Backspace" &&
+        editor.selection &&
+        Range.isCollapsed(editor.selection)
+      ) {
+        const { anchor } = editor.selection
+        const blockPath = anchor.path.slice(0, 1) as Path
+        const [block] = Editor.node(editor, blockPath)
+
+        if (
+          isListItemBlock(block) &&
+          Editor.isStart(editor, anchor, blockPath)
+        ) {
+          const rootIdx = blockPath[0]
+          const prevIsListItem =
+            rootIdx !== undefined &&
+            rootIdx > 0 &&
+            isListItemBlock(Editor.node(editor, [rootIdx - 1])[0])
+          if (!prevIsListItem) {
+            event.preventDefault()
+            convertListItemToParagraph(editor, blockPath)
+            return
+          }
+        }
+
+        if (isParagraphBlock(block) || isHeadingBlock(block)) {
+          const rootIdx = blockPath[0]
+          if (
+            rootIdx !== undefined &&
+            rootIdx > 0 &&
+            Editor.isStart(editor, anchor, blockPath)
+          ) {
+            const prevPath: Path = [rootIdx - 1]
+            const [prev] = Editor.node(editor, prevPath)
+            if (
+              isListItemBlock(prev) &&
+              Editor.string(editor, prevPath).trim() === ""
+            ) {
+              event.preventDefault()
+              mergeRootBlockIntoEmptyPrecedingListItem(
+                editor,
+                prevPath,
+                blockPath
+              )
+              return
+            }
+          }
+        }
+      }
+
       if (event.key === "Enter" && event.shiftKey) {
         event.preventDefault()
         editor.insertText("\n")
@@ -342,6 +432,76 @@ export const DocEditor = ({
       const [codeLineMatch] = Editor.nodes(editor, {
         match: isLineOfCodeElement,
       })
+
+      if (
+        event.key === "Enter" &&
+        !event.shiftKey &&
+        !codeLineMatch &&
+        editor.selection &&
+        Range.isCollapsed(editor.selection)
+      ) {
+        const { anchor } = editor.selection
+
+        const headingEntry = Editor.above(editor, {
+          match: isHeadingBlock,
+        })
+        if (headingEntry) {
+          const [, headingPath] = headingEntry
+          if (Editor.isEnd(editor, anchor, headingPath)) {
+            const rootIdx = headingPath[0]
+            if (rootIdx !== undefined) {
+              event.preventDefault()
+              Transforms.insertNodes(editor, newParagraphBlock(), {
+                at: [rootIdx + 1],
+              })
+              Transforms.select(editor, Editor.start(editor, [rootIdx + 1]))
+              return
+            }
+          }
+        }
+
+        const listEntry = Editor.above(editor, {
+          match: isListItemBlock,
+        })
+        if (listEntry) {
+          const [, listPath] = listEntry
+          const listText = Editor.string(editor, listPath)
+
+          if (listText.trim() === "") {
+            event.preventDefault()
+            convertListItemToParagraph(editor, listPath)
+            Transforms.select(editor, Editor.start(editor, listPath))
+            return
+          }
+
+          if (Editor.isStart(editor, anchor, listPath)) {
+            const rootIdx = listPath[0]
+            if (rootIdx !== undefined && rootIdx > 0) {
+              const prevPath: Path = [rootIdx - 1]
+              const [prev] = Editor.node(editor, prevPath)
+
+              if (
+                isListItemBlock(prev) &&
+                Editor.string(editor, prevPath).trim() === ""
+              ) {
+                event.preventDefault()
+                convertListItemToParagraph(editor, prevPath)
+                Transforms.select(editor, Editor.start(editor, listPath))
+                return
+              }
+
+              if (!isListItemBlock(prev)) {
+                event.preventDefault()
+                Transforms.insertNodes(editor, newParagraphBlock(), {
+                  at: [rootIdx],
+                })
+                Transforms.select(editor, Editor.start(editor, [rootIdx]))
+                return
+              }
+            }
+          }
+        }
+      }
 
       if (event.key === "Enter" && codeLineMatch) {
         event.preventDefault()
@@ -588,7 +748,7 @@ const DocElement = ({
         </CodeLineElement>
       )
     case "list-item": {
-      const marginLeft = (node.depth ?? 0) * 24
+      const marginLeft = 20 + (node.depth ?? 0) * 24
       return (
         <div
           {...attributes}
