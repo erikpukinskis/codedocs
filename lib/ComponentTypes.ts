@@ -50,14 +50,10 @@ export type Container = React.FC<ContainerProps>
 
 export type BaseButtonProps = Pick<
   React.ComponentPropsWithoutRef<"button">,
-  | "aria-label"
-  | "aria-controls"
-  | "aria-expanded"
-  | "disabled"
-  | "onClick"
-  | "onMouseDownCapture"
-  | "children"
->
+  "aria-label" | "aria-controls" | "aria-expanded" | "disabled" | "children"
+> &
+  // These will be accepted by both buttons and links:
+  Pick<React.HTMLAttributes<HTMLElement>, "onClick" | "onMouseDownCapture">
 
 export type PopoverProps = {
   target: JSX.Element
