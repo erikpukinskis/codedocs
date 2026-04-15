@@ -134,7 +134,7 @@ export const ComponentDocs = (
         tag: { type: "slot", value: undefined },
       }}
     />
-    <h3>Button</h3>
+    <h3>Tag</h3>
     <Component
       name="Tag"
       component={Tag}

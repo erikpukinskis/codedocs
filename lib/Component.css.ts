@@ -13,7 +13,6 @@ export const Component = recipe({
     paddingBlock: 10,
     borderRadius: 8,
     background: "#eee",
-    marginBlock: "1em",
     boxSizing: "border-box",
   },
   variants: {
