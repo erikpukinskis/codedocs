@@ -1,5 +1,4 @@
 import React, { useMemo, useState } from "react"
-import { Code } from "./Code"
 import * as styles from "./Doc.css"
 import { DocEditor } from "./Editor/Editor"
 import { slateToJsx } from "./Editor/serialization"
@@ -97,7 +96,9 @@ export const Doc = ({
       )}
 
       {activeTab === "source" && sourceString !== undefined && (
-        <Code source={sourceString} mode="tsx" />
+        <pre>
+          <code>{sourceString}</code>
+        </pre>
       )}
     </>
   )

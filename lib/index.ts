@@ -1,4 +1,3 @@
-export * from "./Code"
 export * from "./Component"
 export * from "./Demo"
 export * from "./Doc"

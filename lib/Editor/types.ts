@@ -42,6 +42,17 @@ export type CodeBlock = BaseElement & {
   type: "code-block"
   id: string
   language: string
+  /**
+   * When set, this code-block is the source of the demo whose frozen-block id
+   * matches. Triggers the "demo cluster" editor behaviors: hidden by default,
+   * inviolable boundaries, and group-deletion with the frozen block.
+   */
+  demoId?: string
+  /**
+   * Tab label shown by the demo's tab UI ("Source" for the demo's own source,
+   * or a dependency name like "useFoo"). Only meaningful when demoId is set.
+   */
+  tab?: string
 }
 
 export type LineOfCodeElement = BaseElement & {

@@ -650,11 +650,18 @@ function isStaticDemoFullWidth(node: JSXElement): boolean {
   return false
 }
 
-/** Build a Slate void node placeholder for a frozen block (Demo, Code, etc.). */
+/**
+ * Build a Slate void node placeholder for a frozen block (Demo, Code, etc.).
+ *
+ * `fullWidth` is ALWAYS emitted explicitly (true or false) so the editor's
+ * `frozenBlock.fullWidth !== false` check is unambiguous. Previously this was
+ * omitted when false, which caused the editor to treat absent as full-width.
+ */
 function makeFrozenNode(id: string, fullWidth: boolean): ObjectExpression {
-  const props: ObjectProperty[] = [
+  return objectExpression([
     objectProperty(identifier("type"), stringLiteral("frozen")),
     objectProperty(identifier("id"), stringLiteral(id)),
+    objectProperty(identifier("fullWidth"), booleanLiteral(fullWidth)),
     objectProperty(
       identifier("children"),
       arrayExpression([
@@ -663,11 +670,7 @@ function makeFrozenNode(id: string, fullWidth: boolean): ObjectExpression {
         ]),
       ])
     ),
-  ]
-  if (fullWidth) {
-    props.push(objectProperty(identifier("fullWidth"), booleanLiteral(true)))
-  }
-  return objectExpression(props)
+  ])
 }
 
 /** Single empty text leaf; used for empty paragraphs and list items. */
@@ -687,6 +690,138 @@ function freezeBlock(
   processState.frozenElements[id] = node
   processState.frozenSources[id] = getSource(node, code)
   processState.blockNodes.push(makeFrozenNode(id, isStaticDemoFullWidth(node)))
+
+  // For <Demo> elements, also emit sibling code-block(s) carrying the demo's
+  // source code as live Slate content. processDemoNode runs first in macro.ts,
+  // so by the time we reach here the Demo's openingElement has its `source`
+  // and `dependencySources` attributes populated.
+  if (isNamedJSXElement(node, "Demo")) {
+    pushDemoSourceCodeBlocks(node, id, processState)
+  }
+}
+
+/**
+ * Read `source` and `dependencySources` from the Demo's openingElement and
+ * emit one Slate code-block per source, each linked to the frozen block via
+ * `demoId` and labeled with a `tab` name.
+ *
+ * The "Source" tab corresponds to the demo's own source. Each dependency
+ * becomes its own tab named after the dependency key.
+ */
+function pushDemoSourceCodeBlocks(
+  demoNode: JSXElement,
+  demoId: string,
+  processState: ProcessDocState
+): void {
+  const source = readJsxAttributeTemplateString(demoNode, "source")
+  if (source !== null) {
+    processState.blockNodes.push(
+      makeDemoCodeBlockNode(source, demoId, "Source", processState)
+    )
+  }
+
+  const dependencySources = readDependencySourcesAttribute(demoNode)
+  for (const [name, depSource] of dependencySources) {
+    processState.blockNodes.push(
+      makeDemoCodeBlockNode(depSource, demoId, name, processState)
+    )
+  }
+}
+
+/**
+ * Read a JSX attribute whose value is `{`...`}` (a template literal with no
+ * substitutions, as set by macro.setSourceAttribute). Returns the raw text or
+ * null if the attribute is missing or doesn't match this shape.
+ */
+function readJsxAttributeTemplateString(
+  node: JSXElement,
+  attributeName: string
+): string | null {
+  const attr = node.openingElement.attributes.find(
+    (a): a is JSXAttribute => isNamedJSXAttribute(a, attributeName)
+  )
+  const value = attr?.value
+  if (!value || !isJSXExpressionContainer(value)) return null
+  const expr = value.expression
+  if (!isTemplateLiteral(expr)) return null
+  if (expr.expressions.length > 0) return null
+  const quasi = expr.quasis[0]
+  if (quasi === undefined) return null
+  return quasi.value.cooked ?? quasi.value.raw
+}
+
+/**
+ * Read the `dependencySources={{ name: \`...\` }}` attribute as a list of
+ * [name, source] pairs. Returns [] if absent.
+ */
+function readDependencySourcesAttribute(
+  node: JSXElement
+): Array<[string, string]> {
+  const attr = node.openingElement.attributes.find(
+    (a): a is JSXAttribute => isNamedJSXAttribute(a, "dependencySources")
+  )
+  const value = attr?.value
+  if (!value || !isJSXExpressionContainer(value)) return []
+  const expr = value.expression
+  if (expr.type !== "ObjectExpression") return []
+
+  const pairs: Array<[string, string]> = []
+  for (const prop of expr.properties) {
+    if (prop.type !== "ObjectProperty") continue
+    const keyName =
+      prop.key.type === "Identifier"
+        ? prop.key.name
+        : isStringLiteral(prop.key)
+        ? prop.key.value
+        : null
+    if (keyName === null) continue
+    if (!isTemplateLiteral(prop.value)) continue
+    if (prop.value.expressions.length > 0) continue
+    const quasi = prop.value.quasis[0]
+    if (quasi === undefined) continue
+    pairs.push([keyName, quasi.value.cooked ?? quasi.value.raw])
+  }
+  return pairs
+}
+
+/**
+ * Build a Slate code-block AST tagged with `demoId` and `tab`. Reuses the same
+ * code-line splitting as a regular `<pre><code>` block so the existing editor
+ * rendering and behavior apply.
+ */
+function makeDemoCodeBlockNode(
+  rawText: string,
+  demoId: string,
+  tab: string,
+  processState: ProcessDocState
+): ObjectExpression {
+  const formatted = formatTypescript(rawText)
+  const lines = formatted.split("\n")
+  const codeLineNodes = lines.map((lineText) =>
+    objectExpression([
+      objectProperty(identifier("type"), stringLiteral("code-line")),
+      objectProperty(
+        identifier("children"),
+        arrayExpression([
+          objectExpression([
+            objectProperty(identifier("text"), stringLiteral(lineText)),
+          ]),
+        ])
+      ),
+    ])
+  )
+
+  return objectExpression([
+    objectProperty(identifier("type"), stringLiteral("code-block")),
+    objectProperty(
+      identifier("id"),
+      stringLiteral(`b${processState.blockId++}`)
+    ),
+    objectProperty(identifier("language"), stringLiteral("tsx")),
+    objectProperty(identifier("demoId"), stringLiteral(demoId)),
+    objectProperty(identifier("tab"), stringLiteral(tab)),
+    objectProperty(identifier("children"), arrayExpression(codeLineNodes)),
+  ])
 }
 
 /**

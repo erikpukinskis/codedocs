@@ -24,6 +24,24 @@ export const paragraphWithFrozen = style({
   marginTop: "1em",
 })
 
+/**
+ * frozenBlock — the Slate void wrapper for frozen content (Demo, Component,
+ * etc.). This sits as an inline-block flex child of paragraphWithFrozen,
+ * alongside the paragraph's text leaves (which provide caret positions
+ * before and after the frozen).
+ *
+ * This element knows two things about layout:
+ *   - Whether it's inline (shrink-wrap) or full-width (stretch flex), driven
+ *     by the macro from `<Demo width="full">` source. fullWidth is now ALWAYS
+ *     present on the Slate node (true or false), never absent — the macro
+ *     emits it explicitly so the editor's check is unambiguous.
+ *   - Whether it's selected, for the selection tint.
+ *
+ * What's INSIDE it (variantContent etc.) is owned entirely by the rendered
+ * frozen component. The frozen wrapper doesn't know about variants, tabs, or
+ * sources. Demo source code blocks live OUTSIDE this element, as sibling
+ * Slate code-blocks linked to it via the `demoId` property.
+ */
 export const frozenBlock = recipe({
   base: {
     background: "white",

@@ -184,6 +184,9 @@ Roadmap to 1.0
 - [x] Show events emitted from demos
 - [x] Variant demos
 - [ ] Persistence
+- [ ] Props palette
+
+
 - [ ] ApiReference
 - [ ] Dark mode
 - [ ] Contact sheet

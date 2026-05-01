@@ -133,10 +133,10 @@ export default createMacro(function codedocsMacro({
     openingElement.attributes.push(dependencySourcesAttr)
   }
 
-  Doc.forEach((nodePath: NodePath) => {
-    processDocNode({ nodePath, state, code })
-  })
-
+  // Process Demos first so that each <Demo> openingElement gets its `source`
+  // and `dependencySources` attributes BEFORE processDocNode walks the Doc.
+  // processDocNode reads those attributes to emit per-Demo Slate code-block
+  // siblings linked to the frozen block via `demoId`.
   Demo.forEach((nodePath: NodePath) => {
     processDemoNode({
       nodePath,
@@ -146,6 +146,10 @@ export default createMacro(function codedocsMacro({
       setSourceAttribute,
       setDependencySourcesAttribute,
     })
+  })
+
+  Doc.forEach((nodePath: NodePath) => {
+    processDocNode({ nodePath, state, code })
   })
 
   const specifierIdentifiers: string[] = []
