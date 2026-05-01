@@ -143,41 +143,107 @@ function visitDocJSXIdentifier(
   const parseInlineChildrenFn = (childNodes: JSXChild[]) =>
     parseInlineChildren(childNodes)
 
+  /** Direct `<Doc>` children that are phrasing, gathered until the next block. */
+  let inlineBuffer: JSXChild[] = []
+
+  /**
+   * Turn buffered root-level phrasing into one Slate `paragraph` block.
+   *
+   * Authors often write prose as siblings under `<Doc>` (text, `{" "}`,
+   * `<code>`, …) instead of wrapping in `<p>`. We buffer those children and
+   * flush here so they become a single paragraph—similar to one line box under
+   * a block container in HTML—then we continue with the next heading, list,
+   * block `<code>`, frozen block, etc. If inline parsing fails, we fall back
+   * to freezing elements or one-off text paragraphs. Called once at the end of
+   * the child walk so trailing phrasing is not lost.
+   */
+  const flushInlineBuffer = () => {
+    if (inlineBuffer.length === 0) return
+    const buf = inlineBuffer
+    inlineBuffer = []
+    const inlineResult = parseInlineChildrenFn(buf)
+    if (inlineResult === null) {
+      for (const c of buf) {
+        if (isJSXElement(c)) {
+          freezeBlockFn(c)
+        } else if (isJSXText(c)) {
+          const t = c.value.trim()
+          if (t !== "") {
+            processState.blockNodes.push(
+              objectExpression([
+                objectProperty(identifier("type"), stringLiteral("paragraph")),
+                objectProperty(
+                  identifier("id"),
+                  stringLiteral(`b${processState.blockId++}`)
+                ),
+                objectProperty(
+                  identifier("children"),
+                  arrayExpression([
+                    objectExpression([
+                      objectProperty(identifier("text"), stringLiteral(t)),
+                    ]),
+                  ])
+                ),
+              ])
+            )
+          }
+        }
+      }
+      return
+    }
+    if (inlineResult.length === 0) return
+    processState.blockNodes.push(
+      objectExpression([
+        objectProperty(identifier("type"), stringLiteral("paragraph")),
+        objectProperty(
+          identifier("id"),
+          stringLiteral(`b${processState.blockId++}`)
+        ),
+        objectProperty(identifier("children"), arrayExpression(inlineResult)),
+      ])
+    )
+  }
+
   for (const child of children) {
     if (isJSXText(child)) {
-      const trimmed = child.value.trim()
-      // Skip pure whitespace lines, since that's what HTML would do anyway.
-      if (trimmed === "") continue
-      // Or, if there are actual text nodes at the root of the <Doc> element, turn them into paragraphs:
-      processState.blockNodes.push(
-        objectExpression([
-          objectProperty(identifier("type"), stringLiteral("paragraph")),
-          objectProperty(
-            identifier("id"),
-            stringLiteral(`b${processState.blockId++}`)
-          ),
-          objectProperty(
-            identifier("children"),
-            arrayExpression([
-              objectExpression([
-                objectProperty(identifier("text"), stringLiteral(trimmed)),
-              ]),
-            ])
-          ),
-        ])
-      )
+      // HTML-ish: inter-element whitespace collapses to a single space when it
+      // sits between phrasing content (see collapseWhitespace on real text nodes).
+      if (child.value.trim() === "") {
+        if (inlineBuffer.length > 0) {
+          inlineBuffer.push(jsxExpressionContainer(stringLiteral(" ")))
+        }
+        continue
+      }
+      inlineBuffer.push(child)
       continue
     }
 
-    if (isJSXExpressionContainer(child)) continue
+    if (isJSXExpressionContainer(child)) {
+      inlineBuffer.push(child)
+      continue
+    }
     if (!isJSXElement(child)) continue
 
     const tagName = getJsxTagName(child.openingElement.name)
 
     if (!tagName) {
+      flushInlineBuffer()
       freezeBlockFn(child)
       continue
     }
+
+    const isPhrasingAtRoot =
+      tagName === "strong" ||
+      tagName === "em" ||
+      tagName === "a" ||
+      (tagName === "code" && !isRootLevelCodeBlockCode(child))
+
+    if (isPhrasingAtRoot) {
+      inlineBuffer.push(child)
+      continue
+    }
+
+    flushInlineBuffer()
 
     if (tagName === "p") {
       const inlineResult = parseInlineChildrenFn(child.children)
@@ -296,6 +362,8 @@ function visitDocJSXIdentifier(
     freezeBlockFn(child)
   }
 
+  flushInlineBuffer()
+
   openingElement.attributes.push(
     jsxAttribute(
       jsxIdentifier("slateDocument"),
@@ -412,6 +480,27 @@ function parseInlineChildren(
     return null
   }
   return result
+}
+
+/**
+ * Top-level `<code>` in `<Doc>` is a Slate code block only when it is explicitly
+ * marked (`data-language`) or its text is genuinely multiline. Single-line inline
+ * snippets (possibly wrapped across source lines for formatting) stay phrasing
+ * and merge with neighboring root text like HTML `white-space: normal`.
+ */
+function isRootLevelCodeBlockCode(element: JSXElement): boolean {
+  if (
+    element.openingElement.attributes.some((a) =>
+      isNamedJSXAttribute(a, "data-language")
+    )
+  ) {
+    return true
+  }
+  const raw = getJSXTextContent(element.children, { preserveWhitespace: true })
+  if (raw === null) {
+    return true
+  }
+  return /\n/.test(raw.trim())
 }
 
 /**

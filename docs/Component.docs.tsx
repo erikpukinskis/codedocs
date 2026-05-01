@@ -10,7 +10,7 @@ import {
   faBell as solidBell,
   faCopy as solidCopy,
   faEyeSlash as solidEyeSlash,
-  faPencil as solidPenToSquare,
+  faPenToSquare as solidPenToSquare,
   faCalendar as solidCalendar,
 } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
@@ -181,8 +181,10 @@ export const ComponentDocs = (
       }}
     />
     <h2>Skipped components</h2>
-    Like demos, broken components can be temporarily ignored with the{" "}
-    <code>skip</code> prop:
+    <p>
+      Like demos, broken components can be temporarily ignored with the{" "}
+      <code>skip</code> prop:
+    </p>
     <Component
       skip
       name="SkipMe"

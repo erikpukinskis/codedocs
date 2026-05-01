@@ -52,6 +52,23 @@ export const DemoDocs = (
         </button>
       )}
     />
+    <p>Laid out horizontally:</p>
+    <Demo
+      variants={["aqua", "bisque", "coral"]}
+      render={({ variant }) => (
+        <button
+          style={{
+            backgroundColor: variant,
+            border: "none",
+            borderRadius: 4,
+            padding: "4px 6px",
+            minWidth: 100,
+          }}
+        >
+          {variant}
+        </button>
+      )}
+    />
     <h2>Mock Callbacks/Handlers</h2>
     <p>
       You can also track callbacks in the demo using a mock callback factory.

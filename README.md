@@ -183,6 +183,7 @@ Roadmap to 1.0
 - [x] Extract source vía macro
 - [x] Show events emitted from demos
 - [x] Variant demos
+- [ ] Persistence
 - [ ] ApiReference
 - [ ] Dark mode
 - [ ] Contact sheet

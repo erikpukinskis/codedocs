@@ -887,7 +887,7 @@ const FrozenBlockElement: React.FC<FrozenBlockElementProps> = ({
       data-description="frozen block"
       className={styles.frozenBlock({
         selected,
-        fullWidth: frozenBlock.fullWidth === true,
+        fullWidth: frozenBlock.fullWidth !== false,
       })}
     >
       <div contentEditable={false} style={{ userSelect: "none" }}>
