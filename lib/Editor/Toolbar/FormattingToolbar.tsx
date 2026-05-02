@@ -1,15 +1,22 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import React from "react"
-import type { Node, Range } from "slate"
+import type { Node, Path, Range } from "slate"
 import { Editor, Range as SlateRange, Text, Transforms } from "slate"
 import { ReactEditor, useSlate } from "slate-react"
-import type { MatchContext, SlateEditor, ToolbarDescriptor } from "./types"
+import type {
+  MatchContext,
+  SlateEditor,
+  ToolbarControls,
+  ToolbarDescriptor,
+} from "./types"
 import { useComponents } from "~/ComponentContext"
 import * as buttonStyles from "~/Components/Button.css"
 import {
   isHeadingBlock,
+  isLinkElement,
   isListItemBlock,
   isParagraphBlock,
+  type LinkElement,
   type SlateBlock,
 } from "~/Editor/types"
 import type { FormatMark } from "~/helpers/range"
@@ -142,14 +149,23 @@ export function matchFormattingToolbar(
 
   return {
     target: targetRect,
-    content: <FormattingToolbarContent activeRange={candidateRange} />,
+    content: (
+      <FormattingToolbarContent
+        activeRange={candidateRange}
+        controls={context.controls}
+      />
+    ),
   }
 }
 
-type FormattingToolbarContentProps = { activeRange: Range }
+type FormattingToolbarContentProps = {
+  activeRange: Range
+  controls: ToolbarControls
+}
 
 const FormattingToolbarContent: React.FC<FormattingToolbarContentProps> = ({
   activeRange,
+  controls,
 }) => {
   const editor = useSlate() as SlateEditor
   const Components = useComponents()
@@ -222,6 +238,61 @@ const FormattingToolbarContent: React.FC<FormattingToolbarContentProps> = ({
       }
     }
 
+  const linkSelection = () => {
+    // Find the URL of the rightmost (last in document order) link in the
+    // selection — used as the initial URL for the new link per Req 2.
+    let inheritUrl = ""
+    for (const [node] of Editor.nodes(editor, {
+      at: activeRange,
+      match: isLinkElement,
+    })) {
+      inheritUrl = node.url
+    }
+
+    // Remove all links that overlap the selection. split: true causes Slate to
+    // split any link that extends beyond the selection boundary first, so only
+    // the portion inside the selection is unwrapped; the outside portion stays.
+    Transforms.unwrapNodes(editor, {
+      at: activeRange,
+      match: isLinkElement,
+      split: true,
+    })
+
+    // editor.selection is kept up-to-date by Slate through the transforms above
+    const range = editor.selection ?? activeRange
+
+    const linkElement: LinkElement = {
+      type: "link",
+      id: `l${Date.now()}`,
+      url: inheritUrl,
+      children: [],
+    }
+    // Wrap the exact selection in a new link
+    const linkId = `l${Date.now()}`
+    Transforms.wrapNodes(editor, linkElement, {
+      at: range,
+      match: Text.isText,
+      split: true,
+    })
+
+    // Locate the newly created link by its id so we can pin it
+    let newLinkPath: Path | undefined
+    for (const [, path] of Editor.nodes(editor, {
+      match: (n) => isLinkElement(n) && n.id === linkId,
+    })) {
+      newLinkPath = path
+      break
+    }
+
+    // Collapse the editor selection so the FormattingToolbar stops matching
+    // and the LinkToolbar can take over via pinnedPath
+    Transforms.deselect(editor)
+
+    if (newLinkPath) {
+      controls.pinPath(newLinkPath)
+    }
+  }
+
   const blockType = blockTypeSelectValue(editor, activeRange)
 
   return (
@@ -282,6 +353,13 @@ const FormattingToolbarContent: React.FC<FormattingToolbarContentProps> = ({
         onClick={onClickToolbarButton("strikethrough")}
       >
         <FontAwesomeIcon icon="strikethrough" />
+      </Components.Button>
+      <Components.Button
+        variant="borderless"
+        aria-label="Link"
+        onClick={linkSelection}
+      >
+        <FontAwesomeIcon icon="link" />
       </Components.Button>
       <Components.Button
         variant="borderless"

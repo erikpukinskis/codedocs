@@ -36,9 +36,6 @@ export const button = recipe({
         ":hover": {
           color: "#cdcdff",
         },
-        ":focus": {
-          outline: "2px solid red",
-        },
       },
     },
   },
