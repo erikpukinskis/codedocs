@@ -1389,7 +1389,10 @@ const CodeBlockElement: React.FC<CodeBlockElementProps> = ({
   }
 
   return (
-    <pre {...attributes} className={styles.codeBlock}>
+    <pre
+      {...attributes}
+      className={styles.codeBlock({ demo: Boolean(demoId) })}
+    >
       {children}
     </pre>
   )

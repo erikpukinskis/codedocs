@@ -160,16 +160,11 @@ export const DemoDocs = (
       }}
     />
     <h2>Overflowing Elements</h2>
-    <p>
-      Elements which are too wide to fit in the document content div are allowed
-      to overflow, but you will see the crop marks where the overflow happens.
-    </p>
-    <p>A fullscreen mode for demos that need more space is coming soon.</p>
     <Demo>
       <Placeholder style={{ whiteSpace: "nowrap" }}>
-        Elements which are too wide to fit in the document content div are
-        allowed to overflow, but you will see the crop marks where the overflow
-        happens.
+        Elements which are too wide to fit in the <code>&lt;Doc&gt;</code>'s
+        content div are allowed to overflow. This should stick out the right
+        edge of the doc.
       </Placeholder>
     </Demo>
     <h2>Errors In Demos</h2>
@@ -240,14 +235,9 @@ export const DemoDocs = (
 )
 
 const MyProvider = ({ children }: { children: React.ReactNode }) => {
-  return (
-    <Placeholder>
-      <h3>MyProvider</h3>
-      {children}
-    </Placeholder>
-  )
+  return <Placeholder>MyProvider: {children}</Placeholder>
 }
 
 const useMyHook = () => {
-  return "[hook data]"
+  return "[data from inside provider]"
 }

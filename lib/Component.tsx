@@ -1,5 +1,5 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import React, { useEffect, useRef, useState } from "react"
+import React, { useState } from "react"
 import * as styles from "./Component.css"
 import { ErrorBoundary } from "./ErrorBoundary"
 import { EventLog, useEventLog } from "./EventLog"
@@ -40,7 +40,7 @@ export function Component<PropsType extends Record<string, AllowedPropTypes>>({
   component: RenderFunction,
   props: initialProps,
   skip = false,
-  boundingSelectors,
+  boundingSelectors: _onlyUsedInMacro,
 }: ComponentProps<PropsType>) {
   const [propValues, setPropValues] = useState(() =>
     Object.fromEntries(

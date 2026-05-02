@@ -22,8 +22,6 @@ export const paragraphWithFrozen = style({
   alignItems: "flex-start",
   flexWrap: "nowrap",
   marginTop: "1em",
-  // 1.75em is 1em + a nice-looking amount of space for the source tabs
-  marginBottom: "1.75em",
 })
 
 /**
@@ -102,14 +100,25 @@ export const emptyTextLeaf = style({
  * sizes to the widest line number in the block, so single-digit blocks get a
  * narrow gutter and it grows naturally for 2-digit numbers, etc.
  */
-export const codeBlock = style({
-  fontFamily: "monospace",
-  whiteSpace: "pre",
-  backgroundColor: "#ede8ff",
-  color: "#6b54c0",
-  fontSize: "0.85em",
-  display: "grid",
-  gridTemplateColumns: "max-content 1fr",
+export const codeBlock = recipe({
+  base: {
+    fontFamily: "monospace",
+    whiteSpace: "pre",
+    backgroundColor: "#ede8ff",
+    color: "#6b54c0",
+    fontSize: "0.85em",
+    display: "grid",
+    gridTemplateColumns: "max-content 1fr",
+    borderRadius: 4,
+    overflow: "hidden",
+  },
+  variants: {
+    demo: {
+      true: {
+        marginTop: 0,
+      },
+    },
+  },
 })
 
 /**
@@ -125,6 +134,7 @@ export const codeLine = style({
 export const lineNumber = style({
   fontFamily: `-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"`,
   backgroundColor: "#e2daff",
+
   color: "#a696ff",
   textAlign: "center",
   paddingInline: "1em",
@@ -141,23 +151,18 @@ export const link = style({
 
 /**
  * demoTabs — the row of source-tab buttons (Source, dependency1, …) rendered
- * by FrozenBlockElement, positioned at the bottom-right of the frozenBlock.
+ * by FrozenBlockElement, below the demo content inside frozenBlock.
  *
  * Why it lives here (in FrozenBlockElement) rather than inside Demo:
  *   - The tabs toggle Slate code-block siblings of the frozen block, so they
  *     are logically a concern of the editor, not the demo presentation.
- *   - frozenBlock is already position:relative, so position:absolute here
- *     works without any CSS grid tricks.
  */
 export const demoTabs = style({
-  position: "absolute",
-  top: "100%",
-  right: 0,
-  zIndex: 2,
+  width: "100%",
   whiteSpace: "nowrap",
   display: "flex",
   flexDirection: "row",
-  gap: 10,
+  justifyContent: "flex-end",
   maxWidth: "100%",
 })
 
@@ -174,18 +179,20 @@ export const demoTab = recipe({
     "cursor": "pointer",
     "color": "#555",
     "textShadow": "0.3px 0 0 currentColor",
-    ":hover": { color: "#000" },
+    /* Ensures we don't extend past the border radius on the code block */
+    "marginInline": 4,
+    ":hover": {
+      color: "#b7a0ff",
+    },
   },
   variants: {
     active: {
       true: {
-        "fontWeight": "bold",
-        "textShadow": "none",
-        "color": "white",
-        "textDecorationColor": "white",
-        "background": "#5f577d",
-        "boxShadow": "0 10px 0 0 #5f577d",
-        ":hover": { color: "white" },
+        color: "#b7a0ff",
+        borderBottomLeftRadius: 0,
+        borderBottomRightRadius: 0,
+        textDecorationColor: "white",
+        background: "#ede8ff",
       },
     },
   },

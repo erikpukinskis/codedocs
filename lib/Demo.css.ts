@@ -52,6 +52,7 @@ export const variantContent = recipe({
 export const demoContent = style({
   position: "relative",
   zIndex: 1,
+  overflow: "visible",
 })
 
 /**
