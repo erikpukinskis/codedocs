@@ -22,6 +22,8 @@ export const paragraphWithFrozen = style({
   alignItems: "flex-start",
   flexWrap: "nowrap",
   marginTop: "1em",
+  // 1.75em is 1em + a nice-looking amount of space for the source tabs
+  marginBottom: "1.75em",
 })
 
 /**
@@ -146,12 +148,10 @@ export const link = style({
  *     are logically a concern of the editor, not the demo presentation.
  *   - frozenBlock is already position:relative, so position:absolute here
  *     works without any CSS grid tricks.
- *   - Demo no longer needs padding-bottom or isLast state; it becomes a pure
- *     presentation component.
  */
 export const demoTabs = style({
   position: "absolute",
-  bottom: 0,
+  top: "100%",
   right: 0,
   zIndex: 2,
   whiteSpace: "nowrap",

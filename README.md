@@ -66,7 +66,6 @@ If you'd like to self-host, you can do that either:
 <li>Mount your DocsApp directly in your existing app. You likely already have your component library set up in your app, so you can just add a /docs route and mount `MyDocs` there.</li>
 </ol>
 
-
 ## Features
 
 ### Public-facing documentation
@@ -187,7 +186,6 @@ Roadmap to 1.0
 - [ ] Disallow with <Demo render={...}>...</Demo>, <Demo dependencies={...}>...</Demo>, etc
 - [ ] Persistence
 - [ ] Props palette
-
 
 - [ ] ApiReference
 - [ ] Dark mode

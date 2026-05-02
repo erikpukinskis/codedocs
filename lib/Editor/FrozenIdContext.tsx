@@ -22,9 +22,7 @@ type FrozenIdProviderProps = {
 export const FrozenIdProvider: React.FC<FrozenIdProviderProps> = ({
   id,
   children,
-}) => (
-  <FrozenIdContext.Provider value={id}>{children}</FrozenIdContext.Provider>
-)
+}) => <FrozenIdContext.Provider value={id}>{children}</FrozenIdContext.Provider>
 
 export function useFrozenId(): string | null {
   return useContext(FrozenIdContext)
