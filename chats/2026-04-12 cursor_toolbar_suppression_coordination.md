@@ -1,11 +1,12 @@
 # Toolbar suppression coordination
+
 _Exported on 4/12/2026 at 11:19:04 PDT from Cursor (3.0.16)_
 
 ---
 
 **User**
 
-@lib/Editor/Editor.tsx:499-503 I would like to suppress this toolbar if the formatting toolbar here @lib/Editor/Editor.tsx:321-322  is open.
+@lib/Editor/Editor.tsx:499-503 I would like to suppress this toolbar if the formatting toolbar here @lib/Editor/Editor.tsx:321-322 is open.
 
 What are the cleanest ways I could do that? Certainly I could set up a context provider to coordinate. I suspect there will be other toolbars too over time. Like a different one for images. And maybe some context menus that also suppress both the formatting toolbar and the link toolbar.
 
@@ -13,16 +14,9 @@ What are the cleanest ways I could do that? Certainly I could set up a context p
 
 **Cursor**
 
-
 (Depth 2) Reviewing how both toolbars determine visibility so we can suggest clean coordination patterns.
 
-
-
-
 Checking how `renderElement` is defined and whether `ghostSelection` is in scope for `LinkElement`.
-
-
-
 
 (Depth 2)
 
@@ -115,7 +109,6 @@ Just render the toolbars in a central place. Probably SelectionFormattingToolbar
 
 **Cursor**
 
-
 (Depth 2)
 
 A single **unified chrome** component is a legitimate design. It matches how many editors treat “floating UI”: one coordinator, one anchor, one suppression policy. Here is how it tends to play out in a Slate app like yours.
@@ -131,7 +124,7 @@ A single **unified chrome** component is a legitimate design. It matches how man
 **1. Inputs are heterogeneous**  
 Today the link bar gets hover/focus from `useElementObserver` on the actual `<a>`. A unified bar must reproduce that with either:
 
-- DOM hit-testing at pointer (or `document.elementFromPoint`) mapped back to Slate (`ReactEditor.toSlateNode` / range APIs), or  
+- DOM hit-testing at pointer (or `document.elementFromPoint`) mapped back to Slate (`ReactEditor.toSlateNode` / range APIs), or
 - capturing `onMouseMove` / `onMouseEnter` on rendered elements and lifting “hovered path” into editor-scoped state (still centralized, but you need a path from render props to shared state).
 
 That is all doable; it is just **more wiring** than “toolbar lives next to the element.”
@@ -139,10 +132,10 @@ That is all doable; it is just **more wiring** than “toolbar lives next to the
 **2. Risk of a god component**  
 The fix is usually **not** one 800-line `UnifiedToolbar`, but one **orchestrator** that delegates:
 
-- `useToolbarMode(editor, pointerState, selectionState) → { kind, anchor, payload }`  
+- `useToolbarMode(editor, pointerState, selectionState) → { kind, anchor, payload }`
 - Small presentational panels: `<FormattingPanel />`, `<LinkPanel />`, …
 
-So the *decision* is central; the *UI* stays modular.
+So the _decision_ is central; the _UI_ stays modular.
 
 **3. Render churn**  
 If every mousemove runs full Slate walks, it can get expensive. Typical mitigations: throttle pointer updates, short-circuit when mode cannot change, memoize by stable keys (path + mode).
@@ -152,10 +145,10 @@ Formatting is naturally selection-based; link hover is naturally DOM-based. A un
 
 ## Compared to context / layers
 
-- **Unified orchestrator**: best when you want **one visible chrome** and **one positioning pipeline**; good long-term if you add image tables, etc.  
+- **Unified orchestrator**: best when you want **one visible chrome** and **one positioning pipeline**; good long-term if you add image tables, etc.
 - **Layers + separate components**: best when surfaces are **independent** and you want colocation (link code owns link UI) with a thin global “who wins” policy.
 
-Those can **merge**: unified *policy* (who wins) with *panels* colocated in separate files, or unified *container* that imports link/formatting content from feature modules.
+Those can **merge**: unified _policy_ (who wins) with _panels_ colocated in separate files, or unified _container_ that imports link/formatting content from feature modules.
 
 ## Practical takeaway
 
@@ -170,11 +163,11 @@ If you go this route, I would explicitly **split toolbar id/outlets** (or one ou
 One reason I'm leaning towards the unified approach is I worry we may eventually have a LOT of element observers if a document gets long, and that feels like it doesn't scale as well as DOM hit-testing. Which I assume is a pattern that has pretty well established algorithms. What do you think?
 
 > 3. Render churn
-> If every mousemove runs full Slate walks, it can get expensive
+>    If every mousemove runs full Slate walks, it can get expensive
 
 We definitely won't render on mousemove. We'd set up an out-of-band listener that only updated React state when the hovered element changes.
 
-> Formatting is naturally selection-based; link hover is naturally DOM-based. 
+> Formatting is naturally selection-based; link hover is naturally DOM-based.
 
 Doesn't Slate kind of solve this though? It has a pretty robust DOM-to-Slate tracking engine right?
 
@@ -182,11 +175,7 @@ Doesn't Slate kind of solve this though? It has a pretty robust DOM-to-Slate tra
 
 **Cursor**
 
-
 Checking what `useElementObserver` does so we can compare costs fairly.
-
-
-
 
 (Depth 2)
 
@@ -197,12 +186,12 @@ In your codebase, `useElementObserver` is not a generic “observer pattern” a
 - **`ResizeObserver`** on that element (for layout/size-driven updates)
 - **`pointerenter` / `pointerleave` / `focus` / `blur`** on that element
 
-So for *N* links you get **N `ResizeObserver`s and N sets of pointer/focus listeners**. Browsers batch resize work, but **subscription count still grows with document size**, and you pay the observers even when the user is nowhere near those links.
+So for _N_ links you get **N `ResizeObserver`s and N sets of pointer/focus listeners**. Browsers batch resize work, but **subscription count still grows with document size**, and you pay the observers even when the user is nowhere near those links.
 
 A unified model can avoid almost all of that for hover discovery:
 
 - **One** container-level pointer path (capture `pointermove` / `pointerover` on the editor surface, or document-level if you need it), then `document.elementFromPoint` (or the event target with care for hit targets).
-- **React updates only when the resolved Slate “hover target” changes** — as you said — so you are not re-rendering on every mouse event; you still *run* a cheap comparison each time the pointer moves, which is normal.
+- **React updates only when the resolved Slate “hover target” changes** — as you said — so you are not re-rendering on every mouse event; you still _run_ a cheap comparison each time the pointer moves, which is normal.
 
 For **positioning**, you can also shift from “every link always observed for size” to “**measure the active anchor only**” when the toolbar is actually in link mode: `ReactEditor.toDOMNode` (or range → DOM) + `getBoundingClientRect()`, plus **one** window `scroll`/`resize` listener to re-measure or close. That is usually what makes the unified approach feel more scalable than **N × ResizeObserver**.
 
@@ -247,20 +236,11 @@ I think we're ready to go ahead and plan this refactor. Please draft the plan.
 
 **Cursor**
 
-
 Exploring the editor and toolbar setup so we can draft an accurate refactor plan.
-
-
-
 
 Checking how Slate maps DOM nodes and whether `Editable` forwards pointer handlers:
 
-
-
-
 Confirming: `useElementObserver` attaches a ResizeObserver and four listeners per link — removing it from each `LinkElement` addresses the scaling concern. Drafting the plan.
-
-
 
 ---
 
@@ -273,7 +253,6 @@ Explain what you mean by this? I wonder if we need a more explicit coordination 
 ---
 
 **Cursor**
-
 
 (Depth 1)
 
@@ -298,11 +277,11 @@ A small object like `{ path, draftUrl } | null` is just one way to represent tha
 
 ## Do you need a more explicit coordination API?
 
-You don’t *have* to call it a “session object”—that was implementation shorthand. More explicit patterns people use:
+You don’t _have_ to call it a “session object”—that was implementation shorthand. More explicit patterns people use:
 
 1. **Discriminated union on the orchestrator** — e.g. `chrome: { kind: 'idle' } | { kind: 'linkHover', path } | { kind: 'linkEdit', path, draftUrl }` so it’s obvious in one type which rules apply.
 
-2. **Layer / claim API** — e.g. `claimChrome({ owner: 'link', path, mode: 'edit' })` / `releaseChrome()`, with the unified bar only showing whoever holds the claim. Hover would *not* take the claim; Edit would.
+2. **Layer / claim API** — e.g. `claimChrome({ owner: 'link', path, mode: 'edit' })` / `releaseChrome()`, with the unified bar only showing whoever holds the claim. Hover would _not_ take the claim; Edit would.
 
 3. **Small context** — `LinkChromeController` with `startEdit(path)`, `endEdit()`, consumed only by the unified toolbar (not necessarily by `LinkElement`).
 
@@ -314,9 +293,6 @@ Your message cut off at “i.e. Link”—if you meant “should `LinkElement` o
 
 **User**
 
-
-
-
 I'm a little lost in the verbiage here. I think we're in agreement about positioning. The only issue is how LinkToolbarContent signals to the UnifiedToolbar "hey, we're editing so keep us open even if the cursor moves or whatever".
 
 Can you explain your plan for that in really simple terms?
@@ -324,7 +300,6 @@ Can you explain your plan for that in really simple terms?
 ---
 
 **Cursor**
-
 
 (Depth 1)
 
@@ -336,13 +311,13 @@ The **UnifiedToolbar** is one React component. It already decides “show link s
 
 (and when it’s `on`, you also remember **which link** and **what’s in the URL field**—that’s just normal controlled input state in the same place.)
 
-- **Before:** “Show link toolbar” = pointer is over a link (or link has focus), *unless* we’re in formatting mode.
+- **Before:** “Show link toolbar” = pointer is over a link (or link has focus), _unless_ we’re in formatting mode.
 - **After you click Edit:** UnifiedToolbar sets **`linkEditMode = on`**.  
   While that’s on, **you don’t hide the link toolbar just because the pointer moved away.** You only turn it **off** when the user hits Save, Cancel, or the link goes away.
 
 So **LinkToolbarContent** doesn’t need a fancy protocol. It’s either:
 
-- **Buttons inside the same component** that call `setLinkEditMode(true)` when you press Edit, or  
+- **Buttons inside the same component** that call `setLinkEditMode(true)` when you press Edit, or
 - A tiny child that receives **`onStartEditing`** from the parent—that’s just the parent passing a function that sets that state.
 
 There’s no separate service or context required for “keep us open”; it’s **the parent remembering “user is editing a link”** so it doesn’t treat “mouse left the link” as “close the bar.”
@@ -354,8 +329,8 @@ There’s no separate service or context required for “keep us open”; it’s
 OK so maybe if I have a shared ToolbarContentProps type it might have some signals like:
 
 type ToolbarContentProps = {
-  requestOpen: () => void
-  releaseOpen: () => void
+requestOpen: () => void
+releaseOpen: () => void
 }
 
 And then our LinkToolbarContent component would use those to signal to the UnifiedToolbar that it wants to stay open?
@@ -364,10 +339,9 @@ And then our LinkToolbarContent component would use those to signal to the Unifi
 
 **Cursor**
 
-
 (Depth 1)
 
-Yes. That is the same idea as “parent remembers we’re editing,” just with an **explicit callback contract** so `LinkToolbarContent` does not need to know *how* the parent implements it.
+Yes. That is the same idea as “parent remembers we’re editing,” just with an **explicit callback contract** so `LinkToolbarContent` does not need to know _how_ the parent implements it.
 
 A few small tweaks so the API stays clear:
 
@@ -392,16 +366,9 @@ OK, I like pinOpen / unpinOpen. Please update the plan accordingly.
 
 **Cursor**
 
-
 Locating and updating the plan file to use `pinOpen` / `unpinOpen` and the shared content props pattern.
 
-
-
-
 Updating the plan file to document `pinOpen` / `unpinOpen` and the shared `ToolbarContentProps` pattern.
-
-
-
 
 Updated [unified_inline_editor_toolbar_e65278c7.plan.md](/Users/erikpukinskis/.cursor/plans/unified_inline_editor_toolbar_e65278c7.plan.md) to match **`pinOpen` / `unpinOpen`** and the shared content props idea. Summary of edits:
 
@@ -432,33 +399,30 @@ Awesome! One more request: Can we also open the link toolbar when the text curso
 
 **Cursor**
 
-
 Updating the plan to include showing the link toolbar when the caret is inside a link (keyboard-accessible), preserving formatting priority for expanded selections.
 
-
-
-
 Updating the plan: add caret-in-link as a link-toolbar signal, clarify precedence when caret and pointer disagree, and extend the diagram and todos.
-
-
-
 
 Updated [unified_inline_editor_toolbar_e65278c7.plan.md](/Users/erikpukinskis/.cursor/plans/unified_inline_editor_toolbar_e65278c7.plan.md) with **caret-in-link** behavior. Summary:
 
 **Behavior**
+
 - With **formatting inactive**, the link toolbar can show when the **caret is collapsed inside a link** (`Editor.above` + `isLinkElement` at `selection.anchor`), with the editor **focused**, so keyboard navigation into a link can open the same chrome as hover.
 - **Expanded selection** still prefers the **formatting** toolbar (unchanged).
 - If **hover** and **caret** imply different links while focused, **caret wins** so the keyboard position is authoritative; with no focus, behavior stays pointer-driven (plus existing ghost/formatting rules).
 
 **Diagram**
+
 - Inputs now feed **`hoverLink`** and **`caretLink`**, merged into **`activeLink`** before priority.
 
 **Pointer leave**
+
 - Clarified that leaving the editor clears the **hover-derived** path only; **caret-in-link** can still keep the link toolbar visible.
 
 **Todos**
+
 - **`pointer-hover`** todo now includes deriving the caret link path from Slate when the selection is collapsed and focused.
 
 **Verification**
-- Added a manual check for **keyboard caret inside link** opening the link toolbar.
 
+- Added a manual check for **keyboard caret inside link** opening the link toolbar.

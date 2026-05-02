@@ -1,4 +1,5 @@
 # Editable code final plan & implementation
+
 _Exported on 4/4/2026 at 12:56:56 PDT from Cursor (2.6.22)_
 
 ---
@@ -120,13 +121,15 @@ Consider that decided: ✅ flat at the document level (code-block is a sibling o
 Next question: Am I going to regret doing this within Slate, rather than embedding a real code editor? What are "table stakes" features for a usable code editor?
 
 Off the top of my head I can think of:
- - automatic indenting
- - tab can indent/dedent a multi-line selection
- - Highlighting bracket/parenthesis pairs
+
+- automatic indenting
+- tab can indent/dedent a multi-line selection
+- Highlighting bracket/parenthesis pairs
 
 And maybe not "table stakes" but highly valuable features would be:
- - red squiggly error underlines w/ tooltip
- - autocomplete
+
+- red squiggly error underlines w/ tooltip
+- autocomplete
 
 (Again, for the sake of calibration I'll suggest Depth 2)
 
@@ -172,7 +175,7 @@ These are genuinely hard in Slate and require either significant custom work or 
 
 **User**
 
-Great. Please create a detailed plan for the editable code blocks implementation, based on the latest version of the problem statement @Untitled-1:1-132 
+Great. Please create a detailed plan for the editable code blocks implementation, based on the latest version of the problem statement @Untitled-1:1-132
 
 ---
 
@@ -225,6 +228,7 @@ I haven't gotten to the end yet, does the plan do anything with the indexes?
 No, the plan doesn't mention line indexes at all. That's an oversight — you'd want line numbers displayed in the gutter for code blocks.
 
 Should the plan include rendering line numbers? And if so, do you want:
+
 - Real line numbers (1, 2, 3...) shown in a gutter/pseudo-element?
 - Or just visual styling that makes it look like a code editor without actual numbers?
 
@@ -466,21 +470,25 @@ I've successfully implemented editable code blocks for the Slate-based doc edito
 ### Changes Made
 
 1. **`lib/helpers/processDocNode.ts`** - Added parser for `<pre><code data-language="tsx">` elements that:
+
    - Extracts the code content and splits it into lines
    - Formats TypeScript/TSX code with prettier during import
    - Creates nested `code-block` → `code-line` Slate nodes
 
 2. **`lib/helpers/slateToJsx.ts`** - Added serializer that:
+
    - Converts `code-block` nodes back to `<pre><code data-language="tsx">` format
    - Joins code lines with newlines for export
 
 3. **`lib/Doc.tsx`** - Added rendering and keyboard handling:
+
    - `code-block` renders as `<pre><code>` with monospace styling
    - `code-line` renders as `<div>` with line number gutter
    - **Enter** inside code: splits line, carries indentation, exits on empty last line
    - **Tab** inside code: tab-stop semantics (advances to next even column), multi-line indent/dedent
 
 4. **`lib/Doc.css.ts`** - Added CSS counter-based line numbers:
+
    - Line numbers in a non-selectable gutter (copy-paste won't include them)
    - Monospace font, background color for visual distinction
 
@@ -526,6 +534,7 @@ I've successfully implemented editable code blocks according to the plan. Here's
 ### Core Implementation
 
 1. **`lib/helpers/processDocNode.ts`** - Added `<pre><code>` parser that:
+
    - Parses `data-language` attribute (defaults to "tsx")
    - Auto-formats TypeScript/TSX code with prettier during import
    - Splits code into line-by-line `code-block` → `code-line` structure
@@ -533,6 +542,7 @@ I've successfully implemented editable code blocks according to the plan. Here's
 2. **`lib/helpers/slateToJsx.ts`** - Added `code-block` serializer that exports back to `<pre><code data-language="tsx">...</code></pre>`
 
 3. **`lib/Doc.tsx`** - Added rendering and keyboard behavior:
+
    - Renders code blocks with line numbers
    - **Enter**: splits lines, carries indentation, exits on empty last line
    - **Tab**: tab-stop semantics (advances to next even column), multi-line indent/dedent
@@ -542,6 +552,7 @@ I've successfully implemented editable code blocks according to the plan. Here's
 ### Converted All Code Samples
 
 Converted all `<Code>` components in `.docs.tsx` files to `<pre><code>` blocks:
+
 - `docs/Doc.docs.tsx`
 - `docs/Component.docs.tsx`
 - `docs/Demo.docs.tsx`
@@ -592,7 +603,7 @@ Depth 1 please.
 
 `Node` is a union type: `Editor | Element | Text`. It's what Slate's traversal APIs work with because they can encounter any of those three things while walking the tree.
 
-`Descendant` is a subset: `Element | Text`. It's everything *except* the editor root.
+`Descendant` is a subset: `Element | Text`. It's everything _except_ the editor root.
 
 So `Node` = `Descendant | Editor`.
 
@@ -623,7 +634,13 @@ Based on the code, the block types are:
 So your union should be:
 
 ```typescript
-type: "paragraph" | "heading" | "list-item" | "link" | "frozen" | "code-block" | "code-line"
+type: "paragraph" |
+  "heading" |
+  "list-item" |
+  "link" |
+  "frozen" |
+  "code-block" |
+  "code-line"
 ```
 
 ---
@@ -641,6 +658,7 @@ type: "paragraph" | "heading" | "list-item" | "link" | "frozen" | "code-block" |
 `id` is used for block-level elements created by the macro (`paragraph`, `heading`, `list-item`, `code-block`, `frozen`) — it's the `b0`, `b1`, `f0` identifiers generated during parsing for tracking purposes.
 
 It's optional because:
+
 1. Inline elements like `link` don't have IDs
 2. `code-line` children don't have IDs (per the plan, only `code-block` gets one)
 3. Text nodes (leaves) don't have IDs
@@ -690,4 +708,3 @@ What is the system time for this conversation?
 **Cursor**
 
 According to the user info provided at the start of this conversation, today's date is **Thursday, April 2, 2026**.
-
