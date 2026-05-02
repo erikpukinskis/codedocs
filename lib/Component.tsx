@@ -68,9 +68,7 @@ export function Component<PropsType extends Record<string, AllowedPropTypes>>({
           </>
         ) : (
           <ErrorBoundary location="demo-area">
-            <ComponentPreview boundingSelectors={boundingSelectors}>
-              <RenderFunction {...resolvedProps} />
-            </ComponentPreview>
+            <RenderFunction {...resolvedProps} />
           </ErrorBoundary>
         )}
         <EventLog events={events} />
@@ -155,64 +153,4 @@ export function Component<PropsType extends Record<string, AllowedPropTypes>>({
       </div>
     </div>
   )
-}
-
-type ComponentPreviewProps = {
-  boundingSelectors?: string[]
-  children: React.ReactNode
-}
-
-/**
- * Wrapper for the live component render. When `boundingSelectors` is provided,
- * a MutationObserver expands the wrapper's padding to fully contain any
- * overflowing positioned children (popovers, tooltips, etc.) so crop marks
- * frame them correctly.
- */
-const ComponentPreview: React.FC<ComponentPreviewProps> = ({
-  boundingSelectors,
-  children,
-}) => {
-  const ref = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const container = ref.current
-    if (!container || !boundingSelectors?.length) return
-
-    const sync = () => {
-      if (!container.isConnected) return
-      const containerRect = container.getBoundingClientRect()
-      let minX = 0
-      let minY = 0
-      let maxX = containerRect.width
-      let maxY = containerRect.height
-
-      for (const selector of boundingSelectors) {
-        for (const el of Array.from(container.querySelectorAll(selector))) {
-          const r = el.getBoundingClientRect()
-          minX = Math.min(minX, r.left - containerRect.left)
-          minY = Math.min(minY, r.top - containerRect.top)
-          maxX = Math.max(maxX, r.right - containerRect.left)
-          maxY = Math.max(maxY, r.bottom - containerRect.top)
-        }
-      }
-
-      container.style.paddingLeft = `${Math.abs(Math.min(0, minX))}px`
-      container.style.paddingTop = `${Math.abs(Math.min(0, minY))}px`
-      container.style.paddingRight = `${Math.max(
-        0,
-        maxX - containerRect.width
-      )}px`
-      container.style.paddingBottom = `${Math.max(
-        0,
-        maxY - containerRect.height
-      )}px`
-    }
-
-    sync()
-    const observer = new MutationObserver(sync)
-    observer.observe(container, { childList: true, subtree: true })
-    return () => observer.disconnect()
-  }, [boundingSelectors])
-
-  return <div ref={ref}>{children}</div>
 }

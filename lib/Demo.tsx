@@ -179,9 +179,9 @@ type DemoContentProps = {
 }
 
 /**
- * Wraps the live demo render and applies the `boundingSelectors` padding-sync
- * (formerly in PreviewArea). When children matching the selectors overflow
- * visually, this expands its own padding so crop marks frame them properly.
+ * Wraps the live demo render and applies the `boundingSelectors` padding. When
+ * children matching the selectors overflow visually, this expands its own
+ * padding so crop marks frame them properly.
  */
 const DemoContent: React.FC<DemoContentProps> = ({
   boundingSelectors,

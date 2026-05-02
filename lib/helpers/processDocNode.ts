@@ -737,8 +737,8 @@ function readJsxAttributeTemplateString(
   node: JSXElement,
   attributeName: string
 ): string | null {
-  const attr = node.openingElement.attributes.find(
-    (a): a is JSXAttribute => isNamedJSXAttribute(a, attributeName)
+  const attr = node.openingElement.attributes.find((a): a is JSXAttribute =>
+    isNamedJSXAttribute(a, attributeName)
   )
   const value = attr?.value
   if (!value || !isJSXExpressionContainer(value)) return null
@@ -753,12 +753,15 @@ function readJsxAttributeTemplateString(
 /**
  * Read the `dependencySources={{ name: \`...\` }}` attribute as a list of
  * [name, source] pairs. Returns [] if absent.
+ *
+ * Used to build the editor state, where the source code becomes live editable
+ * code blocks.
  */
 function readDependencySourcesAttribute(
   node: JSXElement
 ): Array<[string, string]> {
-  const attr = node.openingElement.attributes.find(
-    (a): a is JSXAttribute => isNamedJSXAttribute(a, "dependencySources")
+  const attr = node.openingElement.attributes.find((a): a is JSXAttribute =>
+    isNamedJSXAttribute(a, "dependencySources")
   )
   const value = attr?.value
   if (!value || !isJSXExpressionContainer(value)) return []

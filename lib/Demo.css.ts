@@ -212,8 +212,7 @@ export const tabs = style({
 })
 
 /**
- * tab — individual tab button. Visual styling unchanged from the previous
- * design; only its DOM placement (absolute child of the grid) changes.
+ * Individual tab button
  */
 export const tab = recipe({
   base: {
@@ -246,16 +245,7 @@ export const tab = recipe({
 })
 
 /**
- * (No eventLog export here — EventLog already has position:absolute and its
- * own styling in lib/EventLog.css.ts. It uses the variantContent's
- * position:relative as its containing block, with no grid placement, so it
- * overlays without affecting layout. It returns null when there are no events
- * and individual events fade out after 2s, so it's purely transient.)
- */
-
-/**
  * skippedDemo — placeholder when a demo is marked skip:true.
- * (Unchanged from current implementation.)
  */
 export const skippedDemo = style({
   background: "#ffbc2c",
