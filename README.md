@@ -183,6 +183,8 @@ Roadmap to 1.0
 - [x] Extract source vía macro
 - [x] Show events emitted from demos
 - [x] Variant demos
+- [ ] Remove include-wrapper-in-source in favor of includeWrapperInSource prop. Also make sure includeWrapperInSource prop is removed from source (inception).
+- [ ] Disallow with <Demo render={...}>...</Demo>, <Demo dependencies={...}>...</Demo>, etc
 - [ ] Persistence
 - [ ] Props palette
 

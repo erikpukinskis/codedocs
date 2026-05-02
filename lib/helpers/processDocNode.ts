@@ -5,6 +5,7 @@ import {
   arrayExpression,
   booleanLiteral,
   identifier,
+  isBlockStatement,
   isJSXElement,
   isJSXExpressionContainer,
   isJSXIdentifier,
@@ -25,13 +26,18 @@ import {
   type JSXFragment,
   type JSXSpreadChild,
   type JSXText,
+  type Node,
   type ObjectExpression,
   type ObjectProperty,
 } from "@babel/types"
-import { isNamedJSXAttribute, isNamedJSXElement } from "./babelJsxGuards"
+import {
+  isMockCallbackNode,
+  isNamedJSXAttribute,
+  isNamedJSXElement,
+  type MockCallbackCall,
+} from "./babelJsxGuards"
 import { formatPlainTextCodeBlock } from "./formatPlainText"
 import { formatTypescript } from "./formatTypeScript"
-import { getSource } from "./processDemoNode"
 
 /**
  * AST checks in this helper follow `lib/macro.ts`: prefer `@babel/types` predicates,
@@ -78,6 +84,8 @@ export interface ProcessCodedocsDocParams {
   nodePath: NodePath
   state: PluginPass
   code: string
+  /** When true, demo source includes the full `<Demo>...</Demo>` wrapper when applicable. */
+  includeWrapper: boolean
 }
 
 /**
@@ -88,6 +96,7 @@ export function processDocNode({
   nodePath,
   state,
   code,
+  includeWrapper,
 }: ProcessCodedocsDocParams): void {
   const parentPath = nodePath.parentPath
   if (!parentPath || !isJSXOpeningElement(parentPath.node)) return
@@ -96,7 +105,7 @@ export function processDocNode({
     state.file.path.parent,
     {
       JSXIdentifier(path: NodePath) {
-        visitDocJSXIdentifier(path, { state, code })
+        visitDocJSXIdentifier(path, { state, code, includeWrapper })
       },
     },
     nodePath.scope,
@@ -109,7 +118,7 @@ export function processDocNode({
  */
 function visitDocJSXIdentifier(
   path: NodePath,
-  ctx: { state: PluginPass; code: string }
+  ctx: { state: PluginPass; code: string; includeWrapper: boolean }
 ): void {
   const parentPath = path.parentPath
   if (!parentPath || !isJSXOpeningElement(parentPath.node)) return
@@ -139,7 +148,7 @@ function visitDocJSXIdentifier(
 
   const makeEmptyChildrenFn = () => makeEmptyChildren()
   const freezeBlockFn = (node: JSXElement) =>
-    freezeBlock(node, processState, ctx.code)
+    freezeBlock(node, processState, ctx.code, ctx.includeWrapper)
   const parseInlineChildrenFn = (childNodes: JSXChild[]) =>
     parseInlineChildren(childNodes)
 
@@ -680,96 +689,136 @@ function makeEmptyChildren(): ObjectExpression[] {
   ]
 }
 
-/** Record this node as frozen: keep AST + source, push a frozen Slate node. */
-function freezeBlock(
-  node: JSXElement,
-  processState: ProcessDocState,
+function getSource(
+  node: { start?: number | null; end?: number | null },
   code: string
-): void {
-  const id = `f${processState.frozenId++}`
-  processState.frozenElements[id] = node
-  processState.frozenSources[id] = getSource(node, code)
-  processState.blockNodes.push(makeFrozenNode(id, isStaticDemoFullWidth(node)))
+): string {
+  const start = node.start ?? 0
+  const end = node.end ?? code.length
+  return formatTypescript(code.slice(start, end))
+}
 
-  // For <Demo> elements, also emit sibling code-block(s) carrying the demo's
-  // source code as live Slate content. processDemoNode runs first in macro.ts,
-  // so by the time we reach here the Demo's openingElement has its `source`
-  // and `dependencySources` attributes populated.
-  if (isNamedJSXElement(node, "Demo")) {
-    pushDemoSourceCodeBlocks(node, id, processState)
+function findMockCallbacks(
+  node: Node | null | undefined,
+  results: MockCallbackCall[] = []
+): MockCallbackCall[] {
+  if (!node || typeof node !== "object") return results
+
+  if (isMockCallbackNode(node)) {
+    results.push(node)
   }
+
+  const nodeObj = node as unknown as Record<string, unknown>
+  for (const key in nodeObj) {
+    if (key === "start" || key === "end" || key === "loc") continue
+    const child = nodeObj[key]
+    if (Array.isArray(child)) {
+      child.forEach((item: Node) => findMockCallbacks(item, results))
+    } else if (child && typeof child === "object") {
+      findMockCallbacks(child as Node, results)
+    }
+  }
+
+  return results
+}
+
+function replaceMockCallbacks(
+  source: string,
+  nodeStart: number,
+  mockCallbacks: MockCallbackCall[]
+): string {
+  const sorted = [...mockCallbacks].sort((a, b) => b.start - a.start)
+
+  let result = source
+  for (const call of sorted) {
+    const callbackName = call.arguments[0].value
+    const relativeStart = call.start - nodeStart
+    const relativeEnd = call.end - nodeStart
+    result =
+      result.slice(0, relativeStart) + callbackName + result.slice(relativeEnd)
+  }
+  return result
 }
 
 /**
- * Read `source` and `dependencySources` from the Demo's openingElement and
- * emit one Slate code-block per source, each linked to the frozen block via
- * `demoId` and labeled with a `tab` name.
- *
- * The "Source" tab corresponds to the demo's own source. Each dependency
- * becomes its own tab named after the dependency key.
+ * Extract the demo's primary source string from the JSX AST (children or
+ * `render` callback). Mock callback substitution applies only to `render` bodies;
+ * children demos are plain JSX concatenation (no `mock.callback` in authored source).
  */
-function pushDemoSourceCodeBlocks(
+function extractDemoSource(
   demoNode: JSXElement,
-  demoId: string,
-  processState: ProcessDocState
-): void {
-  const source = readJsxAttributeTemplateString(demoNode, "source")
-  if (source !== null) {
-    processState.blockNodes.push(
-      makeDemoCodeBlockNode(source, demoId, "Source", processState)
-    )
+  code: string,
+  includeWrapper: boolean
+): string {
+  const opening = demoNode.openingElement
+  const noWrapperInSource = opening.attributes.some((attr) =>
+    isNamedJSXAttribute(attr, "noWrapperInSource")
+  )
+  const renderAttr = opening.attributes.find((a) =>
+    isNamedJSXAttribute(a, "render")
+  )
+  if (renderAttr?.value?.type === "JSXExpressionContainer") {
+    const expression = renderAttr.value.expression
+    if (
+      expression.type === "ArrowFunctionExpression" ||
+      expression.type === "FunctionExpression"
+    ) {
+      const body = expression.body
+      if (body) {
+        if (includeWrapper && !noWrapperInSource) {
+          return getSource(demoNode, code)
+        }
+        const bodySource = getSource(body, code)
+        const mockCallbacks = findMockCallbacks(body)
+        if (isBlockStatement(body)) {
+          const processedSource = bodySource
+            .slice(1, bodySource.length - 1)
+            .trim()
+          const braceOffset = 1
+          const trimStart =
+            bodySource.slice(1).length - bodySource.slice(1).trimStart().length
+          const bodyStart = body.start ?? 0
+          return replaceMockCallbacks(
+            processedSource,
+            bodyStart + braceOffset + trimStart,
+            mockCallbacks
+          )
+        }
+        return replaceMockCallbacks(bodySource, body.start ?? 0, mockCallbacks)
+      }
+    }
   }
 
-  const dependencySources = readDependencySourcesAttribute(demoNode)
-  for (const [name, depSource] of dependencySources) {
-    processState.blockNodes.push(
-      makeDemoCodeBlockNode(depSource, demoId, name, processState)
-    )
+  if (includeWrapper && !noWrapperInSource) {
+    return getSource(demoNode, code)
   }
+  return demoNode.children.map((child) => getSource(child, code)).join("")
 }
 
 /**
- * Read a JSX attribute whose value is `{`...`}` (a template literal with no
- * substitutions, as set by macro.setSourceAttribute). Returns the raw text or
- * null if the attribute is missing or doesn't match this shape.
+ * Read `dependencies={...}` and return each value's source text by key
+ * (order preserved by `Object.entries` for iteration).
  */
-function readJsxAttributeTemplateString(
-  node: JSXElement,
-  attributeName: string
-): string | null {
-  const attr = node.openingElement.attributes.find((a): a is JSXAttribute =>
-    isNamedJSXAttribute(a, attributeName)
+function extractDemoDependencySources(
+  demoNode: JSXElement,
+  code: string
+): Record<string, string> {
+  const dependenciesAttr = demoNode.openingElement.attributes.find(
+    (attr): attr is JSXAttribute =>
+      isNamedJSXAttribute(attr, "dependencies") &&
+      attr.value?.type === "JSXExpressionContainer"
   )
-  const value = attr?.value
-  if (!value || !isJSXExpressionContainer(value)) return null
-  const expr = value.expression
-  if (!isTemplateLiteral(expr)) return null
-  if (expr.expressions.length > 0) return null
-  const quasi = expr.quasis[0]
-  if (quasi === undefined) return null
-  return quasi.value.cooked ?? quasi.value.raw
-}
+  if (
+    !dependenciesAttr?.value ||
+    dependenciesAttr.value.type !== "JSXExpressionContainer"
+  ) {
+    return {}
+  }
+  const objExpr = dependenciesAttr.value.expression
+  if (objExpr.type !== "ObjectExpression") return {}
 
-/**
- * Read the `dependencySources={{ name: \`...\` }}` attribute as a list of
- * [name, source] pairs. Returns [] if absent.
- *
- * Used to build the editor state, where the source code becomes live editable
- * code blocks.
- */
-function readDependencySourcesAttribute(
-  node: JSXElement
-): Array<[string, string]> {
-  const attr = node.openingElement.attributes.find((a): a is JSXAttribute =>
-    isNamedJSXAttribute(a, "dependencySources")
-  )
-  const value = attr?.value
-  if (!value || !isJSXExpressionContainer(value)) return []
-  const expr = value.expression
-  if (expr.type !== "ObjectExpression") return []
-
-  const pairs: Array<[string, string]> = []
-  for (const prop of expr.properties) {
+  const result: Record<string, string> = {}
+  for (const prop of objExpr.properties) {
     if (prop.type !== "ObjectProperty") continue
     const keyName =
       prop.key.type === "Identifier"
@@ -778,13 +827,59 @@ function readDependencySourcesAttribute(
         ? prop.key.value
         : null
     if (keyName === null) continue
-    if (!isTemplateLiteral(prop.value)) continue
-    if (prop.value.expressions.length > 0) continue
-    const quasi = prop.value.quasis[0]
-    if (quasi === undefined) continue
-    pairs.push([keyName, quasi.value.cooked ?? quasi.value.raw])
+    const valueSource = getSource(
+      prop.value as { start?: number | null; end?: number | null },
+      code
+    )
+    result[keyName] = valueSource
   }
-  return pairs
+  return result
+}
+
+/** Record this node as frozen: keep AST + source, push a frozen Slate node. */
+function freezeBlock(
+  node: JSXElement,
+  processState: ProcessDocState,
+  code: string,
+  includeWrapper: boolean
+): void {
+  const id = `f${processState.frozenId++}`
+  processState.frozenElements[id] = node
+  processState.frozenSources[id] = getSource(node, code)
+  processState.blockNodes.push(makeFrozenNode(id, isStaticDemoFullWidth(node)))
+
+  // For <Demo> elements, also emit sibling code-block(s) carrying the demo's
+  // source code as live Slate content (extracted here from the JSX AST).
+  if (isNamedJSXElement(node, "Demo")) {
+    pushDemoSourceCodeBlocks(node, id, processState, code, includeWrapper)
+  }
+}
+
+/**
+ * Emit one Slate code-block per demo source / dependency, each linked to the
+ * frozen block via `demoId` and labeled with a `tab` name.
+ *
+ * The "Source" tab corresponds to the demo's own source. Each dependency
+ * becomes its own tab named after the dependency key.
+ */
+function pushDemoSourceCodeBlocks(
+  demoNode: JSXElement,
+  demoId: string,
+  processState: ProcessDocState,
+  code: string,
+  includeWrapper: boolean
+): void {
+  const source = extractDemoSource(demoNode, code, includeWrapper)
+  processState.blockNodes.push(
+    makeDemoCodeBlockNode(source, demoId, "Source", processState)
+  )
+
+  const dependencySources = extractDemoDependencySources(demoNode, code)
+  for (const [name, depSource] of Object.entries(dependencySources)) {
+    processState.blockNodes.push(
+      makeDemoCodeBlockNode(depSource, demoId, name, processState)
+    )
+  }
 }
 
 /**

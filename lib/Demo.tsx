@@ -50,14 +50,18 @@ export type DemoProps<
   | DemoPropsWithChildren
   | DemoPropsWithRenderFunction<ValueType, DependenciesType, VariantsType>
 ) & {
-  source?: string
+  /**
+   * Macro-only: when the doc uses `// @codedocs include-wrapper-in-source`, set
+   * this to show only the demo's inner content in the extracted source (children
+   * concatenation or the `render` body), not the full `<Demo>` element. Ignored
+   * at runtime.
+   */
+  noWrapperInSource?: boolean
   width?: "full" | number
   skip?: boolean
   only?: boolean
   boundingSelectors?: string[]
   dependencies?: DependenciesType
-  dependencySources?: Record<string, string>
-  noWrapperInSource?: boolean
   variants?: VariantsType[]
 }
 
@@ -104,19 +108,15 @@ export function Demo<
   // hidden (no source code-blocks to toggle).
   const demoId = useFrozenId()
 
-  // Tab names: "Source" plus one per dependency. Driven from
-  // dependencySources (set by macro) rather than dependencies (set by user)
-  // because what's clickable should match what source the macro extracted.
-  const dependencySources = hasDependencies(props)
-    ? props.dependencySources
-    : undefined
+  // Tab names: "Source" plus one per dependency key (same order as macro uses
+  // for dependency code-blocks in the Slate document).
   const tabNames = useMemo(() => {
     const names = ["Source"]
-    if (dependencySources) {
-      for (const name of Object.keys(dependencySources)) names.push(name)
+    if (hasDependencies(props) && props.dependencies) {
+      for (const name of Object.keys(props.dependencies)) names.push(name)
     }
     return names
-  }, [dependencySources])
+  }, [props.dependencies])
 
   if (props.skip) {
     return <SkippedDemo />

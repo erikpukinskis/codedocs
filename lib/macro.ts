@@ -4,16 +4,8 @@
  */
 
 import type { NodePath } from "@babel/traverse"
-import {
-  type JSXAttribute,
-  type JSXOpeningElement,
-  type ObjectProperty,
-} from "@babel/types"
 import type { MacroParams } from "babel-plugin-macros"
 import { createMacro } from "babel-plugin-macros"
-import { isNamedJSXAttribute } from "./helpers/babelJsxGuards"
-import { formatTypescript } from "./helpers/formatTypeScript"
-import { getSource, processDemoNode } from "./helpers/processDemoNode"
 import { processDocNode } from "./helpers/processDocNode"
 
 /**
@@ -55,101 +47,13 @@ export default createMacro(function codedocsMacro({
     "// @codedocs include-wrapper-in-source"
   )
 
-  function setSourceAttribute(node: JSXOpeningElement, source: string): void {
-    const formattedSource = formatTypescript(source)
-    const newAttribute = babel.types.jsxAttribute(
-      babel.types.jsxIdentifier("source"),
-      babel.types.jsxExpressionContainer(
-        babel.types.templateLiteral(
-          [babel.types.templateElement({ raw: formattedSource }, true)],
-          []
-        )
-      )
-    )
-
-    const existingSourceAttributeIndex = node.attributes.findIndex(
-      (attribute) => isNamedJSXAttribute(attribute, "source")
-    )
-
-    if (existingSourceAttributeIndex >= 0) {
-      node.attributes[existingSourceAttributeIndex] = newAttribute
-    } else {
-      node.attributes.push(newAttribute)
-    }
-  }
-
-  function setDependencySourcesAttribute(
-    openingElement: JSXOpeningElement
-  ): void {
-    const dependenciesAttr = openingElement.attributes.find(
-      (attr): attr is JSXAttribute =>
-        isNamedJSXAttribute(attr, "dependencies") &&
-        attr.value?.type === "JSXExpressionContainer"
-    )
-
-    if (
-      !dependenciesAttr?.value ||
-      dependenciesAttr.value.type !== "JSXExpressionContainer"
-    )
-      return
-
-    const objExpr = dependenciesAttr.value.expression
-    if (objExpr.type !== "ObjectExpression") return
-
-    const dependencySourcesProperties = objExpr.properties
-      .filter((prop): prop is ObjectProperty => prop.type === "ObjectProperty")
-      .map((prop: ObjectProperty) => {
-        const keyName =
-          prop.key.type === "Identifier"
-            ? prop.key.name
-            : (prop.key as { value: string }).value
-        const valueSource = getSource(
-          prop.value as { start?: number | null; end?: number | null },
-          code
-        )
-        return babel.types.objectProperty(
-          babel.types.stringLiteral(keyName),
-          babel.types.templateLiteral(
-            [babel.types.templateElement({ raw: valueSource }, true)],
-            []
-          )
-        )
-      })
-
-    if (dependencySourcesProperties.length === 0) return
-
-    const alreadyHasDependencySources = openingElement.attributes.some((attr) =>
-      isNamedJSXAttribute(attr, "dependencySources")
-    )
-    if (alreadyHasDependencySources) return
-
-    const dependencySourcesAttr = babel.types.jsxAttribute(
-      babel.types.jsxIdentifier("dependencySources"),
-      babel.types.jsxExpressionContainer(
-        babel.types.objectExpression(dependencySourcesProperties)
-      )
-    )
-
-    openingElement.attributes.push(dependencySourcesAttr)
-  }
-
-  // Process Demos first so that each <Demo> openingElement gets its `source`
-  // and `dependencySources` attributes BEFORE processDocNode walks the Doc.
-  // processDocNode reads those attributes to emit per-Demo Slate code-block
-  // siblings linked to the frozen block via `demoId`.
-  Demo.forEach((nodePath: NodePath) => {
-    processDemoNode({
+  Doc.forEach((nodePath: NodePath) => {
+    processDocNode({
       nodePath,
       state,
       code,
-      includeWrapperInSource,
-      setSourceAttribute,
-      setDependencySourcesAttribute,
+      includeWrapper: includeWrapperInSource,
     })
-  })
-
-  Doc.forEach((nodePath: NodePath) => {
-    processDocNode({ nodePath, state, code })
   })
 
   const specifierIdentifiers: string[] = []
