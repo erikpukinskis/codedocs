@@ -27,7 +27,6 @@ import {
   type DemoSourceVisibility,
 } from "./DemoSourceVisibilityContext"
 import * as styles from "./Editor.css"
-import { FrozenIdProvider } from "./FrozenIdContext"
 import { EditorToolbarArea } from "./Toolbar/EditorToolbarArea"
 import {
   isCodeBlock,
@@ -334,12 +333,12 @@ function expandRangeForDemoCluster(editor: Editor, range: Range): Range {
     const clusterEnd = Editor.end(editor, [cluster.end - 1])
 
     const [resultStart, resultEnd] = Range.edges(result)
-    const newStart = Path.compare(clusterStart.path, resultStart.path) < 0
-      ? clusterStart
-      : resultStart
-    const newEnd = Path.compare(clusterEnd.path, resultEnd.path) > 0
-      ? clusterEnd
-      : resultEnd
+    const newStart =
+      Path.compare(clusterStart.path, resultStart.path) < 0
+        ? clusterStart
+        : resultStart
+    const newEnd =
+      Path.compare(clusterEnd.path, resultEnd.path) > 0 ? clusterEnd : resultEnd
 
     result = { anchor: newStart, focus: newEnd }
   }
@@ -578,11 +577,7 @@ const DocEditorInner = ({
             const rootIdx = blockPath[0]
             if (rootIdx !== undefined && rootIdx > 0) {
               const prev = editor.children[rootIdx - 1]
-              if (
-                prev &&
-                isCodeBlock(prev) &&
-                prev.demoId !== undefined
-              ) {
+              if (prev && isCodeBlock(prev) && prev.demoId !== undefined) {
                 return
               }
             }
@@ -1274,6 +1269,17 @@ const FrozenBlockElement: React.FC<FrozenBlockElementProps> = ({
   const frozenBlock = element as Extract<SlateBlock, { type: "frozen" }>
   const frozenContent = frozenBlock.id ? frozenElements[frozenBlock.id] : null
 
+  // Derive tab names from the Slate document: find all code-block siblings
+  // that belong to this frozen block via demoId, in document order.
+  const editor = useSlate()
+  const tabNames = editor.children
+    .filter(
+      (n): n is Extract<SlateBlock, { type: "code-block" }> =>
+        isCodeBlock(n) && n.demoId === frozenBlock.id
+    )
+    .map((n) => n.tab ?? "")
+    .filter(Boolean)
+
   return (
     <div
       {...attributes}
@@ -1284,14 +1290,56 @@ const FrozenBlockElement: React.FC<FrozenBlockElementProps> = ({
       })}
     >
       <div contentEditable={false} style={{ userSelect: "none" }}>
-        {/* The Demo (or other frozen content) reads its frozen-block id from
-            this provider so it can wire its tab UI to matching code-block
-            siblings via DemoSourceVisibilityContext. */}
-        <FrozenIdProvider id={frozenBlock.id}>
-          {frozenContent}
-        </FrozenIdProvider>
+        {frozenContent}
       </div>
+      {frozenBlock.id && tabNames.length > 0 && (
+        <div contentEditable={false} style={{ userSelect: "none" }}>
+          <DemoTabs demoId={frozenBlock.id} tabNames={tabNames} />
+        </div>
+      )}
       {children}
+    </div>
+  )
+}
+
+type DemoTabsProps = {
+  demoId: string
+  tabNames: string[]
+}
+
+/**
+ * Source-tab row rendered by FrozenBlockElement, outside the Demo component.
+ *
+ * The tabs are an editor concern: they toggle the visibility of Slate
+ * code-block siblings (linked by demoId), not anything inside the Demo render
+ * itself. By living here, they are positioned via frozenBlock's existing
+ * position:relative — no CSS grid tricks needed in the Demo.
+ */
+const DemoTabs: React.FC<DemoTabsProps> = ({ demoId, tabNames }) => {
+  const visibility = useDemoSourceVisibility()
+  const activeTab = visibility.visibleTabFor(demoId)
+
+  return (
+    <div className={styles.demoTabs} data-description="demo tabs">
+      {tabNames.map((name) => {
+        const active = activeTab === name
+        return (
+          <button
+            key={name}
+            type="button"
+            className={styles.demoTab({ active })}
+            onClick={() => {
+              if (active) {
+                visibility.hide(demoId)
+              } else {
+                visibility.show(demoId, name)
+              }
+            }}
+          >
+            {name}
+          </button>
+        )
+      })}
     </div>
   )
 }

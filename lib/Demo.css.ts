@@ -6,29 +6,17 @@ import { recipe } from "@vanilla-extract/recipes"
  *
  * Why a grid even though we only have ONE explicit cell:
  *
- *   The grid is here to scope the crop marks. Specifically, we want CropMarks
- *   to frame ONLY the demo content area — but Tabs (when shown) need to hang
- *   BELOW that frame, in a reserved padding-bottom area, so they appear
- *   visually outside the crop marks rather than inside.
+ *   The grid is here to scope the crop marks. CropMarks gets grid-row:1,
+ *   grid-column:1 so its containing block is the cell rather than the
+ *   grid container's padding box — meaning inset:0 frames exactly the demo
+ *   content area. EventLog has no grid placement and uses position:absolute
+ *   relative to the variantContent's padding box, which is what we want for
+ *   its transient overlay behaviour.
  *
- *   CSS gives absolutely-positioned children of a grid container two
- *   different containing blocks depending on whether they have grid
- *   placement:
- *
- *     - WITH grid-row + grid-column set: containing block is that cell area.
- *     - WITHOUT them: containing block is the grid container's padding box
- *       (which INCLUDES the element's padding).
- *
- *   We use this asymmetry:
- *     - CropMarks has grid-row:1, grid-column:1, inset:0  →  fills the cell.
- *     - Tabs has no grid placement, bottom:0, right:0     →  lands in the
- *       padding-bottom area, below the cell.
- *     - EventLog has no grid placement (its existing CSS) →  same, ends up
- *       below the cell as a transient overlay.
- *
- *   Without the grid, CropMarks at inset:0 would extend over the tabs area.
- *   We'd have to add a wrapper around demoContent to bound the crop marks.
- *   The grid replaces that wrapper.
+ *   Tabs are NOT in this grid. They are rendered by FrozenBlockElement
+ *   (in Editor.tsx), positioned at the bottom-right of the frozenBlock
+ *   (which is already position:relative). This avoids the need for any
+ *   padding-bottom strip here.
  *
  * Why we use grid (block-level) and not inline-grid:
  *   - Multiple variants of the same demo need to stack on separate lines.
@@ -51,17 +39,15 @@ export const variantContent = recipe({
      */
     display: "grid",
     /**
-     * One row, sized to the demo content. The Code panel does NOT live in
+     * One row, sized to the demo content. Source code does NOT live in
      * this grid — it's a sibling Slate block at the document level, naturally
      * below the paragraph that contains the demo.
      */
     gridTemplateRows: "max-content",
     /**
-     * Required for tabs and EventLog: when a position:absolute child has NO
-     * grid placement, its containing block is the grid container's padding
-     * box. position:relative makes that work even outside grid-specific
-     * cases (e.g., for any absolute descendants of {children} that resolve
-     * to this ancestor).
+     * Required for EventLog: when a position:absolute child has NO grid
+     * placement, its containing block is the grid container's padding box.
+     * position:relative makes that work even outside grid-specific cases.
      */
     position: "relative",
     /**
@@ -91,23 +77,6 @@ export const variantContent = recipe({
         width: "max-content",
         maxWidth: "100%",
         gridTemplateColumns: "minmax(0, max-content)",
-      },
-    },
-    isLast: {
-      true: {
-        /**
-         * Bottom padding on the LAST variant only — reserves a strip BELOW
-         * the row-1 cell for the tabs to live in. The tabs are absolute
-         * children with no grid placement, so their containing block is this
-         * variantContent's padding box (which includes this padding); their
-         * bottom:0 lands them at the bottom of THAT box, in this strip.
-         *
-         * CropMarks has grid-row:1 placement, so its containing block is the
-         * cell, NOT the padding box. CropMarks does not extend into this
-         * strip. That's how the tabs end up visually outside the crop-marks
-         * frame.
-         */
-        paddingBottom: "calc(0.8em + 8px + 4px)",
       },
     },
   },
@@ -151,13 +120,9 @@ export const demoContent = style({
  * cropMarks — the corner-bracket frame that visually marks the demo's bounds.
  *
  * Why position:absolute WITH grid-row + grid-column:
- *   - The grid-row/grid-column placement is what gives this element its
- *     containing block: the row-1 cell, NOT the variantContent's padding box.
- *     With inset:0 the crop marks fill exactly the cell — the demo content
- *     area — and stop short of the padding-bottom strip where the tabs live.
- *   - This is the asymmetry that makes the grid worthwhile here. Tabs do the
- *     OPPOSITE: no grid placement, so their containing block is the padding
- *     box, so they end up below the cell.
+ *   - The grid-row/grid-column placement gives this element the row-1 cell as
+ *     its containing block (NOT the variantContent's padding box). With
+ *     inset:0 the crop marks fill exactly the cell — the demo content area.
  *   - Being absolute means it doesn't push the cell larger or affect the
  *     grid's intrinsic sizing.
  */
@@ -172,76 +137,6 @@ export const cropMarks = style({
    */
   zIndex: 0,
   pointerEvents: "none",
-})
-
-/**
- * tabs — the row of buttons (Source, dependency1, dependency2, ...) that
- * sits visually below the crop-marks frame, hanging into the
- * variantContent's reserved bottom padding.
- *
- * Why this layout — and why we DELIBERATELY DO NOT set grid-row/grid-column:
- *   - We want the tabs to appear OUTSIDE the crop-marks frame, in the
- *     padding-bottom strip below the row-1 cell.
- *   - Absolute children of a grid container fall back to the grid container's
- *     PADDING BOX as their containing block when they have no grid
- *     placement. The padding box includes the padding-bottom strip.
- *   - So with no grid-row/grid-column, bottom:0 puts the tabs at the bottom
- *     of the padding box — i.e., in that reserved strip, below the cell.
- *   - If we DID set grid-row:1, grid-column:1, the containing block would
- *     become the cell itself (same as CropMarks), and bottom:0 would put
- *     the tabs at the cell's bottom — INSIDE the crop-marks frame instead
- *     of below it. (Don't add grid placement here. This is a known foot-gun.)
- */
-export const tabs = style({
-  position: "absolute",
-  bottom: 0,
-  right: 0,
-  /**
-   * Above cropMarks so the tabs are clickable and not painted over.
-   */
-  zIndex: 2,
-  whiteSpace: "nowrap",
-  display: "flex",
-  flexDirection: "row",
-  gap: 10,
-  /**
-   * If labels are wider than the demo, allow tabs to overflow to the right
-   * (rather than wrap or push the demo wider).
-   */
-  maxWidth: "100%",
-})
-
-/**
- * Individual tab button
- */
-export const tab = recipe({
-  base: {
-    "zIndex": 1,
-    "background": "none",
-    "marginTop": 2,
-    "paddingInline": 6,
-    "paddingBlock": 4,
-    "borderRadius": 4,
-    "border": "none",
-    "fontSize": "0.8em",
-    "cursor": "pointer",
-    "color": "#555",
-    "textShadow": "0.3px 0 0 currentColor",
-    ":hover": { color: "#000" },
-  },
-  variants: {
-    active: {
-      true: {
-        "fontWeight": "bold",
-        "textShadow": "none",
-        "color": "white",
-        "textDecorationColor": "white",
-        "background": "#5f577d",
-        "boxShadow": "0 10px 0 0 #5f577d",
-        ":hover": { color: "white" },
-      },
-    },
-  },
 })
 
 /**

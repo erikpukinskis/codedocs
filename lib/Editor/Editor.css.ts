@@ -137,6 +137,60 @@ export const link = style({
   },
 })
 
+/**
+ * demoTabs — the row of source-tab buttons (Source, dependency1, …) rendered
+ * by FrozenBlockElement, positioned at the bottom-right of the frozenBlock.
+ *
+ * Why it lives here (in FrozenBlockElement) rather than inside Demo:
+ *   - The tabs toggle Slate code-block siblings of the frozen block, so they
+ *     are logically a concern of the editor, not the demo presentation.
+ *   - frozenBlock is already position:relative, so position:absolute here
+ *     works without any CSS grid tricks.
+ *   - Demo no longer needs padding-bottom or isLast state; it becomes a pure
+ *     presentation component.
+ */
+export const demoTabs = style({
+  position: "absolute",
+  bottom: 0,
+  right: 0,
+  zIndex: 2,
+  whiteSpace: "nowrap",
+  display: "flex",
+  flexDirection: "row",
+  gap: 10,
+  maxWidth: "100%",
+})
+
+export const demoTab = recipe({
+  base: {
+    "zIndex": 1,
+    "background": "none",
+    "marginTop": 2,
+    "paddingInline": 6,
+    "paddingBlock": 4,
+    "borderRadius": 4,
+    "border": "none",
+    "fontSize": "0.8em",
+    "cursor": "pointer",
+    "color": "#555",
+    "textShadow": "0.3px 0 0 currentColor",
+    ":hover": { color: "#000" },
+  },
+  variants: {
+    active: {
+      true: {
+        "fontWeight": "bold",
+        "textShadow": "none",
+        "color": "white",
+        "textDecorationColor": "white",
+        "background": "#5f577d",
+        "boxShadow": "0 10px 0 0 #5f577d",
+        ":hover": { color: "white" },
+      },
+    },
+  },
+})
+
 export const ghostSelection = style({
   backgroundColor: "rgba(0,0,0,0.1)",
 })

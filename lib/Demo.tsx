@@ -2,8 +2,6 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import React, { useEffect, useMemo, useRef } from "react"
 import { CropMarks } from "./CropMarks"
 import * as styles from "./Demo.css"
-import { useDemoSourceVisibility } from "./Editor/DemoSourceVisibilityContext"
-import { useFrozenId } from "./Editor/FrozenIdContext"
 import { ErrorBoundary } from "./ErrorBoundary"
 import { EventLog, useEventLog } from "./EventLog"
 
@@ -71,13 +69,15 @@ export type DemoProps<
  *   variantContent (grid)         — per-variant wrapper
  *     demoContent (row 1, col 1)  — wraps {children}, hosts the live render
  *     CropMarks   (absolute)      — overlay on the demo content cell
- *     Tabs        (absolute)      — bottom-right of last variant only
  *     EventLog    (absolute, transient overlay; uses its existing CSS)
  *
  * Source code IS NOT rendered here. The macro emits one Slate `code-block`
  * sibling per source/dependency in the document model, linked back to this
- * Demo's frozen block via `demoId`. The tabs flip those code-blocks'
- * visibility through DemoSourceVisibilityContext.
+ * Demo's frozen block via `demoId`.
+ *
+ * Source tabs are also NOT rendered here. They are a facet of the editor:
+ * FrozenBlockElement (in Editor.tsx) renders a DemoTabs row positioned at
+ * the bottom-right of the frozenBlock (which is already position:relative).
  */
 export function Demo<
   ValueType,
@@ -103,21 +103,6 @@ export function Demo<
     [value, dependencies, mockCallback]
   )
 
-  // Frozen block id — provided by FrozenBlockElement when Demo is rendered
-  // inside the editor. In static-doc contexts it's null and the tabs row is
-  // hidden (no source code-blocks to toggle).
-  const demoId = useFrozenId()
-
-  // Tab names: "Source" plus one per dependency key (same order as macro uses
-  // for dependency code-blocks in the Slate document).
-  const tabNames = useMemo(() => {
-    const names = ["Source"]
-    if (hasDependencies(props) && props.dependencies) {
-      for (const name of Object.keys(props.dependencies)) names.push(name)
-    }
-    return names
-  }, [props.dependencies])
-
   if (props.skip) {
     return <SkippedDemo />
   }
@@ -131,9 +116,7 @@ export function Demo<
 
   return (
     <>
-      {variantsToRender.map((variant, i) => {
-        const isLast = i === variantsToRender.length - 1
-
+      {variantsToRender.map((variant) => {
         const content = hasChildren(props) ? (
           props.children
         ) : isRenderable(props) ? (
@@ -149,7 +132,6 @@ export function Demo<
             key={variant ?? "__default"}
             className={styles.variantContent({
               fullWidth: isFullWidth,
-              isLast,
             })}
             style={{
               width: typeof props.width === "number" ? props.width : undefined,
@@ -162,9 +144,6 @@ export function Demo<
             <div className={styles.cropMarks}>
               <CropMarks />
             </div>
-            {isLast && demoId !== null && tabNames.length > 0 && (
-              <Tabs demoId={demoId} tabNames={tabNames} />
-            )}
             <EventLog events={events} />
           </div>
         )
@@ -234,45 +213,6 @@ const DemoContent: React.FC<DemoContentProps> = ({
   return (
     <div ref={ref} className={styles.demoContent}>
       {children}
-    </div>
-  )
-}
-
-type TabsProps = {
-  demoId: string
-  tabNames: string[]
-}
-
-/**
- * The Source / dependency tab row. Click toggles which (if any) tab's
- * code-block is visible in the editor; the tabs themselves are state-bearing
- * UI driven by DemoSourceVisibilityContext.
- */
-const Tabs: React.FC<TabsProps> = ({ demoId, tabNames }) => {
-  const visibility = useDemoSourceVisibility()
-  const activeTab = visibility.visibleTabFor(demoId)
-
-  return (
-    <div className={styles.tabs} data-description="demo tabs">
-      {tabNames.map((name) => {
-        const active = activeTab === name
-        return (
-          <button
-            key={name}
-            type="button"
-            className={styles.tab({ active })}
-            onClick={() => {
-              if (active) {
-                visibility.hide(demoId)
-              } else {
-                visibility.show(demoId, name)
-              }
-            }}
-          >
-            {name}
-          </button>
-        )
-      })}
     </div>
   )
 }
