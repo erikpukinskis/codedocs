@@ -225,7 +225,7 @@ const FormattingToolbarContent: React.FC<FormattingToolbarContentProps> = ({
     )
   }
 
-  const onMouseDownToolbarButton = (event: React.MouseEvent) => {
+  const captureMouseDown = (event: React.MouseEvent) => {
     // Native <select> needs default mousedown to open; still keep editor focus for icon buttons.
     if ((event.target as HTMLElement).closest("select")) return
     event.preventDefault()
@@ -259,7 +259,7 @@ const FormattingToolbarContent: React.FC<FormattingToolbarContentProps> = ({
   const blockType = blockTypeSelectValue(editor, activeRange)
 
   return (
-    <div onMouseDownCapture={onMouseDownToolbarButton}>
+    <div onMouseDownCapture={captureMouseDown}>
       <select
         value={blockType}
         onChange={(event) => {

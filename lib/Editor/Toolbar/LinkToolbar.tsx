@@ -149,13 +149,13 @@ const LinkDraftToolbarContent: React.FC<LinkDraftToolbarContentProps> = ({
     ReactEditor.focus(editor)
   }
 
-  const onMouseDown = (e: React.MouseEvent) => {
+  const captureMouseDown = (e: React.MouseEvent) => {
     if ((e.target as HTMLElement).closest("select")) return
     e.preventDefault()
   }
 
   return (
-    <div onMouseDownCapture={onMouseDown}>
+    <div onMouseDownCapture={captureMouseDown}>
       <Components.TextInput
         value={url}
         onChange={setUrl}
@@ -230,8 +230,13 @@ const LinkToolbarContent: React.FC<LinkToolbarContentProps> = ({
   const href = isEditing ? url : linkNode.url
   const trimmedUrl = url.trim()
 
+  const captureMouseDown = (e: React.MouseEvent) => {
+    if ((e.target as HTMLElement).closest("select")) return
+    e.preventDefault()
+  }
+
   return isEditing ? (
-    <>
+    <div onMouseDownCapture={captureMouseDown}>
       <Components.TextInput
         value={url}
         onChange={setUrl}
@@ -248,7 +253,7 @@ const LinkToolbarContent: React.FC<LinkToolbarContentProps> = ({
       >
         Save
       </Components.Button>
-    </>
+    </div>
   ) : (
     <>
       <Components.LinkButton to={href} variant="borderless">
