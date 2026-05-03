@@ -27,6 +27,8 @@ export type MatchContext = ToolbarContext & {
   hoverPath: Path | null
   caretPath: Path | null
   pinnedPath: Path | null
+  /** True only when the pointer is in the Slate content area (not toolbar chrome). */
+  isPointerOverDoc: boolean
   controls: ToolbarControls
 }
 

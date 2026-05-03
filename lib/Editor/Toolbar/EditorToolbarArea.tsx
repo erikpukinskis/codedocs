@@ -44,25 +44,13 @@ export const EditorToolbarArea: React.FC<EditorToolbarAreaProps> = ({
   const [hoverPath, setHoverPath] = useState<Path | null>(null)
   const hoverPathRef = useRef<Path | null>(null)
   const [pinnedPath, setPinnedPath] = useState<Path | null>(null)
+  const [isPointerOverDoc, setIsPointerOverDoc] = useState(false)
 
   useEffect(() => {
     if (pinnedPath !== null && !isValidElementPath(editor, pinnedPath)) {
       setPinnedPath(null)
     }
   }, [editor, pinnedPath])
-
-  useEffect(() => {
-    if (linkDraft === null) return
-    if (!isDraftRangeValid(editor, linkDraft.range)) {
-      setLinkDraftState(null)
-      return
-    }
-    try {
-      ReactEditor.toDOMRange(editor, linkDraft.range)
-    } catch {
-      setLinkDraftState(null)
-    }
-  }, [editor, linkDraft, editor.children])
 
   useEffect(() => {
     const area = areaRef.current
@@ -77,15 +65,18 @@ export const EditorToolbarArea: React.FC<EditorToolbarAreaProps> = ({
     const onPointerMove = (e: PointerEvent) => {
       const el = document.elementFromPoint(e.clientX, e.clientY)
       if (!el || !area.contains(el)) {
+        setIsPointerOverDoc(false)
         setHoverIfChanged(null)
         return
       }
       // Toolbar is outside Slate; toSlatePoint would clear hover and unmount the toolbar.
       if (toolbarRootRef.current?.contains(el)) {
+        setIsPointerOverDoc(false)
         return
       }
       const domPoint = domPointFromClientXY(e.clientX, e.clientY)
       if (!domPoint || !area.contains(domPoint[0])) {
+        setIsPointerOverDoc(false)
         setHoverIfChanged(null)
         return
       }
@@ -94,13 +85,16 @@ export const EditorToolbarArea: React.FC<EditorToolbarAreaProps> = ({
         suppressThrow: true,
       })
       if (!slatePoint) {
+        setIsPointerOverDoc(false)
         setHoverIfChanged(null)
         return
       }
+      setIsPointerOverDoc(true)
       setHoverIfChanged(elementPathAtPoint(editor, slatePoint))
     }
 
     const onPointerLeave = () => {
+      setIsPointerOverDoc(false)
       setHoverIfChanged(null)
     }
 
@@ -138,6 +132,7 @@ export const EditorToolbarArea: React.FC<EditorToolbarAreaProps> = ({
     hoverPath,
     caretPath,
     pinnedPath,
+    isPointerOverDoc,
     controls,
   }
 
@@ -200,17 +195,6 @@ function isValidElementPath(editor: SlateEditor, path: Path): boolean {
   try {
     const [node] = Editor.node(editor, path)
     return SlateElement.isElement(node)
-  } catch {
-    return false
-  }
-}
-
-function isDraftRangeValid(editor: SlateEditor, range: Range): boolean {
-  try {
-    return (
-      Editor.hasPath(editor, range.anchor.path) &&
-      Editor.hasPath(editor, range.focus.path)
-    )
   } catch {
     return false
   }

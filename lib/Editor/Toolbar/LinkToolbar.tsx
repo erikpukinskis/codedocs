@@ -19,8 +19,15 @@ import {
 export function matchLinkToolbar(
   context: MatchContext
 ): ToolbarDescriptor | null {
-  const { editor, hoverPath, caretPath, pinnedPath, controls, linkDraft } =
-    context
+  const {
+    editor,
+    hoverPath,
+    caretPath,
+    pinnedPath,
+    controls,
+    linkDraft,
+    isPointerOverDoc,
+  } = context
 
   if (linkDraft) {
     let targetRect: DOMRect | undefined
@@ -48,7 +55,7 @@ export function matchLinkToolbar(
 
   const { path: activeLinkPath, isPinned } = resolveActiveLinkPath(editor, {
     pinnedPath,
-    hoverPath,
+    hoverPath: isPointerOverDoc ? hoverPath : null,
     caretPath,
   })
   if (!activeLinkPath) return null
@@ -103,6 +110,7 @@ function wrapRangeAsLink(editor: SlateEditor, range: Range, url: string): void {
       } as LinkElementNode,
       { at: range, match: Text.isText, split: true }
     )
+    mergeAdjacentLinks(editor)
   })
 }
 
@@ -118,8 +126,19 @@ const LinkDraftToolbarContent: React.FC<LinkDraftToolbarContentProps> = ({
   const editor = useSlate() as SlateEditor
   const Components = useComponents()
   const [url, setUrl] = useState(draft.initialUrl)
+  const trimmedUrl = url.trim()
 
   const cancel = () => {
+    clearLinkDraft()
+    ReactEditor.focus(editor)
+  }
+
+  const removeAndClose = () => {
+    Transforms.unwrapNodes(editor, {
+      at: draft.range,
+      match: isLinkElement,
+      split: true,
+    })
     clearLinkDraft()
     ReactEditor.focus(editor)
   }
@@ -127,25 +146,33 @@ const LinkDraftToolbarContent: React.FC<LinkDraftToolbarContentProps> = ({
   const save = () => {
     wrapRangeAsLink(editor, draft.range, url)
     clearLinkDraft()
-    mergeAdjacentLinks(editor)
     ReactEditor.focus(editor)
   }
 
+  const onMouseDown = (e: React.MouseEvent) => {
+    if ((e.target as HTMLElement).closest("select")) return
+    e.preventDefault()
+  }
+
   return (
-    <>
+    <div onMouseDownCapture={onMouseDown}>
       <Components.TextInput
         value={url}
         onChange={setUrl}
         width="200px"
-        onEnterPress={save}
+        onEnterPress={trimmedUrl === "" ? removeAndClose : save}
       />
       <Components.Button variant="borderless" onClick={cancel}>
         Cancel
       </Components.Button>
-      <Components.Button variant="borderless" onClick={save}>
+      <Components.Button
+        variant="borderless"
+        onClick={save}
+        disabled={trimmedUrl === ""}
+      >
         Save
       </Components.Button>
-    </>
+    </div>
   )
 }
 
@@ -201,6 +228,7 @@ const LinkToolbarContent: React.FC<LinkToolbarContentProps> = ({
   }
 
   const href = isEditing ? url : linkNode.url
+  const trimmedUrl = url.trim()
 
   return isEditing ? (
     <>
@@ -208,12 +236,16 @@ const LinkToolbarContent: React.FC<LinkToolbarContentProps> = ({
         value={url}
         onChange={setUrl}
         width="200px"
-        onEnterPress={save}
+        onEnterPress={trimmedUrl === "" ? remove : save}
       />
       <Components.Button variant="borderless" onClick={cancel}>
         Cancel
       </Components.Button>
-      <Components.Button variant="borderless" onClick={save}>
+      <Components.Button
+        variant="borderless"
+        onClick={save}
+        disabled={trimmedUrl === ""}
+      >
         Save
       </Components.Button>
     </>
