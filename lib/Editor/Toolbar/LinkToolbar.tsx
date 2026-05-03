@@ -76,6 +76,7 @@ const LinkToolbarContent: React.FC<LinkToolbarContentProps> = ({
   clearPinnedPathRef.current = clearPinnedPath
 
   // Captured at mount so cancel knows whether this link was just created.
+  // TODO: Think through whether this can be done imperatively
   const isNew = useRef(linkNode.url === "").current
 
   // editor is a stable Slate instance — safe to capture without re-running
@@ -100,6 +101,7 @@ const LinkToolbarContent: React.FC<LinkToolbarContentProps> = ({
       // original text selection, and clears the history entry cleanly.
       // The component unmounts naturally once the link is gone.
       HistoryEditor.undo(editor)
+      clearPinnedPath()
     } else {
       setUrl(linkNode.url)
       setIsEditing(false)
