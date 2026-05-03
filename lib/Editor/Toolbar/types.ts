@@ -5,17 +5,22 @@ import type { ReactEditor } from "slate-react"
 
 export type SlateEditor = ReactEditor & HistoryEditor
 
+export type LinkDraft = { range: Range; initialUrl: string }
+
 export type ToolbarContext = {
   editor: SlateEditor
   selection: Range | null
   focused: boolean
   ghostSelection: Range | undefined
   areaRef: React.RefObject<HTMLDivElement | null>
+  linkDraft: LinkDraft | null
 }
 
 export type ToolbarControls = {
   pinPath: (path: Path) => void
   clearPinnedPath: () => void
+  setLinkDraft: (draft: LinkDraft) => void
+  clearLinkDraft: () => void
 }
 
 export type MatchContext = ToolbarContext & {

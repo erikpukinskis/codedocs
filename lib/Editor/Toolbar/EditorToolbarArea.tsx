@@ -1,16 +1,11 @@
-import React, {
-  useEffect,
-  useLayoutEffect,
-  useReducer,
-  useRef,
-  useState,
-} from "react"
+import React, { useEffect, useRef, useState } from "react"
 import { Editor, Element as SlateElement, Path, Range } from "slate"
 import type { DOMPoint } from "slate-dom"
 import { ReactEditor, useSlate, useSlateSelection } from "slate-react"
 import { matchFormattingToolbar } from "./FormattingToolbar"
 import { matchLinkToolbar } from "./LinkToolbar"
 import type {
+  LinkDraft,
   MatchContext,
   SlateEditor,
   ToolbarContext,
@@ -35,32 +30,39 @@ export const EditorToolbarArea: React.FC<EditorToolbarAreaProps> = ({
   const selection = useSlateSelection()
   const focused = ReactEditor.isFocused(editor)
 
+  const [linkDraft, setLinkDraftState] = useState<LinkDraft | null>(null)
+
   const context: ToolbarContext = {
     editor,
     selection,
     focused,
     ghostSelection,
     areaRef,
+    linkDraft,
   }
 
   const [hoverPath, setHoverPath] = useState<Path | null>(null)
   const hoverPathRef = useRef<Path | null>(null)
   const [pinnedPath, setPinnedPath] = useState<Path | null>(null)
 
-  // When pinnedPath changes, ReactEditor.toDOMNode on the freshly created link
-  // element fails during the render phase (DOM not committed yet). This bumps
-  // a counter after every commit where pinnedPath changed, giving matchLinkToolbar
-  // a second chance to resolve the DOM node.
-  const [, retryAfterCommit] = useReducer((n: number) => n + 1, 0)
-  useLayoutEffect(() => {
-    if (pinnedPath !== null) retryAfterCommit()
-  }, [pinnedPath])
-
   useEffect(() => {
     if (pinnedPath !== null && !isValidElementPath(editor, pinnedPath)) {
       setPinnedPath(null)
     }
   }, [editor, pinnedPath])
+
+  useEffect(() => {
+    if (linkDraft === null) return
+    if (!isDraftRangeValid(editor, linkDraft.range)) {
+      setLinkDraftState(null)
+      return
+    }
+    try {
+      ReactEditor.toDOMRange(editor, linkDraft.range)
+    } catch {
+      setLinkDraftState(null)
+    }
+  }, [editor, linkDraft, editor.children])
 
   useEffect(() => {
     const area = areaRef.current
@@ -122,6 +124,12 @@ export const EditorToolbarArea: React.FC<EditorToolbarAreaProps> = ({
     },
     clearPinnedPath: () => {
       setPinnedPath(null)
+    },
+    setLinkDraft: (draft: LinkDraft) => {
+      setLinkDraftState(draft)
+    },
+    clearLinkDraft: () => {
+      setLinkDraftState(null)
     },
   }
 
@@ -192,6 +200,17 @@ function isValidElementPath(editor: SlateEditor, path: Path): boolean {
   try {
     const [node] = Editor.node(editor, path)
     return SlateElement.isElement(node)
+  } catch {
+    return false
+  }
+}
+
+function isDraftRangeValid(editor: SlateEditor, range: Range): boolean {
+  try {
+    return (
+      Editor.hasPath(editor, range.anchor.path) &&
+      Editor.hasPath(editor, range.focus.path)
+    )
   } catch {
     return false
   }

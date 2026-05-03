@@ -1,10 +1,10 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import React from "react"
-import type { Node, Path, Range } from "slate"
+import type { Node, Range } from "slate"
 import { Editor, Range as SlateRange, Text, Transforms } from "slate"
-import { HistoryEditor } from "slate-history"
 import { ReactEditor, useSlate } from "slate-react"
 import type {
+  LinkDraft,
   MatchContext,
   SlateEditor,
   ToolbarControls,
@@ -17,7 +17,6 @@ import {
   isLinkElement,
   isListItemBlock,
   isParagraphBlock,
-  type LinkElement,
   type SlateBlock,
 } from "~/Editor/types"
 import type { FormatMark } from "~/helpers/range"
@@ -111,6 +110,8 @@ function applyBlockType<T extends SlateBlock["type"]>(
 export function matchFormattingToolbar(
   context: MatchContext
 ): ToolbarDescriptor | null {
+  if (context.linkDraft) return null
+
   const { editor, selection, focused, ghostSelection } = context
 
   const hasExpandedSelection = selection && !SlateRange.isCollapsed(selection)
@@ -240,8 +241,6 @@ const FormattingToolbarContent: React.FC<FormattingToolbarContentProps> = ({
     }
 
   const linkSelection = () => {
-    // Find the URL of the rightmost (last in document order) link in the
-    // selection — used as the initial URL for the new link per Req 2.
     let inheritUrl = ""
     for (const [node] of Editor.nodes(editor, {
       at: activeRange,
@@ -250,63 +249,11 @@ const FormattingToolbarContent: React.FC<FormattingToolbarContentProps> = ({
       inheritUrl = node.url
     }
 
-    let newLinkPath: Path | null = null
-
-    // withoutMerging ensures these transforms form a discrete undo entry so
-    // cancelling a new link via HistoryEditor.undo() reverts exactly this operation.
-    HistoryEditor.withoutMerging(editor, () => {
-      // Remove all links that overlap the selection. split: true causes Slate to
-      // split any link that extends beyond the selection boundary first, so only
-      // the portion inside the selection is unwrapped; the outside portion stays.
-      Transforms.unwrapNodes(editor, {
-        at: activeRange,
-        match: isLinkElement,
-        split: true,
-      })
-
-      if (!editor.selection) {
-        throw new Error(
-          "linkSelection: editor.selection was null after unwrapNodes"
-        )
-      }
-
-      const linkId = `l${Date.now()}`
-      // split: true is needed here even though we already removed links above —
-      // unwrapNodes + normalization may have merged adjacent text nodes so
-      // editor.selection may now span the interior of a single text node; split
-      // cuts it at the selection boundaries before wrapping.
-      Transforms.wrapNodes(
-        editor,
-        {
-          type: "link",
-          id: linkId,
-          url: inheritUrl,
-          children: [],
-        } as LinkElement,
-        { at: editor.selection, match: Text.isText, split: true }
-      )
-
-      for (const [, path] of Editor.nodes(editor, {
-        match: (n) => isLinkElement(n) && n.id === linkId,
-      })) {
-        newLinkPath = path
-        break
-      }
-
-      if (!newLinkPath) {
-        throw new Error(
-          "linkSelection: wrapNodes did not produce a link element"
-        )
-      }
-
-      // Collapse the editor selection so the FormattingToolbar stops matching
-      // and the LinkToolbar can take over via pinnedPath.
-      Transforms.deselect(editor)
-    })
-
-    // Reaching this point means newLinkPath was set; the throw inside
-    // withoutMerging would have propagated if it were null.
-    controls.pinPath(newLinkPath as unknown as Path)
+    const draft: LinkDraft = {
+      range: cloneRange(activeRange),
+      initialUrl: inheritUrl,
+    }
+    controls.setLinkDraft(draft)
   }
 
   const blockType = blockTypeSelectValue(editor, activeRange)
@@ -412,4 +359,11 @@ const FormattingToolbarContent: React.FC<FormattingToolbarContentProps> = ({
       </Components.Button>
     </div>
   )
+}
+
+function cloneRange(range: Range): Range {
+  return {
+    anchor: { path: [...range.anchor.path], offset: range.anchor.offset },
+    focus: { path: [...range.focus.path], offset: range.focus.offset },
+  }
 }

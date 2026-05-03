@@ -1,10 +1,15 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { useEffect, useRef, useState } from "react"
+import React, { useEffect, useRef, useState } from "react"
 import { Editor, Element as SlateElement, Text, Transforms } from "slate"
-import type { Descendant, Path } from "slate"
+import type { Descendant, Path, Range } from "slate"
 import { HistoryEditor } from "slate-history"
 import { ReactEditor, useSlate } from "slate-react"
-import type { MatchContext, ToolbarDescriptor } from "./types"
+import type {
+  LinkDraft,
+  MatchContext,
+  SlateEditor,
+  ToolbarDescriptor,
+} from "./types"
 import { useComponents } from "~/ComponentContext"
 import {
   isLinkElement,
@@ -14,7 +19,33 @@ import {
 export function matchLinkToolbar(
   context: MatchContext
 ): ToolbarDescriptor | null {
-  const { editor, hoverPath, caretPath, pinnedPath, controls } = context
+  const { editor, hoverPath, caretPath, pinnedPath, controls, linkDraft } =
+    context
+
+  if (linkDraft) {
+    let targetRect: DOMRect | undefined
+    try {
+      const domRange = ReactEditor.toDOMRange(editor, linkDraft.range)
+      targetRect =
+        domRange.getClientRects()[0] ?? domRange.getBoundingClientRect()
+    } catch {
+      // toDOMRange can throw when the range no longer maps cleanly to the DOM
+    }
+    if (!targetRect || (targetRect.width === 0 && targetRect.height === 0)) {
+      return null
+    }
+    return {
+      target: targetRect,
+      immediate: true,
+      content: (
+        <LinkDraftToolbarContent
+          draft={linkDraft}
+          clearLinkDraft={controls.clearLinkDraft}
+        />
+      ),
+    }
+  }
+
   const { path: activeLinkPath, isPinned } = resolveActiveLinkPath(editor, {
     pinnedPath,
     hoverPath,
@@ -55,6 +86,69 @@ export function matchLinkToolbar(
   }
 }
 
+function wrapRangeAsLink(editor: SlateEditor, range: Range, url: string): void {
+  HistoryEditor.withoutMerging(editor, () => {
+    Transforms.unwrapNodes(editor, {
+      at: range,
+      match: isLinkElement,
+      split: true,
+    })
+    Transforms.wrapNodes(
+      editor,
+      {
+        type: "link",
+        id: `l${Date.now()}`,
+        url,
+        children: [],
+      } as LinkElementNode,
+      { at: range, match: Text.isText, split: true }
+    )
+  })
+}
+
+type LinkDraftToolbarContentProps = {
+  draft: LinkDraft
+  clearLinkDraft: () => void
+}
+
+const LinkDraftToolbarContent: React.FC<LinkDraftToolbarContentProps> = ({
+  draft,
+  clearLinkDraft,
+}) => {
+  const editor = useSlate() as SlateEditor
+  const Components = useComponents()
+  const [url, setUrl] = useState(draft.initialUrl)
+
+  const cancel = () => {
+    clearLinkDraft()
+    ReactEditor.focus(editor)
+  }
+
+  const save = () => {
+    wrapRangeAsLink(editor, draft.range, url)
+    clearLinkDraft()
+    mergeAdjacentLinks(editor)
+    ReactEditor.focus(editor)
+  }
+
+  return (
+    <>
+      <Components.TextInput
+        value={url}
+        onChange={setUrl}
+        width="200px"
+        onEnterPress={save}
+      />
+      <Components.Button variant="borderless" onClick={cancel}>
+        Cancel
+      </Components.Button>
+      <Components.Button variant="borderless" onClick={save}>
+        Save
+      </Components.Button>
+    </>
+  )
+}
+
 type LinkToolbarContentProps = {
   pinPath: (path: Path) => void
   clearPinnedPath: () => void
@@ -70,14 +164,10 @@ const LinkToolbarContent: React.FC<LinkToolbarContentProps> = ({
 }) => {
   const editor = useSlate()
   const Components = useComponents()
-  const [isEditing, setIsEditing] = useState(linkNode.url === "")
+  const [isEditing, setIsEditing] = useState(false)
   const [url, setUrl] = useState(() => linkNode.url)
   const clearPinnedPathRef = useRef(clearPinnedPath)
   clearPinnedPathRef.current = clearPinnedPath
-
-  // Captured at mount so cancel knows whether this link was just created.
-  // TODO: Think through whether this can be done imperatively
-  const isNew = useRef(linkNode.url === "").current
 
   // editor is a stable Slate instance — safe to capture without re-running
   useEffect(() => {
@@ -96,17 +186,9 @@ const LinkToolbarContent: React.FC<LinkToolbarContentProps> = ({
   }
 
   const cancel = () => {
-    if (isNew) {
-      // Undo the entire linkSelection operation: removes the link, restores the
-      // original text selection, and clears the history entry cleanly.
-      // The component unmounts naturally once the link is gone.
-      HistoryEditor.undo(editor)
-      clearPinnedPath()
-    } else {
-      setUrl(linkNode.url)
-      setIsEditing(false)
-      clearPinnedPath()
-    }
+    setUrl(linkNode.url)
+    setIsEditing(false)
+    clearPinnedPath()
   }
 
   const remove = () => {
