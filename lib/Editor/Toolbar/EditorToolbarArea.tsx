@@ -1,4 +1,10 @@
-import React, { useEffect, useRef, useState } from "react"
+import React, {
+  useEffect,
+  useLayoutEffect,
+  useReducer,
+  useRef,
+  useState,
+} from "react"
 import { Editor, Element as SlateElement, Path, Range } from "slate"
 import type { DOMPoint } from "slate-dom"
 import { ReactEditor, useSlate, useSlateSelection } from "slate-react"
@@ -8,6 +14,7 @@ import type {
   MatchContext,
   SlateEditor,
   ToolbarContext,
+  ToolbarDescriptor,
   ToolbarMatcher,
 } from "./types"
 import { Toolbar } from "~/Components/Toolbar"
@@ -39,6 +46,15 @@ export const EditorToolbarArea: React.FC<EditorToolbarAreaProps> = ({
   const [hoverPath, setHoverPath] = useState<Path | null>(null)
   const hoverPathRef = useRef<Path | null>(null)
   const [pinnedPath, setPinnedPath] = useState<Path | null>(null)
+
+  // When pinnedPath changes, ReactEditor.toDOMNode on the freshly created link
+  // element fails during the render phase (DOM not committed yet). This bumps
+  // a counter after every commit where pinnedPath changed, giving matchLinkToolbar
+  // a second chance to resolve the DOM node.
+  const [, retryAfterCommit] = useReducer((n: number) => n + 1, 0)
+  useLayoutEffect(() => {
+    if (pinnedPath !== null) retryAfterCommit()
+  }, [pinnedPath])
 
   useEffect(() => {
     if (pinnedPath !== null && !isValidElementPath(editor, pinnedPath)) {
@@ -119,7 +135,7 @@ export const EditorToolbarArea: React.FC<EditorToolbarAreaProps> = ({
 
   const matchers: ToolbarMatcher[] = [matchFormattingToolbar, matchLinkToolbar]
 
-  let matchedToolbar: ReturnType<ToolbarMatcher> = null
+  let matchedToolbar: ToolbarDescriptor | null = null
   for (const matcher of matchers) {
     const toolbar = matcher(matchContext)
 
@@ -139,6 +155,7 @@ export const EditorToolbarArea: React.FC<EditorToolbarAreaProps> = ({
           listenerAreaRef={areaRef}
           target={matchedToolbar.target}
           open
+          immediate={matchedToolbar.immediate === true}
           content={matchedToolbar.content}
         />
       )}

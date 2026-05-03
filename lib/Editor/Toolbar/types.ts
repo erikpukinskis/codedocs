@@ -28,6 +28,8 @@ export type MatchContext = ToolbarContext & {
 export type ToolbarDescriptor = {
   target: Element | DOMRectReadOnly
   content: React.ReactNode
+  /** When true the toolbar bypasses the 200ms hover-delay and shows immediately. */
+  immediate?: boolean
 }
 
 export type ToolbarMatcher = (context: MatchContext) => ToolbarDescriptor | null

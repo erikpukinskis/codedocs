@@ -2,6 +2,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import React from "react"
 import type { Node, Path, Range } from "slate"
 import { Editor, Range as SlateRange, Text, Transforms } from "slate"
+import { HistoryEditor } from "slate-history"
 import { ReactEditor, useSlate } from "slate-react"
 import type {
   MatchContext,
@@ -249,48 +250,63 @@ const FormattingToolbarContent: React.FC<FormattingToolbarContentProps> = ({
       inheritUrl = node.url
     }
 
-    // Remove all links that overlap the selection. split: true causes Slate to
-    // split any link that extends beyond the selection boundary first, so only
-    // the portion inside the selection is unwrapped; the outside portion stays.
-    Transforms.unwrapNodes(editor, {
-      at: activeRange,
-      match: isLinkElement,
-      split: true,
+    let newLinkPath: Path | null = null
+
+    // withoutMerging ensures these transforms form a discrete undo entry so
+    // cancelling a new link via HistoryEditor.undo() reverts exactly this operation.
+    HistoryEditor.withoutMerging(editor, () => {
+      // Remove all links that overlap the selection. split: true causes Slate to
+      // split any link that extends beyond the selection boundary first, so only
+      // the portion inside the selection is unwrapped; the outside portion stays.
+      Transforms.unwrapNodes(editor, {
+        at: activeRange,
+        match: isLinkElement,
+        split: true,
+      })
+
+      if (!editor.selection) {
+        throw new Error(
+          "linkSelection: editor.selection was null after unwrapNodes"
+        )
+      }
+
+      const linkId = `l${Date.now()}`
+      // split: true is needed here even though we already removed links above —
+      // unwrapNodes + normalization may have merged adjacent text nodes so
+      // editor.selection may now span the interior of a single text node; split
+      // cuts it at the selection boundaries before wrapping.
+      Transforms.wrapNodes(
+        editor,
+        {
+          type: "link",
+          id: linkId,
+          url: inheritUrl,
+          children: [],
+        } as LinkElement,
+        { at: editor.selection, match: Text.isText, split: true }
+      )
+
+      for (const [, path] of Editor.nodes(editor, {
+        match: (n) => isLinkElement(n) && n.id === linkId,
+      })) {
+        newLinkPath = path
+        break
+      }
+
+      if (!newLinkPath) {
+        throw new Error(
+          "linkSelection: wrapNodes did not produce a link element"
+        )
+      }
+
+      // Collapse the editor selection so the FormattingToolbar stops matching
+      // and the LinkToolbar can take over via pinnedPath.
+      Transforms.deselect(editor)
     })
 
-    // editor.selection is kept up-to-date by Slate through the transforms above
-    const range = editor.selection ?? activeRange
-
-    const linkElement: LinkElement = {
-      type: "link",
-      id: `l${Date.now()}`,
-      url: inheritUrl,
-      children: [],
-    }
-    // Wrap the exact selection in a new link
-    const linkId = `l${Date.now()}`
-    Transforms.wrapNodes(editor, linkElement, {
-      at: range,
-      match: Text.isText,
-      split: true,
-    })
-
-    // Locate the newly created link by its id so we can pin it
-    let newLinkPath: Path | undefined
-    for (const [, path] of Editor.nodes(editor, {
-      match: (n) => isLinkElement(n) && n.id === linkId,
-    })) {
-      newLinkPath = path
-      break
-    }
-
-    // Collapse the editor selection so the FormattingToolbar stops matching
-    // and the LinkToolbar can take over via pinnedPath
-    Transforms.deselect(editor)
-
-    if (newLinkPath) {
-      controls.pinPath(newLinkPath)
-    }
+    // Reaching this point means newLinkPath was set; the throw inside
+    // withoutMerging would have propagated if it were null.
+    controls.pinPath(newLinkPath as unknown as Path)
   }
 
   const blockType = blockTypeSelectValue(editor, activeRange)

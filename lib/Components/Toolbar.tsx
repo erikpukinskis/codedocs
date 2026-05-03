@@ -42,6 +42,8 @@ type ToolbarProps = {
    */
   target?: Element | DOMRectReadOnly | null
   open?: boolean
+  /** When true, skip the 200ms hover-delay and show the toolbar immediately. */
+  immediate?: boolean
 }
 
 function assignRef<T>(ref: React.Ref<T | null> | undefined, value: T | null) {
@@ -56,6 +58,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   listenerAreaRef,
   target,
   open,
+  immediate,
 }): React.ReactNode => {
   const {
     ref: observerRef,
@@ -101,7 +104,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   const viewportRect =
     target instanceof Element ? target.getBoundingClientRect() : target
   const relative = root ? getPositionRelativeToRoot(root, viewportRect) : null
-  const showPosition = Boolean(toolbar && didWait && relative)
+  const showPosition = Boolean(toolbar && (immediate || didWait) && relative)
 
   return (
     <div

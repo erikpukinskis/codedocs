@@ -2,6 +2,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { useEffect, useRef, useState } from "react"
 import { Editor, Element as SlateElement, Text, Transforms } from "slate"
 import type { Descendant, Path } from "slate"
+import { HistoryEditor } from "slate-history"
 import { ReactEditor, useSlate } from "slate-react"
 import type { MatchContext, ToolbarDescriptor } from "./types"
 import { useComponents } from "~/ComponentContext"
@@ -14,7 +15,7 @@ export function matchLinkToolbar(
   context: MatchContext
 ): ToolbarDescriptor | null {
   const { editor, hoverPath, caretPath, pinnedPath, controls } = context
-  const activeLinkPath = resolveActiveLinkPath(editor, {
+  const { path: activeLinkPath, isPinned } = resolveActiveLinkPath(editor, {
     pinnedPath,
     hoverPath,
     caretPath,
@@ -39,6 +40,9 @@ export function matchLinkToolbar(
 
   return {
     target: linkDom,
+    // Skip the 200ms hover-delay when the toolbar was opened via an explicit
+    // click (pinned path), not just by hovering over an existing link.
+    immediate: isPinned,
     content: (
       <LinkToolbarContent
         key={JSON.stringify(activeLinkPath)}
@@ -71,6 +75,10 @@ const LinkToolbarContent: React.FC<LinkToolbarContentProps> = ({
   const clearPinnedPathRef = useRef(clearPinnedPath)
   clearPinnedPathRef.current = clearPinnedPath
 
+  // Captured at mount so cancel knows whether this link was just created.
+  const isNew = useRef(linkNode.url === "").current
+
+  // editor is a stable Slate instance — safe to capture without re-running
   useEffect(() => {
     return () => {
       mergeAdjacentLinks(editor)
@@ -87,9 +95,16 @@ const LinkToolbarContent: React.FC<LinkToolbarContentProps> = ({
   }
 
   const cancel = () => {
-    setUrl(linkNode.url)
-    setIsEditing(false)
-    clearPinnedPath()
+    if (isNew) {
+      // Undo the entire linkSelection operation: removes the link, restores the
+      // original text selection, and clears the history entry cleanly.
+      // The component unmounts naturally once the link is gone.
+      HistoryEditor.undo(editor)
+    } else {
+      setUrl(linkNode.url)
+      setIsEditing(false)
+      clearPinnedPath()
+    }
   }
 
   const remove = () => {
@@ -155,12 +170,13 @@ function mergeAdjacentLinks(editor: MatchContext["editor"]) {
   while (changed) {
     changed = false
 
-    outer: for (const [node, path] of Editor.nodes(editor, {
+    outer: for (const [link, path] of Editor.nodes(editor, {
       match: isLinkElement,
     })) {
-      const link = node
+      const index = path.at(-1)
+      if (index === undefined) continue
+
       const parentPath = path.slice(0, -1)
-      const index = path[path.length - 1]
 
       let parent: { children: Descendant[] }
       try {
@@ -177,6 +193,8 @@ function mergeAdjacentLinks(editor: MatchContext["editor"]) {
       const next = parent.children[index + 2]
 
       if (
+        mid !== undefined &&
+        next !== undefined &&
         isLinkElement(next) &&
         next.url === link.url &&
         Text.isText(mid) &&
@@ -207,6 +225,8 @@ function getHost(url: string) {
  * Picks the link path that should drive the link toolbar. We prefer a pinned
  * link while editing, then the hovered link, then the link around a collapsed
  * caret.
+ *
+ * Also returns `isPinned` so callers can decide whether to bypass the hover delay.
  */
 function resolveActiveLinkPath(
   editor: MatchContext["editor"],
@@ -215,18 +235,18 @@ function resolveActiveLinkPath(
     hoverPath: MatchContext["hoverPath"]
     caretPath: MatchContext["caretPath"]
   }
-): Path | null {
-  const priorityOrder = [
-    candidates.pinnedPath,
-    candidates.hoverPath,
-    candidates.caretPath,
+): { path: Path | null; isPinned: boolean } {
+  const priorityOrder: Array<[Path | null, boolean]> = [
+    [candidates.pinnedPath, true],
+    [candidates.hoverPath, false],
+    [candidates.caretPath, false],
   ]
-  for (const candidatePath of priorityOrder) {
+  for (const [candidatePath, isPinned] of priorityOrder) {
     if (!candidatePath) continue
     const linkPath = linkPathFromElementPath(editor, candidatePath)
-    if (linkPath) return linkPath
+    if (linkPath) return { path: linkPath, isPinned }
   }
-  return null
+  return { path: null, isPinned: false }
 }
 
 function linkPathFromElementPath(
