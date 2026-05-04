@@ -182,23 +182,32 @@ Roadmap to 1.0
 - [x] Extract source vía macro
 - [x] Show events emitted from demos
 - [x] Variant demos
-- [ ] Remove include-wrapper-in-source in favor of includeWrapperInSource prop. Also make sure includeWrapperInSource prop is removed from source (inception).
-- [ ] Disallow with <Demo render={...}>...</Demo>, <Demo dependencies={...}>...</Demo>, etc
+- [x] Live edit demos (at least on localhost)
+- [x] Live edit headings, paragraphs, etc
+
+Next major steps:
 - [ ] Persistence
 - [ ] Props palette
-- [ ] Think about where the editor helpers should go. editorHelpers.ts?
 
+On the horizon:
+- [ ] Design Tokens
+
+Cleanups:
+- [ ] Remove include-wrapper-in-source in favor of includeWrapperInSource prop. Also make sure includeWrapperInSource prop is removed from source (inception).
+- [ ] Disallow with <Demo render={...}>...</Demo>, <Demo dependencies={...}>...</Demo>, etc
+- [ ] Think about where the editor helpers should go. editorHelpers.ts?
+- [ ] Fix horizontal variants layout + variant spacing
+
+Important features:
 - [ ] ApiReference
 - [ ] Dark mode
-- [ ] Contact sheet
-- [ ] Live edit demos (at least on localhost)
-- [ ] Live edit headings, paragraphs, etc
 - [ ] Visual tests
+- [ ] Contact sheet
 - [ ] Fullscreen demos
 
 ## Inspiration
 
-- https://wattenberger.com/blog/react-and-d3
+- https://2019.wattenberger.com/blog/react-and-d3
 - https://stitches.dev/docs/variants
 - https://eslint.org/docs/latest/user-guide/configuring/configuration-files
 - https://www.apollographql.com/docs/react/
