@@ -1,99 +1,21 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import React, { useEffect, useRef, useState } from "react"
+import React, { useEffect, useState } from "react"
 import { Editor, Element as SlateElement, Text, Transforms } from "slate"
 import type { Descendant, Path, Range } from "slate"
 import { HistoryEditor } from "slate-history"
 import { ReactEditor, useSlate } from "slate-react"
-import type {
-  LinkDraft,
-  MatchContext,
-  SlateEditor,
-  ToolbarDescriptor,
-} from "./types"
+import type { LinkDraft, SlateEditor, ToolbarControls } from "./types"
 import { useComponents } from "~/ComponentContext"
 import {
   isLinkElement,
   type LinkElement as LinkElementNode,
 } from "~/Editor/types"
 
-export function matchLinkToolbar(
-  context: MatchContext
-): ToolbarDescriptor | null {
-  const {
-    editor,
-    hoverPath,
-    caretPath,
-    pinnedPath,
-    controls,
-    linkDraft,
-    isPointerOverDoc,
-  } = context
-
-  if (linkDraft) {
-    let targetRect: DOMRect | undefined
-    try {
-      const domRange = ReactEditor.toDOMRange(editor, linkDraft.range)
-      targetRect =
-        domRange.getClientRects()[0] ?? domRange.getBoundingClientRect()
-    } catch {
-      // toDOMRange can throw when the range no longer maps cleanly to the DOM
-    }
-    if (!targetRect || (targetRect.width === 0 && targetRect.height === 0)) {
-      return null
-    }
-    return {
-      target: targetRect,
-      immediate: true,
-      content: (
-        <LinkDraftToolbarContent
-          draft={linkDraft}
-          clearLinkDraft={controls.clearLinkDraft}
-        />
-      ),
-    }
-  }
-
-  const { path: activeLinkPath, isPinned } = resolveActiveLinkPath(editor, {
-    pinnedPath,
-    hoverPath: isPointerOverDoc ? hoverPath : null,
-    caretPath,
-  })
-  if (!activeLinkPath) return null
-
-  let linkNode: LinkElementNode
-  try {
-    const [n] = Editor.node(editor, activeLinkPath)
-    if (!isLinkElement(n)) return null
-    linkNode = n
-  } catch {
-    return null
-  }
-
-  let linkDom: HTMLElement
-  try {
-    linkDom = ReactEditor.toDOMNode(editor, linkNode)
-  } catch {
-    return null
-  }
-
-  return {
-    target: linkDom,
-    // Skip the 200ms hover-delay when the toolbar was opened via an explicit
-    // click (pinned path), not just by hovering over an existing link.
-    immediate: isPinned,
-    content: (
-      <LinkToolbarContent
-        key={JSON.stringify(activeLinkPath)}
-        linkPath={activeLinkPath}
-        linkNode={linkNode}
-        pinPath={controls.pinPath}
-        clearPinnedPath={controls.clearPinnedPath}
-      />
-    ),
-  }
-}
-
-function wrapRangeAsLink(editor: SlateEditor, range: Range, url: string): void {
+export function wrapRangeAsLink(
+  editor: SlateEditor,
+  range: Range,
+  url: string
+): void {
   HistoryEditor.withoutMerging(editor, () => {
     Transforms.unwrapNodes(editor, {
       at: range,
@@ -114,38 +36,31 @@ function wrapRangeAsLink(editor: SlateEditor, range: Range, url: string): void {
   })
 }
 
-type LinkDraftToolbarContentProps = {
+export type LinkDraftToolbarContentProps = {
   draft: LinkDraft
-  clearLinkDraft: () => void
+  controls: ToolbarControls
 }
 
-const LinkDraftToolbarContent: React.FC<LinkDraftToolbarContentProps> = ({
-  draft,
-  clearLinkDraft,
-}) => {
+export const LinkDraftToolbarContent: React.FC<
+  LinkDraftToolbarContentProps
+> = ({ draft, controls }) => {
   const editor = useSlate() as SlateEditor
   const Components = useComponents()
   const [url, setUrl] = useState(draft.initialUrl)
   const trimmedUrl = url.trim()
 
   const cancel = () => {
-    clearLinkDraft()
+    controls.cancelLinkDraft()
     ReactEditor.focus(editor)
   }
 
   const removeAndClose = () => {
-    Transforms.unwrapNodes(editor, {
-      at: draft.range,
-      match: isLinkElement,
-      split: true,
-    })
-    clearLinkDraft()
+    controls.removeLinkDraft()
     ReactEditor.focus(editor)
   }
 
   const save = () => {
-    wrapRangeAsLink(editor, draft.range, url)
-    clearLinkDraft()
+    controls.saveLinkDraft(url)
     ReactEditor.focus(editor)
   }
 
@@ -176,58 +91,55 @@ const LinkDraftToolbarContent: React.FC<LinkDraftToolbarContentProps> = ({
   )
 }
 
-type LinkToolbarContentProps = {
-  pinPath: (path: Path) => void
-  clearPinnedPath: () => void
+export type LinkToolbarContentProps = {
   linkPath: Path
   linkNode: LinkElementNode
+  editing: boolean
+  controls: ToolbarControls
 }
 
-const LinkToolbarContent: React.FC<LinkToolbarContentProps> = ({
+export const LinkToolbarContent: React.FC<LinkToolbarContentProps> = ({
   linkPath,
   linkNode,
-  pinPath,
-  clearPinnedPath,
+  editing,
+  controls,
 }) => {
   const editor = useSlate()
   const Components = useComponents()
-  const [isEditing, setIsEditing] = useState(false)
   const [url, setUrl] = useState(() => linkNode.url)
-  const clearPinnedPathRef = useRef(clearPinnedPath)
-  clearPinnedPathRef.current = clearPinnedPath
 
-  // editor is a stable Slate instance — safe to capture without re-running
+  useEffect(() => {
+    setUrl(linkNode.url)
+  }, [linkNode.url])
+
   useEffect(() => {
     return () => {
       mergeAdjacentLinks(editor)
-      clearPinnedPathRef.current()
     }
-  }, [])
+  }, [editor])
 
   const save = () => {
     if (url !== linkNode.url) {
       Transforms.setNodes(editor, { url }, { at: linkPath })
     }
-    setIsEditing(false)
-    clearPinnedPath()
+    controls.saveLinkEdit()
   }
 
   const cancel = () => {
     setUrl(linkNode.url)
-    setIsEditing(false)
-    clearPinnedPath()
+    controls.cancelLinkEdit()
   }
 
   const remove = () => {
     Transforms.unwrapNodes(editor, {
       at: linkPath,
       match: isLinkElement,
+      split: true,
     })
-    setIsEditing(false)
-    clearPinnedPath()
+    controls.removeLink()
   }
 
-  const href = isEditing ? url : linkNode.url
+  const href = editing ? url : linkNode.url
   const trimmedUrl = url.trim()
 
   const captureMouseDown = (e: React.MouseEvent) => {
@@ -235,7 +147,7 @@ const LinkToolbarContent: React.FC<LinkToolbarContentProps> = ({
     e.preventDefault()
   }
 
-  return isEditing ? (
+  return editing ? (
     <div onMouseDownCapture={captureMouseDown}>
       <Components.TextInput
         value={url}
@@ -263,9 +175,8 @@ const LinkToolbarContent: React.FC<LinkToolbarContentProps> = ({
       <Components.Button
         variant="borderless"
         onClick={() => {
-          pinPath(linkPath)
           setUrl(linkNode.url)
-          setIsEditing(true)
+          controls.beginLinkEdit(linkPath, linkNode)
         }}
       >
         <FontAwesomeIcon icon="pen-to-square" size="xs" /> Edit
@@ -284,7 +195,7 @@ const LinkToolbarContent: React.FC<LinkToolbarContentProps> = ({
  * "Adjacent" means the two link siblings are separated by at most one empty
  * text node — the zero-width text Slate inserts between inline elements.
  */
-function mergeAdjacentLinks(editor: MatchContext["editor"]) {
+function mergeAdjacentLinks(editor: SlateEditor) {
   // Repeat until a full pass finds no more mergeable pairs (each merge may
   // expose a new pair, e.g. A–B–C with identical URLs).
   let changed = true
@@ -340,51 +251,4 @@ function mergeAdjacentLinks(editor: MatchContext["editor"]) {
 function getHost(url: string) {
   const match = url.match(/^https?:\/\/([^/]+)/)
   return match ? match[1] : url.slice(0, 15)
-}
-
-/**
- * Picks the link path that should drive the link toolbar. We prefer a pinned
- * link while editing, then the hovered link, then the link around a collapsed
- * caret.
- *
- * Also returns `isPinned` so callers can decide whether to bypass the hover delay.
- */
-function resolveActiveLinkPath(
-  editor: MatchContext["editor"],
-  candidates: {
-    pinnedPath: MatchContext["pinnedPath"]
-    hoverPath: MatchContext["hoverPath"]
-    caretPath: MatchContext["caretPath"]
-  }
-): { path: Path | null; isPinned: boolean } {
-  const priorityOrder: Array<[Path | null, boolean]> = [
-    [candidates.pinnedPath, true],
-    [candidates.hoverPath, false],
-    [candidates.caretPath, false],
-  ]
-  for (const [candidatePath, isPinned] of priorityOrder) {
-    if (!candidatePath) continue
-    const linkPath = linkPathFromElementPath(editor, candidatePath)
-    if (linkPath) return { path: linkPath, isPinned }
-  }
-  return { path: null, isPinned: false }
-}
-
-function linkPathFromElementPath(
-  editor: MatchContext["editor"],
-  elementPath: Path
-): Path | null {
-  try {
-    const [node] = Editor.node(editor, elementPath)
-    if (isLinkElement(node)) return elementPath
-
-    const above = Editor.above(editor, {
-      at: elementPath,
-      match: isLinkElement,
-      mode: "lowest",
-    })
-    return above ? above[1] : null
-  } catch {
-    return null
-  }
 }

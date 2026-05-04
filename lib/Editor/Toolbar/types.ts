@@ -2,34 +2,29 @@ import type React from "react"
 import type { Path, Range } from "slate"
 import type { HistoryEditor } from "slate-history"
 import type { ReactEditor } from "slate-react"
+import type { LinkElement as LinkElementNode } from "~/Editor/types"
 
 export type SlateEditor = ReactEditor & HistoryEditor
 
 export type LinkDraft = { range: Range; initialUrl: string }
 
-export type ToolbarContext = {
-  editor: SlateEditor
-  selection: Range | null
-  focused: boolean
-  ghostSelection: Range | undefined
-  areaRef: React.RefObject<HTMLDivElement | null>
-  linkDraft: LinkDraft | null
-}
+export type ToolbarMode =
+  | { kind: "none" }
+  | { kind: "formatting"; range: Range; targetRect: DOMRect }
+  | { kind: "linkDraft"; draft: LinkDraft; priorRect: DOMRect }
+  | { kind: "linkHover"; linkPath: Path; linkNode: LinkElementNode }
+  | { kind: "linkEditing"; linkPath: Path; linkNode: LinkElementNode }
 
 export type ToolbarControls = {
-  pinPath: (path: Path) => void
-  clearPinnedPath: () => void
-  setLinkDraft: (draft: LinkDraft) => void
-  clearLinkDraft: () => void
-}
-
-export type MatchContext = ToolbarContext & {
-  hoverPath: Path | null
-  caretPath: Path | null
-  pinnedPath: Path | null
-  /** True only when the pointer is in the Slate content area (not toolbar chrome). */
-  isPointerOverDoc: boolean
-  controls: ToolbarControls
+  beginLinkDraft: (draft: LinkDraft) => void
+  cancelLinkDraft: () => void
+  saveLinkDraft: (url: string) => void
+  removeLinkDraft: () => void
+  beginLinkEdit: (path: Path, node: LinkElementNode) => void
+  cancelLinkEdit: () => void
+  saveLinkEdit: () => void
+  /** Call after the editor has already removed the link node (e.g. unwrap). */
+  removeLink: () => void
 }
 
 export type ToolbarDescriptor = {
@@ -38,5 +33,3 @@ export type ToolbarDescriptor = {
   /** When true the toolbar bypasses the 200ms hover-delay and shows immediately. */
   immediate?: boolean
 }
-
-export type ToolbarMatcher = (context: MatchContext) => ToolbarDescriptor | null

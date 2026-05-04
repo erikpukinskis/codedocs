@@ -1135,7 +1135,7 @@ const DocEditorInner = ({
       }}
     >
       <div className={styles.editorContainer}>
-        <EditorToolbarArea ghostSelection={ghostSelection}>
+        <EditorToolbarArea>
           <Editable
             renderElement={renderElement}
             renderLeaf={renderLeaf}

@@ -3,13 +3,7 @@ import React from "react"
 import type { Node, Range } from "slate"
 import { Editor, Range as SlateRange, Text, Transforms } from "slate"
 import { ReactEditor, useSlate } from "slate-react"
-import type {
-  LinkDraft,
-  MatchContext,
-  SlateEditor,
-  ToolbarControls,
-  ToolbarDescriptor,
-} from "./types"
+import type { LinkDraft, SlateEditor, ToolbarControls } from "./types"
 import { useComponents } from "~/ComponentContext"
 import * as buttonStyles from "~/Components/Button.css"
 import {
@@ -20,11 +14,7 @@ import {
   type SlateBlock,
 } from "~/Editor/types"
 import type { FormatMark } from "~/helpers/range"
-import {
-  NON_CODE_FORMAT_MARKS,
-  isFormattableRange,
-  isMarkActiveInSelection,
-} from "~/helpers/range"
+import { NON_CODE_FORMAT_MARKS, isMarkActiveInSelection } from "~/helpers/range"
 
 /** Element fields for a given block discriminant (no `children`). */
 type SlateBlockFields<T extends SlateBlock["type"]> = Omit<
@@ -107,68 +97,14 @@ function applyBlockType<T extends SlateBlock["type"]>(
   }
 }
 
-export function matchFormattingToolbar(
-  context: MatchContext
-): ToolbarDescriptor | null {
-  if (context.linkDraft) return null
-
-  const { editor, selection, focused, ghostSelection } = context
-
-  const hasExpandedSelection = selection && !SlateRange.isCollapsed(selection)
-  const candidateRange = hasExpandedSelection
-    ? selection
-    : focused
-    ? undefined
-    : ghostSelection
-
-  if (!isFormattableRange(editor, candidateRange)) return null
-
-  let targetRect: DOMRect | undefined
-  try {
-    const domRange = ReactEditor.toDOMRange(editor, candidateRange)
-    const rect =
-      domRange.getClientRects()[0] ?? domRange.getBoundingClientRect()
-    if (rect && !(rect.width === 0 && rect.height === 0)) {
-      targetRect = rect
-    }
-  } catch {
-    // toDOMRange can throw when Slate's range no longer maps cleanly to DOM
-  }
-
-  if (!targetRect && typeof window !== "undefined") {
-    const nativeSelection = window.getSelection()
-    const nativeRange = nativeSelection?.rangeCount
-      ? nativeSelection.getRangeAt(0)
-      : null
-    const rect =
-      nativeRange?.getClientRects()[0] ?? nativeRange?.getBoundingClientRect()
-    if (rect && !(rect.width === 0 && rect.height === 0)) {
-      targetRect = rect
-    }
-  }
-
-  if (!targetRect) return null
-
-  return {
-    target: targetRect,
-    content: (
-      <FormattingToolbarContent
-        activeRange={candidateRange}
-        controls={context.controls}
-      />
-    ),
-  }
-}
-
-type FormattingToolbarContentProps = {
-  activeRange: Range
+export type FormattingToolbarContentProps = {
+  range: Range
   controls: ToolbarControls
 }
 
-const FormattingToolbarContent: React.FC<FormattingToolbarContentProps> = ({
-  activeRange,
-  controls,
-}) => {
+export const FormattingToolbarContent: React.FC<
+  FormattingToolbarContentProps
+> = ({ range, controls }) => {
   const editor = useSlate() as SlateEditor
   const Components = useComponents()
 
@@ -179,9 +115,9 @@ const FormattingToolbarContent: React.FC<FormattingToolbarContentProps> = ({
 
   const toggleMark = (key: FormatMark) => {
     if (key === "code") {
-      if (isMarkActiveInSelection(editor, key, activeRange)) {
+      if (isMarkActiveInSelection(editor, key, range)) {
         Transforms.unsetNodes(editor, key, {
-          at: activeRange,
+          at: range,
           match: matchAnyTextLeaf,
           split: true,
         })
@@ -189,7 +125,7 @@ const FormattingToolbarContent: React.FC<FormattingToolbarContentProps> = ({
       }
 
       Transforms.unsetNodes(editor, NON_CODE_FORMAT_MARKS as string[], {
-        at: activeRange,
+        at: range,
         match: matchAnyTextLeaf,
         split: true,
       })
@@ -197,7 +133,7 @@ const FormattingToolbarContent: React.FC<FormattingToolbarContentProps> = ({
         editor,
         { code: true },
         {
-          at: activeRange,
+          at: range,
           match: matchAnyTextLeaf,
           split: true,
         }
@@ -205,9 +141,9 @@ const FormattingToolbarContent: React.FC<FormattingToolbarContentProps> = ({
       return
     }
 
-    if (isMarkActiveInSelection(editor, key, activeRange)) {
+    if (isMarkActiveInSelection(editor, key, range)) {
       Transforms.unsetNodes(editor, key, {
-        at: activeRange,
+        at: range,
         match: matchNonCodeTextLeaf,
         split: true,
       })
@@ -218,7 +154,7 @@ const FormattingToolbarContent: React.FC<FormattingToolbarContentProps> = ({
       editor,
       { [key]: true },
       {
-        at: activeRange,
+        at: range,
         match: matchNonCodeTextLeaf,
         split: true,
       }
@@ -243,20 +179,20 @@ const FormattingToolbarContent: React.FC<FormattingToolbarContentProps> = ({
   const linkSelection = () => {
     let inheritUrl = ""
     for (const [node] of Editor.nodes(editor, {
-      at: activeRange,
+      at: range,
       match: isLinkElement,
     })) {
       inheritUrl = node.url
     }
 
     const draft: LinkDraft = {
-      range: cloneRange(activeRange),
+      range: cloneRange(range),
       initialUrl: inheritUrl,
     }
-    controls.setLinkDraft(draft)
+    controls.beginLinkDraft(draft)
   }
 
-  const blockType = blockTypeSelectValue(editor, activeRange)
+  const blockType = blockTypeSelectValue(editor, range)
 
   return (
     <div onMouseDownCapture={captureMouseDown}>
@@ -265,15 +201,15 @@ const FormattingToolbarContent: React.FC<FormattingToolbarContentProps> = ({
         onChange={(event) => {
           const newBlockType = event.target.value
           if (newBlockType === "paragraph") {
-            applyBlockType(editor, activeRange, "paragraph", {})
+            applyBlockType(editor, range, "paragraph", {})
           } else if (newBlockType === "heading-1") {
-            applyBlockType(editor, activeRange, "heading", { level: 1 })
+            applyBlockType(editor, range, "heading", { level: 1 })
           } else if (newBlockType === "heading-2") {
-            applyBlockType(editor, activeRange, "heading", { level: 2 })
+            applyBlockType(editor, range, "heading", { level: 2 })
           } else if (newBlockType === "heading-3") {
-            applyBlockType(editor, activeRange, "heading", { level: 3 })
+            applyBlockType(editor, range, "heading", { level: 3 })
           } else if (newBlockType === "list") {
-            applyBlockType(editor, activeRange, "list-item", {
+            applyBlockType(editor, range, "list-item", {
               listType: "ul",
               depth: 0,
             })
@@ -335,7 +271,7 @@ const FormattingToolbarContent: React.FC<FormattingToolbarContentProps> = ({
         variant="borderless"
         aria-label="List"
         onClick={() => {
-          applyBlockType(editor, activeRange, "list-item", {
+          applyBlockType(editor, range, "list-item", {
             listType: "ul",
             depth: 0,
           })
@@ -348,7 +284,7 @@ const FormattingToolbarContent: React.FC<FormattingToolbarContentProps> = ({
         variant="borderless"
         aria-label="Numbered List"
         onClick={() => {
-          applyBlockType(editor, activeRange, "list-item", {
+          applyBlockType(editor, range, "list-item", {
             listType: "ol",
             depth: 0,
           })
@@ -361,9 +297,9 @@ const FormattingToolbarContent: React.FC<FormattingToolbarContentProps> = ({
   )
 }
 
-function cloneRange(range: Range): Range {
+function cloneRange(r: Range): Range {
   return {
-    anchor: { path: [...range.anchor.path], offset: range.anchor.offset },
-    focus: { path: [...range.focus.path], offset: range.focus.offset },
+    anchor: { path: [...r.anchor.path], offset: r.anchor.offset },
+    focus: { path: [...r.focus.path], offset: r.focus.offset },
   }
 }
