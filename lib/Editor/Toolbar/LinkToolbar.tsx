@@ -76,24 +76,29 @@ export const LinkDraftToolbarContent: React.FC<
   }
 
   return (
-    <div onMouseDownCapture={captureMouseDown}>
+    <>
       <Components.TextInput
         value={url}
         onChange={setUrl}
         width="200px"
         onEnterPress={trimmedUrl === "" ? removeAndClose : save}
       />
-      <Components.Button variant="borderless" onClick={cancel}>
+      <Components.Button
+        variant="borderless"
+        onClick={cancel}
+        onMouseDownCapture={captureMouseDown}
+      >
         Cancel
       </Components.Button>
       <Components.Button
         variant="borderless"
         onClick={save}
         disabled={trimmedUrl === ""}
+        onMouseDownCapture={captureMouseDown}
       >
         Save
       </Components.Button>
-    </div>
+    </>
   )
 }
 
@@ -154,27 +159,36 @@ export const LinkToolbarContent: React.FC<LinkToolbarContentProps> = ({
   }
 
   return editing ? (
-    <div onMouseDownCapture={captureMouseDown}>
+    <>
       <Components.TextInput
         value={url}
         onChange={setUrl}
         width="200px"
         onEnterPress={trimmedUrl === "" ? remove : save}
       />
-      <Components.Button variant="borderless" onClick={cancel}>
+      <Components.Button
+        variant="borderless"
+        onClick={cancel}
+        onMouseDownCapture={captureMouseDown}
+      >
         Cancel
       </Components.Button>
       <Components.Button
         variant="borderless"
         onClick={save}
         disabled={trimmedUrl === ""}
+        onMouseDownCapture={captureMouseDown}
       >
         Save
       </Components.Button>
-    </div>
+    </>
   ) : (
     <>
-      <Components.LinkButton to={href} variant="borderless">
+      <Components.LinkButton
+        to={href}
+        variant="borderless"
+        onMouseDownCapture={captureMouseDown}
+      >
         <FontAwesomeIcon icon="arrow-up-right-from-square" size="xs" />{" "}
         {getHost(href)}
       </Components.LinkButton>
@@ -184,10 +198,15 @@ export const LinkToolbarContent: React.FC<LinkToolbarContentProps> = ({
           setUrl(linkNode.url)
           controls.beginLinkEdit(linkPath, linkNode)
         }}
+        onMouseDownCapture={captureMouseDown}
       >
         <FontAwesomeIcon icon="pen-to-square" size="xs" /> Edit
       </Components.Button>
-      <Components.Button variant="borderless" onClick={remove}>
+      <Components.Button
+        variant="borderless"
+        onClick={remove}
+        onMouseDownCapture={captureMouseDown}
+      >
         <FontAwesomeIcon icon="trash-can" size="xs" /> Remove
       </Components.Button>
     </>
