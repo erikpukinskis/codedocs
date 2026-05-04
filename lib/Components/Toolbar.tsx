@@ -87,14 +87,22 @@ export const Toolbar: React.FC<ToolbarProps> = ({
   // formatting toolbar should instantaneously close, and this timeout should
   // reset before the new toolbar appears.
   useEffect(() => {
-    if (!toolbar) return
+    if (!toolbar) {
+      // Ref cleared when the toolbar unmounts (e.g. closed); reset so the next
+      // open runs the delay again — otherwise `didWait` stays true forever.
+      setDidWait(false)
+      return
+    }
 
     // We wait 200ms so we don't show the toolbar unless you actually pause on the target.
     const timeout = setTimeout(() => {
       setDidWait(true)
     }, 200)
 
-    return () => clearTimeout(timeout)
+    return () => {
+      clearTimeout(timeout)
+      setDidWait(false)
+    }
   }, [toolbar])
 
   if (!target) return null
