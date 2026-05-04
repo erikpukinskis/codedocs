@@ -55,12 +55,18 @@ export const LinkDraftToolbarContent: React.FC<
   }
 
   const removeAndClose = () => {
+    Transforms.unwrapNodes(editor, {
+      at: draft.range,
+      match: isLinkElement,
+      split: true,
+    })
     controls.removeLinkDraft()
     ReactEditor.focus(editor)
   }
 
   const save = () => {
-    controls.saveLinkDraft(url)
+    wrapRangeAsLink(editor, draft.range, url)
+    controls.saveLinkDraft()
     ReactEditor.focus(editor)
   }
 

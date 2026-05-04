@@ -1,13 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from "react"
-import { Editor, Element as SlateElement, Path, Range, Transforms } from "slate"
+import { Editor, Element as SlateElement, Path, Range } from "slate"
 import type { DOMPoint } from "slate-dom"
 import { ReactEditor, useSlate, useSlateSelection } from "slate-react"
 import { FormattingToolbarContent } from "./FormattingToolbar"
-import {
-  LinkDraftToolbarContent,
-  LinkToolbarContent,
-  wrapRangeAsLink,
-} from "./LinkToolbar"
+import { LinkDraftToolbarContent, LinkToolbarContent } from "./LinkToolbar"
 import type {
   LinkDraft,
   SlateEditor,
@@ -169,23 +165,11 @@ export const EditorToolbarArea: React.FC<EditorToolbarAreaProps> = ({
           }
         })
       },
-      saveLinkDraft: (url: string) => {
-        setMode((m) => {
-          if (m.kind !== "linkDraft") return m
-          wrapRangeAsLink(editor, m.draft.range, url)
-          return { kind: "none" }
-        })
+      saveLinkDraft: () => {
+        setMode((m) => (m.kind === "linkDraft" ? { kind: "none" } : m))
       },
       removeLinkDraft: () => {
-        setMode((m) => {
-          if (m.kind !== "linkDraft") return m
-          Transforms.unwrapNodes(editor, {
-            at: m.draft.range,
-            match: isLinkElement,
-            split: true,
-          })
-          return { kind: "none" }
-        })
+        setMode((m) => (m.kind === "linkDraft" ? { kind: "none" } : m))
       },
       beginLinkEdit: (path, node) => {
         setMode({ kind: "linkEditing", linkPath: path, linkNode: node })
@@ -306,8 +290,6 @@ function modeToDescriptor(
         ),
       }
     }
-    default:
-      return null
   }
 }
 

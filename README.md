@@ -186,6 +186,7 @@ Roadmap to 1.0
 - [ ] Disallow with <Demo render={...}>...</Demo>, <Demo dependencies={...}>...</Demo>, etc
 - [ ] Persistence
 - [ ] Props palette
+- [ ] Think about where the editor helpers should go. editorHelpers.ts?
 
 - [ ] ApiReference
 - [ ] Dark mode

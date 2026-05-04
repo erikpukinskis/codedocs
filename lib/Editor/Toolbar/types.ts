@@ -18,7 +18,8 @@ export type ToolbarMode =
 export type ToolbarControls = {
   beginLinkDraft: (draft: LinkDraft) => void
   cancelLinkDraft: () => void
-  saveLinkDraft: (url: string) => void
+  /** Call after `wrapRangeAsLink` has been applied (mode transition only). */
+  saveLinkDraft: () => void
   removeLinkDraft: () => void
   beginLinkEdit: (path: Path, node: LinkElementNode) => void
   cancelLinkEdit: () => void
