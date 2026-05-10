@@ -6,7 +6,12 @@ import type { LinkElement as LinkElementNode } from "~/Editor/types"
 
 export type SlateEditor = ReactEditor & HistoryEditor
 
-export type LinkDraft = { range: Range; initialUrl: string }
+/** Draft link already exists in the document; Save updates `url` only. */
+export type LinkDraft = {
+  linkPath: Path
+  linkNode: LinkElementNode
+  initialUrl: string
+}
 
 export type ToolbarMode =
   | { kind: "none" }
@@ -22,7 +27,7 @@ export type ToolbarMode =
 export type ToolbarAction =
   | { type: "environmentChanged"; next: ToolbarMode }
   | { type: "beginLinkDraft"; draft: LinkDraft }
-  | { type: "cancelLinkDraft" }
+  | { type: "cancelLinkDraft"; restoreRange: Range }
   | { type: "saveLinkDraft"; linkPath: Path; linkNode: LinkElementNode }
   | { type: "removeLinkDraft" }
   | { type: "beginLinkEdit"; linkPath: Path; linkNode: LinkElementNode }
@@ -32,13 +37,13 @@ export type ToolbarAction =
 
 export type ToolbarControls = {
   beginLinkDraft: (draft: LinkDraft) => void
-  cancelLinkDraft: () => void
-  /** Call after `wrapRangeAsLink` has been applied (mode transition only). */
+  cancelLinkDraft: (restoreRange: Range) => void
+  /** Mode transition only — document already has the new link and URL. */
   saveLinkDraft: (path: Path, node: LinkElementNode) => void
   removeLinkDraft: () => void
   beginLinkEdit: (path: Path, node: LinkElementNode) => void
   cancelLinkEdit: () => void
-  saveLinkEdit: () => void
+  saveLinkEdit: (linkPath: Path, linkNode: LinkElementNode) => void
   /** Call after the editor has already removed the link node (e.g. unwrap). */
   removeLink: () => void
 }

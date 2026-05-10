@@ -1,9 +1,10 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import React, { useEffect, useState } from "react"
-import { Transforms } from "slate"
+import { Editor, Transforms } from "slate"
 import type { Path } from "slate"
+import { HistoryEditor } from "slate-history"
 import { useSlate } from "slate-react"
-import type { ToolbarControls } from "./types"
+import type { SlateEditor, ToolbarControls } from "./types"
 import { useComponents } from "~/ComponentContext"
 import { mergeAdjacentLinks } from "~/Editor/editorHelpers"
 import {
@@ -24,7 +25,7 @@ export const EditLinkToolbar: React.FC<EditLinkToolbarProps> = ({
   editing,
   controls,
 }) => {
-  const editor = useSlate()
+  const editor = useSlate() as SlateEditor
   const Components = useComponents()
   const [url, setUrl] = useState(() => linkNode.url)
 
@@ -32,17 +33,31 @@ export const EditLinkToolbar: React.FC<EditLinkToolbarProps> = ({
     setUrl(linkNode.url)
   }, [linkNode.url])
 
-  useEffect(() => {
-    return () => {
-      mergeAdjacentLinks(editor)
-    }
-  }, [editor])
-
   const save = () => {
-    if (url !== linkNode.url) {
-      Transforms.setNodes(editor, { url }, { at: linkPath })
+    if (url === linkNode.url) {
+      controls.saveLinkEdit(linkPath, linkNode)
+      return
     }
-    controls.saveLinkEdit()
+    HistoryEditor.withoutMerging(editor, () => {
+      Transforms.setNodes(editor, { url }, { at: linkPath })
+      const pathRef = Editor.pathRef(editor, linkPath)
+      try {
+        mergeAdjacentLinks(editor)
+        const p = pathRef.current
+        if (!p) {
+          controls.saveLinkEdit(linkPath, linkNode)
+          return
+        }
+        const [node] = Editor.node(editor, p)
+        if (!isLinkElement(node)) {
+          controls.saveLinkEdit(linkPath, linkNode)
+          return
+        }
+        controls.saveLinkEdit(p, node)
+      } finally {
+        pathRef.unref()
+      }
+    })
   }
 
   const cancel = () => {

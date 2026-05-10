@@ -7,6 +7,10 @@ import type { LinkDraft, SlateEditor, ToolbarControls } from "./types"
 import { useComponents } from "~/ComponentContext"
 import * as buttonStyles from "~/Components/Button.css"
 import {
+  LINK_DRAFT_PLACEHOLDER_URL,
+  wrapRangeAsLink,
+} from "~/Editor/editorHelpers"
+import {
   isHeadingBlock,
   isLinkElement,
   isListItemBlock,
@@ -185,8 +189,14 @@ export const FormattingToolbarContent: React.FC<
       inheritUrl = node.url
     }
 
+    const { linkPath, linkNode } = wrapRangeAsLink(
+      editor,
+      range,
+      LINK_DRAFT_PLACEHOLDER_URL
+    )
     const draft: LinkDraft = {
-      range: cloneRange(range),
+      linkPath,
+      linkNode,
       initialUrl: inheritUrl,
     }
     controls.beginLinkDraft(draft)
@@ -295,11 +305,4 @@ export const FormattingToolbarContent: React.FC<
       </Components.Button>
     </div>
   )
-}
-
-function cloneRange(r: Range): Range {
-  return {
-    anchor: { path: [...r.anchor.path], offset: r.anchor.offset },
-    focus: { path: [...r.focus.path], offset: r.focus.offset },
-  }
 }

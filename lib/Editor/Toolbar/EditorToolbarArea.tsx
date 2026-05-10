@@ -143,31 +143,16 @@ export const EditorToolbarArea: React.FC<EditorToolbarAreaProps> = ({
     () => ({
       beginLinkDraft: (draft: LinkDraft) =>
         dispatch({ type: "beginLinkDraft", draft }),
-      cancelLinkDraft: () => dispatch({ type: "cancelLinkDraft" }),
+      cancelLinkDraft: (restoreRange) =>
+        dispatch({ type: "cancelLinkDraft", restoreRange }),
       saveLinkDraft: (linkPath, linkNode) =>
         dispatch({ type: "saveLinkDraft", linkPath, linkNode }),
       removeLinkDraft: () => dispatch({ type: "removeLinkDraft" }),
       beginLinkEdit: (linkPath, linkNode) =>
         dispatch({ type: "beginLinkEdit", linkPath, linkNode }),
       cancelLinkEdit: () => dispatch({ type: "cancelLinkEdit" }),
-      saveLinkEdit: () => {
-        const m = modeRef.current
-        if (m.kind !== "linkEditing") return
-        try {
-          const [node] = Editor.node(editor, m.linkPath)
-          if (isLinkElement(node)) {
-            dispatch({
-              type: "saveLinkEdit",
-              linkPath: m.linkPath,
-              linkNode: node,
-            })
-            return
-          }
-        } catch {
-          // path invalid after edit
-        }
-        dispatch({ type: "removeLink" })
-      },
+      saveLinkEdit: (linkPath, linkNode) =>
+        dispatch({ type: "saveLinkEdit", linkPath, linkNode }),
       removeLink: () => dispatch({ type: "removeLink" }),
     }),
     [editor]
@@ -280,7 +265,7 @@ function toolbarModeReducer(
       if (state.kind !== "linkDraft") return state
       return {
         kind: "formatting",
-        range: state.draft.range,
+        range: action.restoreRange,
         targetRect: state.priorRect,
       }
     case "saveLinkDraft":
@@ -336,7 +321,7 @@ function toolbarModesEqual(a: ToolbarMode, b: ToolbarMode): boolean {
   }
   if (a.kind === "linkDraft" && b.kind === "linkDraft") {
     return (
-      Range.equals(a.draft.range, b.draft.range) &&
+      Path.equals(a.draft.linkPath, b.draft.linkPath) &&
       a.draft.initialUrl === b.draft.initialUrl &&
       rectsEqualEnough(a.priorRect, b.priorRect)
     )
