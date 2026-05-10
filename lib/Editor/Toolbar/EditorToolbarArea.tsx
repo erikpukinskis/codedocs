@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react"
+import React, { useEffect, useMemo, useReducer, useRef, useState } from "react"
 import { Editor, Element as SlateElement, Path, Range } from "slate"
 import type { DOMPoint } from "slate-dom"
 import { ReactEditor, useSlate, useSlateSelection } from "slate-react"
@@ -7,6 +7,7 @@ import { LinkDraftToolbarContent, LinkToolbarContent } from "./LinkToolbar"
 import type {
   LinkDraft,
   SlateEditor,
+  ToolbarAction,
   ToolbarControls,
   ToolbarDescriptor,
   ToolbarMode,
@@ -29,7 +30,11 @@ export const EditorToolbarArea: React.FC<EditorToolbarAreaProps> = ({
   const selection = useSlateSelection()
   const focused = ReactEditor.isFocused(editor)
 
-  const [mode, setMode] = useState<ToolbarMode>({ kind: "none" })
+  const [mode, dispatch] = useReducer(toolbarModeReducer, {
+    kind: "none",
+  } as ToolbarMode)
+  const modeRef = useRef(mode)
+  modeRef.current = mode
 
   const [hoverPath, setHoverPath] = useState<Path | null>(null)
   const hoverPathRef = useRef<Path | null>(null)
@@ -94,114 +99,74 @@ export const EditorToolbarArea: React.FC<EditorToolbarAreaProps> = ({
       : elementPathAtPoint(editor, selection.anchor)
 
   useEffect(() => {
-    setMode((prev) => {
-      if (prev.kind === "linkDraft" || prev.kind === "linkEditing") {
-        return prev
-      }
+    let next: ToolbarMode = { kind: "none" }
 
-      if (
-        selection &&
-        !Range.isCollapsed(selection) &&
-        isFormattableRange(editor, selection)
-      ) {
-        let targetRect: DOMRect | undefined
-        try {
-          const domRange = ReactEditor.toDOMRange(editor, selection)
-          const r =
-            domRange.getClientRects()[0] ?? domRange.getBoundingClientRect()
-          if (r && !(r.width === 0 && r.height === 0)) targetRect = r
-        } catch {
-          // toDOMRange can throw when the range no longer maps to the DOM
-        }
-        if (targetRect) {
-          const next: ToolbarMode = {
-            kind: "formatting",
-            range: selection,
-            targetRect,
-          }
-          return toolbarModesEqual(prev, next) ? prev : next
-        }
+    if (
+      selection &&
+      !Range.isCollapsed(selection) &&
+      isFormattableRange(editor, selection)
+    ) {
+      let targetRect: DOMRect | undefined
+      try {
+        const domRange = ReactEditor.toDOMRange(editor, selection)
+        const r =
+          domRange.getClientRects()[0] ?? domRange.getBoundingClientRect()
+        if (r && !(r.width === 0 && r.height === 0)) targetRect = r
+      } catch {
+        // toDOMRange can throw when the range no longer maps to the DOM
       }
+      if (targetRect) {
+        next = { kind: "formatting", range: selection, targetRect }
+      }
+    }
 
+    if (next.kind === "none") {
       const effectiveHover = isPointerOverDoc ? hoverPath : null
       const linkPath = resolveToolbarLinkPath(editor, effectiveHover, caretPath)
-
       if (linkPath) {
         try {
           const [node] = Editor.node(editor, linkPath)
           if (isLinkElement(node)) {
-            const next: ToolbarMode = {
-              kind: "linkHover",
-              linkPath,
-              linkNode: node,
-            }
-            return toolbarModesEqual(prev, next) ? prev : next
+            next = { kind: "linkHover", linkPath, linkNode: node }
           }
         } catch {
           // invalid path
         }
       }
+    }
 
-      const next: ToolbarMode = { kind: "none" }
-      return toolbarModesEqual(prev, next) ? prev : next
-    })
+    dispatch({ type: "environmentChanged", next })
   }, [editor, selection, focused, hoverPath, isPointerOverDoc, caretPath])
 
   const controls = useMemo<ToolbarControls>(
     () => ({
-      beginLinkDraft: (draft: LinkDraft) => {
-        setMode((m) => {
-          if (m.kind !== "formatting") return m
-          return { kind: "linkDraft", draft, priorRect: m.targetRect }
-        })
-      },
-      cancelLinkDraft: () => {
-        setMode((m) => {
-          if (m.kind !== "linkDraft") return m
-          return {
-            kind: "formatting",
-            range: m.draft.range,
-            targetRect: m.priorRect,
-          }
-        })
-      },
-      saveLinkDraft: () => {
-        setMode((m) => (m.kind === "linkDraft" ? { kind: "none" } : m))
-      },
-      removeLinkDraft: () => {
-        setMode((m) => (m.kind === "linkDraft" ? { kind: "none" } : m))
-      },
-      beginLinkEdit: (path, node) => {
-        setMode({ kind: "linkEditing", linkPath: path, linkNode: node })
-      },
-      cancelLinkEdit: () => {
-        setMode((m) =>
-          m.kind === "linkEditing"
-            ? { kind: "linkHover", linkPath: m.linkPath, linkNode: m.linkNode }
-            : m
-        )
-      },
+      beginLinkDraft: (draft: LinkDraft) =>
+        dispatch({ type: "beginLinkDraft", draft }),
+      cancelLinkDraft: () => dispatch({ type: "cancelLinkDraft" }),
+      saveLinkDraft: () => dispatch({ type: "saveLinkDraft" }),
+      removeLinkDraft: () => dispatch({ type: "removeLinkDraft" }),
+      beginLinkEdit: (linkPath, linkNode) =>
+        dispatch({ type: "beginLinkEdit", linkPath, linkNode }),
+      cancelLinkEdit: () => dispatch({ type: "cancelLinkEdit" }),
       saveLinkEdit: () => {
-        setMode((m) => {
-          if (m.kind !== "linkEditing") return m
-          try {
-            const [node] = Editor.node(editor, m.linkPath)
-            if (isLinkElement(node)) {
-              return {
-                kind: "linkHover",
-                linkPath: m.linkPath,
-                linkNode: node,
-              }
-            }
-          } catch {
-            // path invalid after edit
+        const m = modeRef.current
+        if (m.kind !== "linkEditing") return
+        try {
+          const [node] = Editor.node(editor, m.linkPath)
+          if (isLinkElement(node)) {
+            dispatch({
+              type: "saveLinkEdit",
+              linkPath: m.linkPath,
+              linkNode: node,
+            })
+            return
           }
-          return { kind: "none" }
-        })
+        } catch {
+          // path invalid after edit
+        }
+        dispatch({ type: "removeLink" })
       },
-      removeLink: () => {
-        setMode({ kind: "none" })
-      },
+      removeLink: () => dispatch({ type: "removeLink" }),
     }),
     [editor]
   )
@@ -290,6 +255,57 @@ function modeToDescriptor(
         ),
       }
     }
+  }
+}
+
+function toolbarModeReducer(
+  state: ToolbarMode,
+  action: ToolbarAction
+): ToolbarMode {
+  switch (action.type) {
+    case "environmentChanged":
+      // Ignore external environment signals while the user is actively editing
+      if (state.kind === "linkDraft" || state.kind === "linkEditing")
+        return state
+      return toolbarModesEqual(state, action.next) ? state : action.next
+    case "beginLinkDraft":
+      if (state.kind !== "formatting") return state
+      return {
+        kind: "linkDraft",
+        draft: action.draft,
+        priorRect: state.targetRect,
+      }
+    case "cancelLinkDraft":
+      if (state.kind !== "linkDraft") return state
+      return {
+        kind: "formatting",
+        range: state.draft.range,
+        targetRect: state.priorRect,
+      }
+    case "saveLinkDraft":
+    case "removeLinkDraft":
+      return state.kind === "linkDraft" ? { kind: "none" } : state
+    case "beginLinkEdit":
+      return {
+        kind: "linkEditing",
+        linkPath: action.linkPath,
+        linkNode: action.linkNode,
+      }
+    case "cancelLinkEdit":
+      if (state.kind !== "linkEditing") return state
+      return {
+        kind: "linkHover",
+        linkPath: state.linkPath,
+        linkNode: state.linkNode,
+      }
+    case "saveLinkEdit":
+      return {
+        kind: "linkHover",
+        linkPath: action.linkPath,
+        linkNode: action.linkNode,
+      }
+    case "removeLink":
+      return { kind: "none" }
   }
 }
 

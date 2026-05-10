@@ -15,6 +15,21 @@ export type ToolbarMode =
   | { kind: "linkHover"; linkPath: Path; linkNode: LinkElementNode }
   | { kind: "linkEditing"; linkPath: Path; linkNode: LinkElementNode }
 
+/**
+ * All toolbar state transitions. Pure actions — no side effects.
+ * Mutations to the Slate document must happen in the caller before dispatching.
+ */
+export type ToolbarAction =
+  | { type: "environmentChanged"; next: ToolbarMode }
+  | { type: "beginLinkDraft"; draft: LinkDraft }
+  | { type: "cancelLinkDraft" }
+  | { type: "saveLinkDraft" }
+  | { type: "removeLinkDraft" }
+  | { type: "beginLinkEdit"; linkPath: Path; linkNode: LinkElementNode }
+  | { type: "cancelLinkEdit" }
+  | { type: "saveLinkEdit"; linkPath: Path; linkNode: LinkElementNode }
+  | { type: "removeLink" }
+
 export type ToolbarControls = {
   beginLinkDraft: (draft: LinkDraft) => void
   cancelLinkDraft: () => void
