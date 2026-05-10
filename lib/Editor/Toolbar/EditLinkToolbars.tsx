@@ -45,13 +45,15 @@ export const EditLinkToolbar: React.FC<EditLinkToolbarProps> = ({
         mergeAdjacentLinks(editor)
         const p = pathRef.current
         if (!p) {
-          controls.saveLinkEdit(linkPath, linkNode)
-          return
+          throw new Error(
+            "EditLinkToolbar save: link path lost after mergeAdjacentLinks"
+          )
         }
         const [node] = Editor.node(editor, p)
         if (!isLinkElement(node)) {
-          controls.saveLinkEdit(linkPath, linkNode)
-          return
+          throw new Error(
+            "EditLinkToolbar save: node at path after merge is not a link"
+          )
         }
         controls.saveLinkEdit(p, node)
       } finally {
@@ -71,6 +73,10 @@ export const EditLinkToolbar: React.FC<EditLinkToolbarProps> = ({
       match: isLinkElement,
       split: true,
     })
+    // Merge adjacent same-URL links that may now be neighbors after unwrapping
+    // this link. Centralized merge policy: all link close-paths (save/cancel/remove)
+    // must merge to prevent orphaned duplicates.
+    mergeAdjacentLinks(editor)
     controls.removeLink()
   }
 

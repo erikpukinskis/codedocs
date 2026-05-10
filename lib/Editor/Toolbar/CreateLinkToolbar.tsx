@@ -22,6 +22,8 @@ export const CreateLinkToolbar: React.FC<CreateLinkToolbarProps> = ({
   const trimmedUrl = url.trim()
 
   const cancel = () => {
+    // Capture range before unwrap; after unwrap the link node is gone so we can't
+    // derive it from draft.linkPath anymore.
     const beforeRange = Editor.range(editor, draft.linkPath)
     Transforms.unwrapNodes(editor, {
       at: draft.linkPath,
@@ -45,6 +47,12 @@ export const CreateLinkToolbar: React.FC<CreateLinkToolbarProps> = ({
 
   const save = () => {
     const href = url.trim()
+    if (!href) {
+      throw new Error("Can't create a link with an no URL")
+    }
+    // Bundle setNodes + merge into one undo step. Use pathRef to track the link's
+    // position through merge, since mergeAdjacentLinks may shift paths when
+    // combining same-URL neighbors.
     HistoryEditor.withoutMerging(editor, () => {
       Transforms.setNodes(editor, { url: href }, { at: draft.linkPath })
       const pathRef = Editor.pathRef(editor, draft.linkPath)
