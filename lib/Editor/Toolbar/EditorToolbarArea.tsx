@@ -144,7 +144,8 @@ export const EditorToolbarArea: React.FC<EditorToolbarAreaProps> = ({
       beginLinkDraft: (draft: LinkDraft) =>
         dispatch({ type: "beginLinkDraft", draft }),
       cancelLinkDraft: () => dispatch({ type: "cancelLinkDraft" }),
-      saveLinkDraft: () => dispatch({ type: "saveLinkDraft" }),
+      saveLinkDraft: (linkPath, linkNode) =>
+        dispatch({ type: "saveLinkDraft", linkPath, linkNode }),
       removeLinkDraft: () => dispatch({ type: "removeLinkDraft" }),
       beginLinkEdit: (linkPath, linkNode) =>
         dispatch({ type: "beginLinkEdit", linkPath, linkNode }),
@@ -261,6 +262,7 @@ function toolbarModeReducer(
   state: ToolbarMode,
   action: ToolbarAction
 ): ToolbarMode {
+  console.debug("state", state, action)
   switch (action.type) {
     case "environmentChanged":
       // Ignore external environment signals while the user is actively editing
@@ -282,8 +284,23 @@ function toolbarModeReducer(
         targetRect: state.priorRect,
       }
     case "saveLinkDraft":
+      if (state.kind !== "linkDraft") {
+        throw new Error(
+          "Trying to create a link even though the CreateLinkToolbar is not open?"
+        )
+      }
+      return {
+        kind: "linkHover",
+        linkPath: action.linkPath,
+        linkNode: action.linkNode,
+      }
     case "removeLinkDraft":
-      return state.kind === "linkDraft" ? { kind: "none" } : state
+      if (state.kind !== "linkDraft") {
+        throw new Error(
+          "Canceling link creation even though the CreateLinkToolbar is not open?"
+        )
+      }
+      return { kind: "none" }
     case "beginLinkEdit":
       return {
         kind: "linkEditing",

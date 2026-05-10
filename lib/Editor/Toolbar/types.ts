@@ -23,7 +23,7 @@ export type ToolbarAction =
   | { type: "environmentChanged"; next: ToolbarMode }
   | { type: "beginLinkDraft"; draft: LinkDraft }
   | { type: "cancelLinkDraft" }
-  | { type: "saveLinkDraft" }
+  | { type: "saveLinkDraft"; linkPath: Path; linkNode: LinkElementNode }
   | { type: "removeLinkDraft" }
   | { type: "beginLinkEdit"; linkPath: Path; linkNode: LinkElementNode }
   | { type: "cancelLinkEdit" }
@@ -34,7 +34,7 @@ export type ToolbarControls = {
   beginLinkDraft: (draft: LinkDraft) => void
   cancelLinkDraft: () => void
   /** Call after `wrapRangeAsLink` has been applied (mode transition only). */
-  saveLinkDraft: () => void
+  saveLinkDraft: (path: Path, node: LinkElementNode) => void
   removeLinkDraft: () => void
   beginLinkEdit: (path: Path, node: LinkElementNode) => void
   cancelLinkEdit: () => void
