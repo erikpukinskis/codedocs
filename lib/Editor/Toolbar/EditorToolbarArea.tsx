@@ -2,8 +2,9 @@ import React, { useEffect, useMemo, useReducer, useRef, useState } from "react"
 import { Editor, Element as SlateElement, Path, Range } from "slate"
 import type { DOMPoint } from "slate-dom"
 import { ReactEditor, useSlate, useSlateSelection } from "slate-react"
+import { CreateLinkToolbar } from "./CreateLinkToolbar"
+import { EditLinkToolbar } from "./EditLinkToolbars"
 import { FormattingToolbarContent } from "./FormattingToolbar"
-import { LinkDraftToolbarContent, LinkToolbarContent } from "./LinkToolbar"
 import type {
   LinkDraft,
   SlateEditor,
@@ -210,9 +211,7 @@ function modeToDescriptor(
       return {
         target: mode.priorRect,
         immediate: true,
-        content: (
-          <LinkDraftToolbarContent draft={mode.draft} controls={controls} />
-        ),
+        content: <CreateLinkToolbar draft={mode.draft} controls={controls} />,
       }
     case "linkHover": {
       let linkDom: HTMLElement
@@ -224,7 +223,7 @@ function modeToDescriptor(
       return {
         target: linkDom,
         content: (
-          <LinkToolbarContent
+          <EditLinkToolbar
             key={JSON.stringify(mode.linkPath)}
             linkPath={mode.linkPath}
             linkNode={mode.linkNode}
@@ -245,7 +244,7 @@ function modeToDescriptor(
         target: linkDom,
         immediate: true,
         content: (
-          <LinkToolbarContent
+          <EditLinkToolbar
             key={JSON.stringify(mode.linkPath)}
             linkPath={mode.linkPath}
             linkNode={mode.linkNode}

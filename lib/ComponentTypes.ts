@@ -88,6 +88,7 @@ export type TextInputProps = {
   onChange: (value: string) => void
   width?: string
   onEnterPress?: () => void
+  autoFocus?: boolean
 }
 
 export type Components = {

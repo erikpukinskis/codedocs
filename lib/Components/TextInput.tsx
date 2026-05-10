@@ -6,6 +6,7 @@ export const TextInput: React.FC<TextInputProps> = ({
   onChange,
   width = "100%",
   onEnterPress,
+  autoFocus = false,
 }) => {
   const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
@@ -21,6 +22,7 @@ export const TextInput: React.FC<TextInputProps> = ({
       className={styles.input}
       style={{ width }}
       onKeyDown={handleKeyPress}
+      autoFocus={autoFocus}
     />
   )
 }
