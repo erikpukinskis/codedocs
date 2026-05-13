@@ -17,6 +17,7 @@ export type ToolbarMode =
   | { kind: "none" }
   | { kind: "formatting"; range: Range; targetRect: DOMRect }
   | { kind: "linkDraft"; draft: LinkDraft; priorRect: DOMRect }
+  | { kind: "linkSaved"; linkPath: Path; linkNode: LinkElementNode }
   | { kind: "linkHover"; linkPath: Path; linkNode: LinkElementNode }
   | { kind: "linkEditing"; linkPath: Path; linkNode: LinkElementNode }
 

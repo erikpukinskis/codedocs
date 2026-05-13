@@ -199,6 +199,27 @@ function modeToDescriptor(
         immediate: true,
         content: <CreateLinkToolbar draft={mode.draft} controls={controls} />,
       }
+    case "linkSaved": {
+      let linkDom: HTMLElement
+      try {
+        linkDom = ReactEditor.toDOMNode(editor, mode.linkNode)
+      } catch {
+        return null
+      }
+      return {
+        target: linkDom,
+        immediate: true,
+        content: (
+          <EditLinkToolbar
+            key={JSON.stringify(mode.linkPath)}
+            linkPath={mode.linkPath}
+            linkNode={mode.linkNode}
+            editing={false}
+            controls={controls}
+          />
+        ),
+      }
+    }
     case "linkHover": {
       let linkDom: HTMLElement
       try {
@@ -247,11 +268,15 @@ function toolbarModeReducer(
   state: ToolbarMode,
   action: ToolbarAction
 ): ToolbarMode {
-  console.debug("state", state, action)
   switch (action.type) {
     case "environmentChanged":
-      // Ignore external environment signals while the user is actively editing
-      if (state.kind === "linkDraft" || state.kind === "linkEditing")
+      // Ignore external environment signals while the user is actively editing or
+      // during the one-tick grace period after link creation (linkSaved).
+      if (
+        state.kind === "linkDraft" ||
+        state.kind === "linkEditing" ||
+        state.kind === "linkSaved"
+      )
         return state
       return toolbarModesEqual(state, action.next) ? state : action.next
     case "beginLinkDraft":
@@ -275,7 +300,7 @@ function toolbarModeReducer(
         )
       }
       return {
-        kind: "linkHover",
+        kind: "linkSaved",
         linkPath: action.linkPath,
         linkNode: action.linkNode,
       }
@@ -325,6 +350,9 @@ function toolbarModesEqual(a: ToolbarMode, b: ToolbarMode): boolean {
       a.draft.initialUrl === b.draft.initialUrl &&
       rectsEqualEnough(a.priorRect, b.priorRect)
     )
+  }
+  if (a.kind === "linkSaved" && b.kind === "linkSaved") {
+    return Path.equals(a.linkPath, b.linkPath)
   }
   if (a.kind === "linkHover" && b.kind === "linkHover") {
     return Path.equals(a.linkPath, b.linkPath)

@@ -1,5 +1,5 @@
 import { Editor, Element as SlateElement, Range, Text, Transforms } from "slate"
-import type { Descendant, NodeEntry, Path } from "slate"
+import type { Descendant, Path } from "slate"
 import { HistoryEditor } from "slate-history"
 import type { SlateEditor } from "~/Editor/Toolbar/types"
 import {
@@ -9,29 +9,6 @@ import {
 
 /** Placeholder URL while creating a link; Save replaces it with the real href. */
 export const LINK_DRAFT_PLACEHOLDER_URL = ""
-
-function findLinkWrappingRange(
-  editor: SlateEditor,
-  range: Range
-): NodeEntry<LinkElementNode> | undefined {
-  const point = Range.start(range)
-  const fromStart = Editor.above(editor, {
-    at: point,
-    match: isLinkElement,
-    mode: "lowest",
-  })
-  if (fromStart) {
-    const [node, path] = fromStart
-    if (isLinkElement(node)) return [node, path]
-  }
-  for (const [node, path] of Editor.nodes(editor, {
-    at: range,
-    match: isLinkElement,
-  })) {
-    return [node, path]
-  }
-  return undefined
-}
 
 /**
  * Unwrap existing links in the range, wrap text as a link with `url`, then run
@@ -86,10 +63,20 @@ export function wrapRangeAsLink(
       } as LinkElementNode,
       { at: range, match: Text.isText, split: true }
     )
-    const wrapped = findLinkWrappingRange(editor, range)
+    // `range` is a plain JS object — Slate does not update it when wrapNodes
+    // splits text nodes at the range boundaries. Use editor.selection instead,
+    // which Slate keeps current through every transform operation. After wrap,
+    // the selection anchor is inside the new link's text child, so Editor.above
+    // from there reliably finds the link.
+    const selectionAnchor = editor.selection?.anchor ?? Range.start(range)
+    const wrapped = Editor.above(editor, {
+      at: selectionAnchor,
+      match: isLinkElement,
+      mode: "lowest",
+    })
     if (!wrapped) {
       throw new Error(
-        "wrapRangeAsLink: after wrap, could not find link for draft range"
+        "wrapRangeAsLink: after wrap, could not find link at selection anchor"
       )
     }
     const [, linkPath] = wrapped
