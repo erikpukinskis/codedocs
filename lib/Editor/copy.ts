@@ -1,6 +1,12 @@
+import type { Descendant } from "slate"
 import { Editor, Element, Range, Text } from "slate"
-import { slateToHtml } from "./serialization"
-import { isCodeBlock, isFrozenBlock } from "./types"
+import {
+  demoSourcesWithTabComments,
+  extractCodeBlockSourceText,
+  serializeCodeBlock,
+  slateToHtml,
+} from "./serialization"
+import { isCodeBlock, isFrozenBlock, type CodeBlock } from "./types"
 
 // TODO: rename to clipboard.ts
 
@@ -32,14 +38,15 @@ export function copyPlainText(
       at: intersection,
       match: (n) => Text.isText(n) || isFrozenBlock(n),
     })) {
-      if (
-        isFrozenBlock(inlineNode) &&
-        frozenSources &&
-        inlineNode.id in frozenSources
-      ) {
-        const frozen = frozenSources[inlineNode.id]
-        if (frozen !== undefined) {
-          blockChunks.push(frozen)
+      if (isFrozenBlock(inlineNode)) {
+        const liveAll = liveDemoClipboardPlainText(editor, inlineNode.id)
+        if (liveAll !== null) {
+          blockChunks.push(liveAll)
+        } else if (frozenSources && inlineNode.id in frozenSources) {
+          const frozen = frozenSources[inlineNode.id]
+          if (frozen !== undefined) {
+            blockChunks.push(frozen)
+          }
         }
       } else if (Text.isText(inlineNode)) {
         const textRange = Editor.range(editor, inlinePath)
@@ -54,11 +61,70 @@ export function copyPlainText(
   return chunks.join("\n")
 }
 
+function collectDemoCodeBlocksForFrozen(
+  editor: Editor,
+  demoFrozenId: string
+): { tab: string; text: string; index: number }[] {
+  const blocks: { tab: string; text: string; index: number }[] = []
+  let index = 0
+  for (const [n] of Editor.nodes(editor, {
+    at: [],
+    match: (node): node is CodeBlock =>
+      Element.isElement(node) &&
+      isCodeBlock(node) &&
+      node.demoId === demoFrozenId &&
+      typeof node.tab === "string" &&
+      node.tab.length > 0,
+  })) {
+    const tab = n.tab
+    if (typeof tab !== "string") continue
+    blocks.push({
+      tab,
+      text: extractCodeBlockSourceText(n),
+      index: index++,
+    })
+  }
+  return blocks
+}
+
+function liveDemoClipboardPlainText(
+  editor: Editor,
+  frozenId: string
+): string | null {
+  const blocks = collectDemoCodeBlocksForFrozen(editor, frozenId)
+  if (blocks.length === 0) return null
+  return demoSourcesWithTabComments(blocks)
+}
+
+/**
+ * HTML for a copy selection that is only a demo `frozen` block: all Source / dependency
+ * code tabs for that demo, with `/** tabName *\/` markers, one styled `<pre><code>`.
+ */
+function getLoneDemoHtml(editor: Editor, nodes: Descendant[]): string | null {
+  if (nodes.length !== 1) return null
+  const only = nodes[0]
+  if (only === undefined || !isFrozenBlock(only)) return null
+  const blocks = collectDemoCodeBlocksForFrozen(editor, only.id)
+  if (blocks.length === 0) return null
+  const combined = demoSourcesWithTabComments(blocks)
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return -- serializeCodeBlock returns string
+  return serializeCodeBlock({
+    source: combined,
+    language: "tsx",
+    format: "html",
+  })
+}
+
 export function copyHtml(
   editor: Editor,
   range: Range,
   frozenSources?: Record<string, string>
 ): string {
   const fragment = Editor.fragment(editor, range)
+  const head = fragment[0]
+  if (fragment.length === 1 && head !== undefined && isFrozenBlock(head)) {
+    const lone = getLoneDemoHtml(editor, fragment)
+    if (lone !== null) return lone
+  }
   return slateToHtml(fragment, { frozenSources })
 }

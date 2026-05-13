@@ -786,7 +786,9 @@ function freezeBlock(
 ): void {
   const id = `f${processState.frozenId++}`
   processState.frozenElements[id] = node
-  processState.frozenSources[id] = getSource(node, code)
+  processState.frozenSources[id] = isNamedJSXElement(node, "Demo")
+    ? extractDemoSource(node, code, includeWrapper)
+    : getSource(node, code)
   processState.blockNodes.push(makeFrozenNode(id, isStaticDemoFullWidth(node)))
 
   // For <Demo> elements, also emit sibling code-block(s) carrying the demo's

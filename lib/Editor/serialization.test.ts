@@ -67,8 +67,8 @@ describe("slateToHtml", () => {
       "<p>...to test wrapping in the sidebar.</p>
       <h2>Two stateful demos in a row, to test the macro:</h2>
       <p>A <a href="https://www.redhat.com/en/topics/cloud-native-apps/stateful-vs-stateless">link about statefulness</a>.</p>
-
-      <pre style="font-family: Consolas, Menlo, 'Courier New', monospace; color: #6b54c0"><code data-language="tsx">&lt;label id=&quot;x&quot;&gt;
+      <pre style="font-family: Consolas, Menlo, 'Courier New', monospace; color: #6b54c0"><code data-language="tsx">/** Source */
+      &lt;label id=&quot;x&quot;&gt;
         &lt;input
           type=&quot;checkbox&quot;
           id=&quot;x&quot;
@@ -77,8 +77,8 @@ describe("slateToHtml", () => {
         /&gt;
         label
       &lt;/label&gt;</code></pre><br />
-
-      <pre style="font-family: Consolas, Menlo, 'Courier New', monospace; color: #6b54c0"><code data-language="tsx">&lt;label&gt;
+      <pre style="font-family: Consolas, Menlo, 'Courier New', monospace; color: #6b54c0"><code data-language="tsx">/** Source */
+      &lt;label&gt;
         &lt;input
           type=&quot;checkbox&quot;
           checked={value}
@@ -86,8 +86,8 @@ describe("slateToHtml", () => {
         /&gt;
         Second checkbox
       &lt;/label&gt;</code></pre><br />
-
-      <pre style="font-family: Consolas, Menlo, 'Courier New', monospace; color: #6b54c0"><code data-language="tsx">&lt;h1&gt;Hello, world!&lt;/h1&gt;
+      <pre style="font-family: Consolas, Menlo, 'Courier New', monospace; color: #6b54c0"><code data-language="tsx">/** Source */
+      &lt;h1&gt;Hello, world!&lt;/h1&gt;
         &lt;p&gt;This is a paragraph.&lt;/p&gt;</code></pre><br />"
     `)
   })
