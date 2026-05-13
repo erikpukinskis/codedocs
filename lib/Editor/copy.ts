@@ -3,7 +3,6 @@ import { Editor, Element, Range, Text } from "slate"
 import {
   demoSourcesWithTabComments,
   extractCodeBlockSourceText,
-  serializeCodeBlock,
   slateToHtml,
 } from "./serialization"
 import { isCodeBlock, isFrozenBlock, type CodeBlock } from "./types"
@@ -96,23 +95,41 @@ function liveDemoClipboardPlainText(
   return demoSourcesWithTabComments(blocks)
 }
 
+function collectFrozenIdsFromFragment(nodes: Descendant[]): Set<string> {
+  const ids = new Set<string>()
+  const walk = (descendants: Descendant[]) => {
+    for (const n of descendants) {
+      if (isFrozenBlock(n) && n.id) ids.add(n.id)
+      if (
+        Element.isElement(n) &&
+        "children" in n &&
+        Array.isArray(n.children)
+      ) {
+        walk(n.children)
+      }
+    }
+  }
+  walk(nodes)
+  return ids
+}
+
 /**
- * HTML for a copy selection that is only a demo `frozen` block: all Source / dependency
- * code tabs for that demo, with `/** tabName *\/` markers, one styled `<pre><code>`.
+ * For every frozen id in the fragment, attach combined demo tab sources from the
+ * live editor (when present) so HTML serialization can render one `<pre>` per demo.
  */
-function getLoneDemoHtml(editor: Editor, nodes: Descendant[]): string | null {
-  if (nodes.length !== 1) return null
-  const only = nodes[0]
-  if (only === undefined || !isFrozenBlock(only)) return null
-  const blocks = collectDemoCodeBlocksForFrozen(editor, only.id)
-  if (blocks.length === 0) return null
-  const combined = demoSourcesWithTabComments(blocks)
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return -- serializeCodeBlock returns string
-  return serializeCodeBlock({
-    source: combined,
-    language: "tsx",
-    format: "html",
-  })
+function buildEnrichedFrozenSources(
+  editor: Editor,
+  fragment: Descendant[],
+  base?: Record<string, string>
+): Record<string, string> {
+  const out: Record<string, string> = { ...base }
+  for (const id of collectFrozenIdsFromFragment(fragment)) {
+    const blocks = collectDemoCodeBlocksForFrozen(editor, id)
+    if (blocks.length > 0) {
+      out[id] = demoSourcesWithTabComments(blocks)
+    }
+  }
+  return out
 }
 
 export function copyHtml(
@@ -121,10 +138,6 @@ export function copyHtml(
   frozenSources?: Record<string, string>
 ): string {
   const fragment = Editor.fragment(editor, range)
-  const head = fragment[0]
-  if (fragment.length === 1 && head !== undefined && isFrozenBlock(head)) {
-    const lone = getLoneDemoHtml(editor, fragment)
-    if (lone !== null) return lone
-  }
-  return slateToHtml(fragment, { frozenSources })
+  const enriched = buildEnrichedFrozenSources(editor, fragment, frozenSources)
+  return slateToHtml(fragment, { frozenSources: enriched })
 }

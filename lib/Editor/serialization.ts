@@ -39,35 +39,6 @@ type SlateToHtmlOptions = {
   frozenSources?: Record<string, string>
 }
 
-/**
- * Demo macro emits a `frozen` block plus a primary `"Source"` code-block with the
- * same body. For HTML (clipboard, Google Docs) we keep the code-block (editable
- * source) and omit the frozen placeholder so content is not duplicated.
- */
-export function dedupeFrozenDemoAndPrimarySourceForHtml(
-  nodes: Descendant[]
-): Descendant[] {
-  const out: Descendant[] = []
-  for (let i = 0; i < nodes.length; i++) {
-    const node = nodes[i]
-    if (node === undefined) continue
-    const next = nodes[i + 1]
-    if (
-      isFrozenBlock(node) &&
-      next !== undefined &&
-      isCodeBlock(next) &&
-      next.demoId === node.id &&
-      next.tab === "Source"
-    ) {
-      out.push(next)
-      i += 1
-      continue
-    }
-    out.push(node)
-  }
-  return out
-}
-
 /** Join `code-line` text for a `code-block` (same layout as HTML serialization). */
 export function extractCodeBlockSourceText(node: CodeBlock): string {
   const lines: string[] = []
@@ -100,68 +71,11 @@ export function demoSourcesWithTabComments(
   blocks: { tab: string; text: string; index: number }[]
 ): string {
   const ordered = orderDemoSourceTabsForHtml(blocks)
-  return ordered.map(({ tab, text }) => `/** ${tab} */\n${text}`).join("\n\n")
-}
-
-/**
- * Merge consecutive `code-block`s for the same `demoId` (Source tab first in macro order)
- * into one block so HTML paste is a single `<pre>` with tab section comments.
- */
-export function mergeDemoCodeBlockClustersForHtml(
-  nodes: Descendant[]
-): Descendant[] {
-  const out: Descendant[] = []
-  let i = 0
-  while (i < nodes.length) {
-    const node = nodes[i]
-    if (node === undefined) {
-      i += 1
-      continue
-    }
-    if (
-      isCodeBlock(node) &&
-      typeof node.demoId === "string" &&
-      node.demoId.length > 0 &&
-      node.tab === "Source"
-    ) {
-      const demoId = node.demoId
-      const cluster: CodeBlock[] = []
-      while (i < nodes.length) {
-        const cur = nodes[i]
-        if (cur === undefined) break
-        if (!isCodeBlock(cur) || cur.demoId !== demoId) break
-        cluster.push(cur)
-        i += 1
-      }
-      const first = cluster[0]
-      if (first === undefined) continue
-      const tabbed = cluster.map((b, index) => ({
-        tab:
-          typeof b.tab === "string" && b.tab.length > 0 ? b.tab : `tab${index}`,
-        text: extractCodeBlockSourceText(b),
-        index,
-      }))
-      const combined = demoSourcesWithTabComments(tabbed)
-      const lang = first.language ?? "tsx"
-      const merged: CodeBlock = {
-        type: "code-block",
-        id: first.id,
-        language: lang,
-        children: [
-          {
-            type: "code-line",
-            language: lang,
-            children: [{ text: combined }],
-          },
-        ],
-      }
-      out.push(merged)
-      continue
-    }
-    out.push(node)
-    i += 1
+  if (blocks.length === 1) {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    return blocks[0]!.text
   }
-  return out
+  return ordered.map(({ tab, text }) => `/** ${tab} */\n${text}`).join("\n\n")
 }
 
 /**
@@ -173,10 +87,7 @@ export function slateToHtml(
   nodes: Descendant[],
   { frozenSources }: SlateToHtmlOptions = {}
 ): string {
-  const prepared = mergeDemoCodeBlockClustersForHtml(
-    dedupeFrozenDemoAndPrimarySourceForHtml(nodes)
-  )
-  return serializeSlate(prepared, {
+  return serializeSlate(nodes, {
     format: "html",
     frozenSources,
   })
@@ -186,6 +97,96 @@ type SerializeSlateOptions = {
   format: SerializationFormat
   /** When omitted, frozen blocks serialize to "" */
   frozenSources?: Record<string, string>
+}
+
+/** Frozen blocks are wrapped in a paragraph so you can place the cursor before/after them. */
+function isParagraphWrappedFrozenBlock(node: Descendant): boolean {
+  if (!isSlateBlock(node) || node.type !== "paragraph") return false
+  if (!node.children.some(isFrozenBlock)) return false
+  // TODO(erik): Can we make this stricter? Enforce that it's Text + Frozen + Text and throw an error otherwise?
+  return node.children.every(
+    (c) => isFrozenBlock(c) || (Text.isText(c) && c.text === "")
+  )
+}
+
+/** Root-level `frozen` or a paragraph that only contains frozen voids (and empty text). */
+function isDemoClusterHeadRootNode(node: Descendant): boolean {
+  // TODO(erik): Do we ever just have a frozen node not wrapped in a paragraph?
+  return isFrozenBlock(node) || isParagraphWrappedFrozenBlock(node)
+}
+
+function firstFrozenIdInRootBlock(node: Descendant): string | null {
+  if (isFrozenBlock(node)) return node.id ?? null
+  if (isSlateBlock(node) && node.type === "paragraph") {
+    for (const c of node.children) {
+      if (isFrozenBlock(c) && c.id) return c.id
+    }
+  }
+  return null
+}
+
+function skipPastDemoClusterCodeBlocks(
+  nodes: Descendant[],
+  headIndex: number,
+  demoId: string
+): number {
+  let j = headIndex + 1
+  while (j < nodes.length) {
+    const n = nodes[j]
+    if (n !== undefined && isCodeBlock(n) && n.demoId === demoId) {
+      j++
+      continue
+    }
+    break
+  }
+  return j
+}
+
+function renderDemoClusterHtml(
+  nodes: Descendant[],
+  headIndex: number,
+  demoId: string,
+  options: SerializeSlateOptions
+): string {
+  const { format, frozenSources } = options
+  const enriched = frozenSources?.[demoId]
+  if (typeof enriched === "string" && enriched.length > 0) {
+    if (format === "html") {
+      return serializeCodeBlock({
+        source: enriched,
+        language: "tsx",
+        format,
+      })
+    }
+    return enriched
+  }
+
+  const cluster: CodeBlock[] = []
+  let j = headIndex + 1
+  while (j < nodes.length) {
+    const n = nodes[j]
+    if (n !== undefined && isCodeBlock(n) && n.demoId === demoId) {
+      cluster.push(n)
+      j++
+    } else break
+  }
+  if (cluster.length === 0) return ""
+
+  const tabbed = cluster.map((b, index) => ({
+    tab: typeof b.tab === "string" && b.tab.length > 0 ? b.tab : `tab${index}`,
+    text: extractCodeBlockSourceText(b),
+    index,
+  }))
+  const combined = demoSourcesWithTabComments(tabbed)
+  const lang = cluster[0]?.language ?? "tsx"
+  if (format === "html") {
+    return serializeCodeBlock({
+      source: combined,
+      language: lang,
+      format,
+    })
+  }
+  return combined
 }
 
 /**
@@ -198,8 +199,15 @@ function serializeSlate(
 ): string {
   const lines: string[] = []
   let listBuffer: ListItemBlock[] = []
+  let i = 0
 
-  for (const node of nodes) {
+  while (i < nodes.length) {
+    const node = nodes[i]
+
+    if (!node) {
+      throw new Error("Undefined Slate node?")
+    }
+
     if (Text.isText(node)) {
       if (listBuffer.length > 0) {
         lines.push(serializeListItems(listBuffer, options))
@@ -207,13 +215,19 @@ function serializeSlate(
       }
       const inner = serializeTextNode(node, options.format)
       if (inner) lines.push(`<p>${inner}</p>`)
+      i++
       continue
     }
 
-    if (!isSlateBlock(node)) continue
+    if (!isSlateBlock(node)) {
+      throw new Error("Non-Slate block?")
+      // i++
+      // continue
+    }
 
     if (isListItemBlock(node)) {
       listBuffer.push(node)
+      i++
       continue
     }
 
@@ -222,7 +236,23 @@ function serializeSlate(
       listBuffer = []
     }
 
+    if (isDemoClusterHeadRootNode(node)) {
+      const demoId = firstFrozenIdInRootBlock(node)
+      if (demoId) {
+        const html = renderDemoClusterHtml(nodes, i, demoId, options)
+        lines.push(html)
+        i = skipPastDemoClusterCodeBlocks(nodes, i, demoId)
+        continue
+      }
+    }
+
     lines.push(serializeBlock(node, options))
+    const skipId = firstFrozenIdInRootBlock(node)
+    if (skipId) {
+      i = skipPastDemoClusterCodeBlocks(nodes, i, skipId)
+    } else {
+      i++
+    }
   }
 
   if (listBuffer.length > 0) {
