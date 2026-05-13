@@ -64,8 +64,17 @@
         "patterns": [".."]
       }
     ],
-    "react/react-in-jsx-scope": "off"
+    "react/react-in-jsx-scope": "off",
+    "@typescript-eslint/no-non-null-assertion": "error"
   },
+  "overrides": [
+    {
+      "files": ["*.test.*"],
+      "rules": {
+        "@typescript-eslint/no-non-null-assertion": "off"
+      }
+    }
+  ],
   "ignorePatterns": ["*.js"],
   "parserOptions": {
     "warnOnUnsupportedTypeScriptVersion": false,

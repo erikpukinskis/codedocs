@@ -8,7 +8,7 @@ type NotFoundProps = {
 }
 
 export const NotFound = ({ path, availablePaths }: NotFoundProps) => {
-  const componentName = nameFromPath(path)
+  const componentName = nameFromPath(path) ?? "YourDocs"
   const { PageHeading, MainColumn } = useComponents()
 
   return (

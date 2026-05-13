@@ -18,7 +18,7 @@ export function copyPlainText(
   frozenSources?: Record<string, string>
 ): string {
   const chunks: string[] = []
-  for (const [node, path] of Editor.nodes(editor, {
+  for (const [_node, path] of Editor.nodes(editor, {
     at: range,
     match: (n) =>
       Element.isElement(n) && Editor.isBlock(editor, n) && !isCodeBlock(n),
