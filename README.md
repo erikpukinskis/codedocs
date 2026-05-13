@@ -186,19 +186,23 @@ Roadmap to 1.0
 - [x] Live edit headings, paragraphs, etc
 
 Next major steps:
+
 - [ ] Persistence
 - [ ] Props palette
 
 On the horizon:
+
 - [ ] Design Tokens
 
 Cleanups:
+
 - [ ] Remove include-wrapper-in-source in favor of includeWrapperInSource prop. Also make sure includeWrapperInSource prop is removed from source (inception).
 - [ ] Disallow with <Demo render={...}>...</Demo>, <Demo dependencies={...}>...</Demo>, etc
 - [ ] Think about where the editor helpers should go. editorHelpers.ts?
 - [ ] Fix horizontal variants layout + variant spacing
 
 Important features:
+
 - [ ] ApiReference
 - [ ] Dark mode
 - [ ] Visual tests
