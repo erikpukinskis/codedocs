@@ -189,6 +189,7 @@ Next major steps:
 
 - [ ] Persistence
 - [ ] Props palette
+- [ ] Rework static mode to use the Editor's formatters but render outside of Slate.
 
 On the horizon:
 

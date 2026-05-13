@@ -26,16 +26,10 @@ import {
   type JSXFragment,
   type JSXSpreadChild,
   type JSXText,
-  type Node,
   type ObjectExpression,
   type ObjectProperty,
 } from "@babel/types"
-import {
-  isMockCallbackNode,
-  isNamedJSXAttribute,
-  isNamedJSXElement,
-  type MockCallbackCall,
-} from "./babelJsxGuards"
+import { isNamedJSXAttribute, isNamedJSXElement } from "./babelJsxGuards"
 import { formatPlainTextCodeBlock } from "./formatPlainText"
 import { formatTypescript } from "./formatTypeScript"
 
@@ -698,52 +692,11 @@ function getSource(
   return formatTypescript(code.slice(start, end))
 }
 
-function findMockCallbacks(
-  node: Node | null | undefined,
-  results: MockCallbackCall[] = []
-): MockCallbackCall[] {
-  if (!node || typeof node !== "object") return results
-
-  if (isMockCallbackNode(node)) {
-    results.push(node)
-  }
-
-  const nodeObj = node as unknown as Record<string, unknown>
-  for (const key in nodeObj) {
-    if (key === "start" || key === "end" || key === "loc") continue
-    const child = nodeObj[key]
-    if (Array.isArray(child)) {
-      child.forEach((item: Node) => findMockCallbacks(item, results))
-    } else if (child && typeof child === "object") {
-      findMockCallbacks(child as Node, results)
-    }
-  }
-
-  return results
-}
-
-function replaceMockCallbacks(
-  source: string,
-  nodeStart: number,
-  mockCallbacks: MockCallbackCall[]
-): string {
-  const sorted = [...mockCallbacks].sort((a, b) => b.start - a.start)
-
-  let result = source
-  for (const call of sorted) {
-    const callbackName = call.arguments[0].value
-    const relativeStart = call.start - nodeStart
-    const relativeEnd = call.end - nodeStart
-    result =
-      result.slice(0, relativeStart) + callbackName + result.slice(relativeEnd)
-  }
-  return result
-}
-
 /**
  * Extract the demo's primary source string from the JSX AST (children or
- * `render` callback). Mock callback substitution applies only to `render` bodies;
- * children demos are plain JSX concatenation (no `mock.callback` in authored source).
+ * `render` callback).
+ *
+ * Children demos are plain JSX concatenation (no `mock.callback` in authored source).
  */
 function extractDemoSource(
   demoNode: JSXElement,
@@ -769,22 +722,10 @@ function extractDemoSource(
           return getSource(demoNode, code)
         }
         const bodySource = getSource(body, code)
-        const mockCallbacks = findMockCallbacks(body)
         if (isBlockStatement(body)) {
-          const processedSource = bodySource
-            .slice(1, bodySource.length - 1)
-            .trim()
-          const braceOffset = 1
-          const trimStart =
-            bodySource.slice(1).length - bodySource.slice(1).trimStart().length
-          const bodyStart = body.start ?? 0
-          return replaceMockCallbacks(
-            processedSource,
-            bodyStart + braceOffset + trimStart,
-            mockCallbacks
-          )
+          return bodySource.slice(1, bodySource.length - 1).trim()
         }
-        return replaceMockCallbacks(bodySource, body.start ?? 0, mockCallbacks)
+        return bodySource
       }
     }
   }
