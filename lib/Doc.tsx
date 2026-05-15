@@ -9,10 +9,15 @@ export type DocProps = {
   path: string
   order?: number
   children?: React.ReactNode
-  slateDocument?: SlateBlock[]
-  frozenElements?: Record<string, React.ReactNode>
-  frozenSources?: Record<string, string>
+} & Partial<MacroAddedProps>
+
+type MacroAddedProps = {
+  slateDocument: SlateBlock[]
+  frozenElements: Record<string, React.ReactNode>
+  frozenSources: Record<string, string>
 }
+
+export type ProcessedDocProps = DocProps & MacroAddedProps
 
 /**
  * Register a documentation page. You should render this component and export it
@@ -102,6 +107,24 @@ export const Doc = ({
       )}
     </>
   )
+}
+
+export function assertProcessedDocElement(element: React.ReactElement) {
+  if (element.type !== Doc) {
+    throw new Error(
+      `Expected a <Doc> React element but got a <${element.type.toString()}> element instead`
+    )
+  }
+
+  const docElement = element as React.ReactElement<DocProps>
+
+  if (!docElement.props.slateDocument) {
+    throw new Error(
+      `<Doc> element has no slateDocument prop. You need to import { Doc } from "codedocs/macro"`
+    )
+  }
+
+  return docElement as React.ReactElement<ProcessedDocProps>
 }
 
 type StaticDocProps = {

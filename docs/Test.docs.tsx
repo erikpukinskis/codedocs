@@ -3,6 +3,7 @@ import { Demo, Doc } from "../macro"
 
 export const TestDocs = (
   <Doc path="/Docs/DocWithAVeryLongTitle">
+    <code>{`This is a code block`}</code>
     <p>...to test wrapping in the sidebar.</p>
     <h2>Two stateful demos in a row, to test the macro:</h2>
     <p>

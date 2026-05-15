@@ -1,7 +1,7 @@
 import { TestDocs } from "docs/Test.docs"
-import type { DocProps } from "macro"
 import { describe, expect, test } from "vitest"
 import { slateToHtml } from "./serialization"
+import { assertProcessedDocElement } from "~/Doc"
 import type { SlateBlock } from "~/Editor/types"
 
 describe("slateToHtml", () => {
@@ -57,18 +57,19 @@ describe("slateToHtml", () => {
   })
 
   test("round-trip with processDocNode", () => {
-    const element = TestDocs as React.ReactElement<DocProps>
+    const element = assertProcessedDocElement(TestDocs)
+
     expect(element.props).toMatchObject({
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       slateDocument: expect.any(Array),
     })
-    const html = slateToHtml(element.props.slateDocument!)
+    const html = slateToHtml(element.props.slateDocument)
     expect(html).toMatchInlineSnapshot(`
-      "<p>...to test wrapping in the sidebar.</p>
+      "<pre style="font-family: Consolas, Menlo, 'Courier New', monospace; color: #6b54c0"><code data-language="tsx">This is a code block</code></pre><br />
+      <p>...to test wrapping in the sidebar.</p>
       <h2>Two stateful demos in a row, to test the macro:</h2>
       <p>A <a href="https://www.redhat.com/en/topics/cloud-native-apps/stateful-vs-stateless">link about statefulness</a>.</p>
-      <pre style="font-family: Consolas, Menlo, 'Courier New', monospace; color: #6b54c0"><code data-language="tsx">/** Source */
-      &lt;label id=&quot;x&quot;&gt;
+      <pre style="font-family: Consolas, Menlo, 'Courier New', monospace; color: #6b54c0"><code data-language="tsx">&lt;label id=&quot;x&quot;&gt;
         &lt;input
           type=&quot;checkbox&quot;
           id=&quot;x&quot;
@@ -77,8 +78,7 @@ describe("slateToHtml", () => {
         /&gt;
         label
       &lt;/label&gt;</code></pre><br />
-      <pre style="font-family: Consolas, Menlo, 'Courier New', monospace; color: #6b54c0"><code data-language="tsx">/** Source */
-      &lt;label&gt;
+      <pre style="font-family: Consolas, Menlo, 'Courier New', monospace; color: #6b54c0"><code data-language="tsx">&lt;label&gt;
         &lt;input
           type=&quot;checkbox&quot;
           checked={value}
@@ -86,8 +86,7 @@ describe("slateToHtml", () => {
         /&gt;
         Second checkbox
       &lt;/label&gt;</code></pre><br />
-      <pre style="font-family: Consolas, Menlo, 'Courier New', monospace; color: #6b54c0"><code data-language="tsx">/** Source */
-      &lt;h1&gt;Hello, world!&lt;/h1&gt;
+      <pre style="font-family: Consolas, Menlo, 'Courier New', monospace; color: #6b54c0"><code data-language="tsx">&lt;h1&gt;Hello, world!&lt;/h1&gt;
         &lt;p&gt;This is a paragraph.&lt;/p&gt;</code></pre><br />"
     `)
   })

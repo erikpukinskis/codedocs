@@ -41,6 +41,10 @@ import {
   type SlateBlock,
 } from "./types"
 
+export const EMPTY_DOCUMENT: SlateBlock[] = [
+  { type: "paragraph", id: "b0", children: [{ text: "" }] },
+]
+
 /** Block types that can host inline frozen voids beside text leaves. */
 function isHostBlockForInlineFrozen(node: unknown): node is SlateElement {
   return (
@@ -444,7 +448,7 @@ function skipPastHiddenClusterIfNeeded(
 
 type DocEditorProps = {
   slateDocument: SlateElement[]
-  frozenElements: Record<string, React.ReactNode>
+  frozenElements?: Record<string, React.ReactNode>
   frozenSources?: Record<string, string>
 }
 

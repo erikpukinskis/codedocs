@@ -74,7 +74,7 @@ export interface ProcessDocState {
  *
  * Used by lib/macro.ts.
  */
-export interface ProcessCodedocsDocParams {
+export interface ProcessDocNodeArgs {
   nodePath: NodePath
   state: PluginPass
   code: string
@@ -91,7 +91,7 @@ export function processDocNode({
   state,
   code,
   includeWrapper,
-}: ProcessCodedocsDocParams): void {
+}: ProcessDocNodeArgs): void {
   const parentPath = nodePath.parentPath
   if (!parentPath || !isJSXOpeningElement(parentPath.node)) return
 
@@ -236,10 +236,7 @@ function visitDocJSXIdentifier(
     }
 
     const isPhrasingAtRoot =
-      tagName === "strong" ||
-      tagName === "em" ||
-      tagName === "a" ||
-      (tagName === "code" && !isRootLevelCodeBlockCode(child))
+      tagName === "strong" || tagName === "em" || tagName === "a"
 
     if (isPhrasingAtRoot) {
       inlineBuffer.push(child)
@@ -483,27 +480,6 @@ function parseInlineChildren(
     return null
   }
   return result
-}
-
-/**
- * Top-level `<code>` in `<Doc>` is a Slate code block only when it is explicitly
- * marked (`data-language`) or its text is genuinely multiline. Single-line inline
- * snippets (possibly wrapped across source lines for formatting) stay phrasing
- * and merge with neighboring root text like HTML `white-space: normal`.
- */
-function isRootLevelCodeBlockCode(element: JSXElement): boolean {
-  if (
-    element.openingElement.attributes.some((a) =>
-      isNamedJSXAttribute(a, "data-language")
-    )
-  ) {
-    return true
-  }
-  const raw = getJSXTextContent(element.children, { preserveWhitespace: true })
-  if (raw === null) {
-    return true
-  }
-  return /\n/.test(raw.trim())
 }
 
 /**
