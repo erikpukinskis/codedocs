@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react"
 import * as styles from "./Doc.css"
-import { DocEditor } from "./Editor/Editor"
+import { DocEditor } from "./Editor/DocEditor"
 import { slateToJsx } from "./Editor/serialization"
 import { type SlateBlock } from "./Editor/types"
 import { parseDocChunks, filterChunks } from "./helpers/parseDocChunks"

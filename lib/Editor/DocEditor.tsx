@@ -26,7 +26,7 @@ import {
   useDemoSourceVisibility,
   type DemoSourceVisibility,
 } from "./DemoSourceVisibilityContext"
-import * as styles from "./Editor.css"
+import * as styles from "./DocEditor.css"
 import { EditorToolbarArea } from "./Toolbar/EditorToolbarArea"
 import {
   isCodeBlock,
