@@ -43,6 +43,7 @@ import {
   isListItemBlock,
   isParagraphBlock,
   isSlateBlock,
+  type LineOfCodeElement,
   type ListItemBlock,
   type SlateBlock,
 } from "./types"
@@ -931,6 +932,16 @@ const DocEditorInner = ({
             convertListItemToParagraph(editor, blockPath)
             return
           }
+        }
+
+        if (
+          isCodeBlock(block) &&
+          block.demoId === undefined &&
+          Editor.isStart(editor, anchor, blockPath)
+        ) {
+          event.preventDefault()
+          convertCodeBlockToParagraph(editor, blockPath)
+          return
         }
 
         if (isParagraphBlock(block) || isHeadingBlock(block)) {

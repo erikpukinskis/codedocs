@@ -1,6 +1,9 @@
 import { cleanup, render } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
+import { createRef } from "react"
+import { Editor } from "slate"
 import { afterEach, describe, expect, test } from "vitest"
+import type { DocEditorHandle } from "./DocEditor"
 import { DocEditor, EMPTY_DOCUMENT } from "./DocEditor"
 import { assertProcessedDocElement } from "~/Doc"
 import {
@@ -71,13 +74,30 @@ describe("DocEditor", () => {
     })
   })
 
-  test("clearing", () => {
-    // editor.focus()
-    // select all
-    // delete
-    // expect: still a code block, but its empty. Cursor is in there. Placeholder is not shown.
-    // press backspace
-    // expect: now a paragraph block, still empty. Placeholder is shown.
+  test("clearing", async () => {
+    const loneCodeLine = assertProcessedDocElement(LoneCodeLineDocs)
+
+    const ref = createRef<DocEditorHandle>()
+
+    const { getByRole } = render(
+      <DocEditor ref={ref} slateDocument={loneCodeLine.props.slateDocument} />
+    )
+
+    const editor = getByRole("textbox")
+    editor.focus()
+
+    ref.current!.select({
+      anchor: { path: [0, 0, 0], offset: Editor.start },
+      focus: { path: [0, 0, 0], offset: Editor.end },
+    })
+
+    await userEvent.keyboard("{backspace}")
+
+    expect(editor.textContent).toBe("1")
+
+    await userEvent.keyboard("{backspace}")
+
+    expect(editor.textContent).toBe("")
   })
 
   test("links", async () => {
