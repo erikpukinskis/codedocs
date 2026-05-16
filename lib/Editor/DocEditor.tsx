@@ -1,4 +1,10 @@
-import React, { useCallback, useLayoutEffect, useRef, useState } from "react"
+import React, {
+  useCallback,
+  useImperativeHandle,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react"
 import {
   createEditor,
   Editor,
@@ -8,7 +14,7 @@ import {
   Text,
   Transforms,
 } from "slate"
-import type { Element as SlateElement, NodeEntry } from "slate"
+import type { Element as SlateElement, NodeEntry, Point } from "slate"
 import { withHistory, type HistoryEditor } from "slate-history"
 import {
   Editable,
@@ -199,6 +205,53 @@ function convertListItemToParagraph(
   Transforms.setNodes(editor, { type: "paragraph" } as Partial<SlateBlock>, {
     at: path,
   })
+}
+
+/**
+ * Replace a code-block at `path` with a paragraph whose text is the first
+ * code-line's content. If the code-block had more than one line, the remaining
+ * lines are kept as a new code-block inserted immediately after the paragraph.
+ */
+function convertCodeBlockToParagraph(
+  editor: ReactEditor & HistoryEditor,
+  path: Path
+) {
+  const [codeBlock] = Editor.node(editor, path)
+  if (!Element.isElement(codeBlock) || !isCodeBlock(codeBlock)) return
+
+  const lines = codeBlock.children as LineOfCodeElement[]
+  const firstLineText = Editor.string(editor, [...path, 0])
+
+  Editor.withoutNormalizing(editor, () => {
+    Transforms.removeNodes(editor, { at: path })
+    Transforms.insertNodes(
+      editor,
+      {
+        type: "paragraph",
+        id: `b${Date.now()}`,
+        children: [{ text: firstLineText }],
+      } as SlateBlock,
+      { at: path }
+    )
+    const rootIdx = path[0]
+    if (lines.length > 1 && rootIdx !== undefined) {
+      const remainingLines: LineOfCodeElement[] = lines
+        .slice(1)
+        .map((l) => structuredClone(l))
+      Transforms.insertNodes(
+        editor,
+        {
+          type: "code-block",
+          id: `b${Date.now() + 1}`,
+          language: codeBlock.language,
+          children: remainingLines,
+        } as SlateBlock,
+        { at: [rootIdx + 1] }
+      )
+    }
+  })
+
+  Transforms.select(editor, Editor.start(editor, path))
 }
 
 /** Move root block's children into an empty preceding list item and remove the block. */
@@ -446,10 +499,24 @@ function skipPastHiddenClusterIfNeeded(
   return true
 }
 
+export type DocEditorHandle = {
+  select: (range: {
+    anchor: {
+      path: Path
+      offset: number | typeof Editor.start | typeof Editor.end
+    }
+    focus: {
+      path: Path
+      offset: number | typeof Editor.start | typeof Editor.end
+    }
+  }) => void
+}
+
 type DocEditorProps = {
   slateDocument: SlateElement[]
   frozenElements?: Record<string, React.ReactNode>
   frozenSources?: Record<string, string>
+  ref?: React.Ref<DocEditorHandle>
 }
 
 /**
@@ -467,6 +534,7 @@ const DocEditorInner = ({
   slateDocument,
   frozenElements,
   frozenSources,
+  ref,
 }: DocEditorProps) => {
   const frozenSourcesRef = useRef(frozenSources)
   frozenSourcesRef.current = frozenSources
@@ -654,6 +722,40 @@ const DocEditorInner = ({
     editorRef.current = editor
   }
   const editor = editorRef.current
+
+  useImperativeHandle(
+    ref,
+    () => ({
+      select: ({ anchor, focus }) => {
+        const anchorPoint =
+          typeof anchor.offset === "function"
+            ? anchor.offset(editor, anchor.path)
+            : { path: anchor.path, offset: anchor.offset }
+        const focusPoint =
+          typeof focus.offset === "function"
+            ? focus.offset(editor, focus.path)
+            : { path: focus.path, offset: focus.offset }
+
+        const range: Range = {
+          anchor: anchorPoint,
+          focus: focusPoint,
+        }
+
+        Transforms.select(editor, range)
+        ReactEditor.focus(editor)
+        // Keep the browser selection in sync so testing-library userEvent and
+        // native clipboard shortcuts see the same range as Slate.
+        const domRange = ReactEditor.toDOMRange(editor, range)
+        const domSelection = window.getSelection()
+        if (domSelection) {
+          domSelection.removeAllRanges()
+          domSelection.addRange(domRange)
+        }
+      },
+    }),
+    [editor]
+  )
+
   const [value, setValue] = useState(slateDocument)
   const [ghostSelection, setGhostSelection] = useState<Range | undefined>()
   const [isFocused, setIsFocused] = useState(false)
