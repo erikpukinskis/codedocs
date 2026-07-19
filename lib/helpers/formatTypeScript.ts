@@ -1,5 +1,4 @@
-import prettier from "prettier"
-import parserTypescript from "prettier/parser-typescript"
+import { format } from "@prettier/sync"
 import { formatPlainTextCodeBlock } from "./formatPlainText"
 
 export function formatTypescript(source: string): string {
@@ -18,21 +17,19 @@ export function formatTypescript(source: string): string {
       wrappedInFragment = true
     }
 
-    const formatted = prettier
-      .format(sourceToFormat, {
-        parser: "typescript",
-        plugins: [parserTypescript],
-        printWidth: 55,
-        semi: false,
-      })
-      .replace(/^;/, "")
-      .trim()
+    const formatted = format(sourceToFormat, {
+      parser: "typescript",
+      printWidth: 55,
+      semi: false,
+    })
+
+    const trimmed = formatted.replace(/^;/, "").trim()
 
     if (wrappedInFragment) {
-      return formatted.slice(2, -3).trim()
+      return trimmed.slice(2, -3).trim()
     }
 
-    return formatted
+    return trimmed
   } catch {
     return formatPlainTextCodeBlock(source)
   }

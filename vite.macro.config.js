@@ -21,6 +21,7 @@ export default defineConfig({
         "@babel/traverse",
         "@babel/types",
         "prettier",
+        "@prettier/sync",
         "prettier/parser-typescript",
       ],
     },
