@@ -1,30 +1,5 @@
 import React from "react"
 
-export const COLORS = [
-  "#5ac0d0",
-  "#9FC4C6",
-  "#B3E4E8",
-  "#75d9c3",
-  "#7dcf7d",
-  "#F6A3A9",
-  "#FBB39D",
-  "#F7C6B8",
-  "#d4a87f",
-  "#9a7248",
-  "#BD9D96",
-  "#d06d9c",
-  "#d8aa85",
-  "#b7d38c",
-]
-
-function randomInt(min: number, max: number) {
-  // min and max included
-  return Math.floor(Math.random() * (max - min + 1) + min)
-}
-
-const hoverColorIndex = randomInt(0, COLORS.length - 1)
-const hoverColor = COLORS[hoverColorIndex]
-
 export const GlobalStyles = () => (
   <>
     <link rel="preconnect" href="https://rsms.me/" />
@@ -35,10 +10,6 @@ export const GlobalStyles = () => (
     ></link>
 
     <style>{`
-      :root {
-        --hover-color: ${hoverColor};
-      }
-
       body {
         margin: 0;
         padding: 0;
@@ -53,13 +24,14 @@ export const GlobalStyles = () => (
         font-size: 1em;
       }
 
-      h1, h2, h3 {
+      h1, h2, h3, h4, h5, h6 {
         font-weight: 500;
         color: #333;
+        margin-top: 1.25em;
+        margin-bottom: 0.75em;
       }
 
       h1 {
-        margin-block: 1em;
         font-size: 1.5em;
       }
 
@@ -70,19 +42,15 @@ export const GlobalStyles = () => (
       h2 {
         font-size: 1.1em;
         font-weight: 500;
-        margin-block: 1em;
       }
 
       h3 {
         font-size: 1em;
-        margin-block: 0;
         color: #778;
       }
 
       li {
         list-style-type: disc;
-        margin-top: 1em;
-        margin-bottom: 1em;
         margin-left: 16px;
         max-width: 40em;
         color: #333;
@@ -94,8 +62,8 @@ export const GlobalStyles = () => (
       }
 
       p {
-        margin-top: 1em;
-        margin-bottom: 1em;
+        margin-top: 0.75em;
+        margin-bottom: 0.75em;
         max-width: 42em;
       },
 

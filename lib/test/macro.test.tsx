@@ -3,6 +3,7 @@ import React from "react"
 import { expect, test } from "vitest"
 // eslint-disable-next-line no-restricted-imports
 import { DocsApp } from "../../macro"
+import { DemoRenderParentChainDocs } from "./examples/DemoRenderParentChain.docs"
 import { DemoWithChildrenDocs } from "./examples/DemoWithChildren.docs"
 import { DemoWithMockCallbackDocs } from "./examples/DemoWithMockCallback.docs"
 import { DemoWithRenderPropDocs } from "./examples/DemoWithRenderProp.docs"
@@ -40,7 +41,29 @@ test("shows the body of the render prop in a Demo", () => {
     getByRole("heading", { name: "Demo With Render Prop" })
   ).toBeInTheDocument()
 
+  // If the macro mis-walks the render prop (e.g. wrong JSXElement parent),
+  // transform throws before runtime; if `source` were missing, Demo still runs
+  // but this proves the render callback executed and produced the demo UI:
+  expect(getByRole("button", { name: /Click me \(0\)/ })).toBeInTheDocument()
+
   // TODO(erik): Check the source is just the render function body
+})
+
+test("macro resolves Demo JSXElement from render prop expression (parent chain)", () => {
+  const ui = (
+    <DocsApp
+      logo="Codedocs Tests"
+      icon="children"
+      docs={[DemoRenderParentChainDocs]}
+    />
+  )
+
+  const { getByRole, getByText } = render(ui)
+
+  expect(
+    getByRole("heading", { name: "Demo render parent chain" })
+  ).toBeInTheDocument()
+  expect(getByText("macro-demo-render-parent-chain-ok")).toBeInTheDocument()
 })
 
 test("macro doesn't blow up if you use mock callbacks", () => {

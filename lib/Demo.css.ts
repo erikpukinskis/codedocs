@@ -1,104 +1,77 @@
 import { style } from "@vanilla-extract/css"
 import { recipe } from "@vanilla-extract/recipes"
 
-export const demo = style({
-  /**
-   * The top margin is set to exactly 8px + 4px, for the crop mark length + the
-   * crop mark offset.
-   *
-   * This allows the crop marks from one variant to overlap the variant below
-   * precisely, so they can be packed a little tighter.
-   */
-  marginTop: 12,
-  position: "relative",
-})
-
-export const demoContainer = recipe({
+/**
+ * variantContent — per-variant wrapper for one demo variant.
+ *
+ * position:relative establishes the containing block for CropMarks
+ * (position:absolute, inset:0) and EventLog (position:absolute). Multiple
+ * variants of the same demo stack as regular block siblings — each with its
+ * own independent width and its own set of crop marks.
+ *
+ * Tabs are NOT rendered here. They are rendered by FrozenBlockElement in
+ * Editor.tsx, positioned at the bottom-right of the frozenBlock (which is
+ * already position:relative).
+ *
+ * Width control:
+ *   - Inline demos: width:max-content so the variant shrinks to its content.
+ *     The frozen block (inline-block) shrinks around it and the paragraph
+ *     caret leaf sits beside it.
+ *   - Full-width demos: width:100% fills the frozen block, which fills the
+ *     paragraph row.
+ */
+export const variantContent = recipe({
   base: {
     position: "relative",
-    maxWidth: "100%",
   },
   variants: {
-    inline: {
+    fullWidth: {
       true: {
-        display: "inline-block",
-      },
-      false: {
         width: "100%",
       },
-    },
-    hasPadding: {
-      true: {
-        paddingBottom: "calc(0.8em + 8px + 4px)",
+      false: {
+        width: "max-content",
+        maxWidth: "100%",
       },
     },
   },
 })
 
 /**
- * This container positions the tabs all the way to the right edge of the demo.
- * However, it has a max-width of 100% to ensure it doesn't grow past the *left*
- * edge of the demo.
+ * demoContent — wraps {children}, the actual live render of the demo.
  *
- * Then, tabs element below gets whitespace: nowrap and is allowed to overflow.
- *
- * This means the tabs will, in most cases, be aligned to the right of the demo,
- * but if they're too wide to fit they'll stick out the right side rather than
- * the left.
+ * Why this wrapper exists:
+ *   - position:relative gives any position:absolute descendants of {children}
+ *     a stable containing block (some demos rely on this).
+ *   - It's where boundingSelectors padding sync is applied — that logic
+ *     measures children that overflow visually (popovers, tooltips) and pads
+ *     the wrapper so crop marks can frame them.
+ *   - zIndex:1 (on a positioned element) ensures demo paint stacks above the
+ *     CropMarks layer (zIndex:0) within variantContent.
  */
-export const tabsContainer = style({
-  position: "absolute",
-  bottom: 0,
-  right: 0,
-  maxWidth: "100%",
-})
-
-export const tabs = style({
-  whiteSpace: "nowrap",
+export const demoContent = style({
   position: "relative",
-  left: 0,
-  display: "flex",
-  flexDirection: "row",
-  justifyContent: "flex-start",
-  gap: 10,
+  zIndex: 1,
+  overflow: "visible",
 })
 
-export const tab = recipe({
-  base: {
-    "zIndex": 1,
-    "background": "none",
-    "marginTop": 2,
-    "paddingInline": 6,
-    "paddingBlock": 4,
-    "borderRadius": 4,
-    "border": "none",
-    "fontSize": "0.8em",
-    "cursor": "pointer",
-    "color": "#555",
-    "textShadow": "0.3px 0 0 currentColor",
-
-    ":hover": {
-      color: "#000",
-    },
-  },
-
-  variants: {
-    active: {
-      true: {
-        "fontWeight": "bold",
-        "textShadow": "none",
-        "color": "white",
-        "textDecorationColor": "white",
-        "background": "#5f577d",
-        "boxShadow": "0 10px 0 0 #5f577d",
-        ":hover": {
-          color: "white",
-        },
-      },
-    },
-  },
+/**
+ * cropMarks — the corner-bracket frame that visually marks the demo's bounds.
+ *
+ * position:absolute + inset:0 fills the variantContent (which is
+ * position:relative). zIndex:0 keeps it below demoContent (zIndex:1).
+ * pointerEvents:none so the marks don't intercept clicks on demo content.
+ */
+export const cropMarks = style({
+  position: "absolute",
+  inset: 0,
+  zIndex: 0,
+  pointerEvents: "none",
 })
 
+/**
+ * skippedDemo — placeholder when a demo is marked skip:true.
+ */
 export const skippedDemo = style({
   background: "#ffbc2c",
   fontSize: "0.85em",

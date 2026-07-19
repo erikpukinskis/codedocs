@@ -1,10 +1,23 @@
-import React from "react"
+import React, { useMemo, useState } from "react"
+import * as styles from "./Doc.css"
+import { DocEditor } from "./Editor/DocEditor"
+import { slateToJsx } from "./Editor/serialization"
+import { type SlateBlock } from "./Editor/types"
+import { parseDocChunks, filterChunks } from "./helpers/parseDocChunks"
 
 export type DocProps = {
   path: string
   order?: number
   children?: React.ReactNode
+} & Partial<MacroAddedProps>
+
+type MacroAddedProps = {
+  slateDocument: SlateBlock[]
+  frozenElements: Record<string, React.ReactNode>
+  frozenSources: Record<string, string>
 }
+
+export type ProcessedDocProps = DocProps & MacroAddedProps
 
 /**
  * Register a documentation page. You should render this component and export it
@@ -33,9 +46,102 @@ export type DocProps = {
  *       )
  *
  * See the <Docs> component documentation for more details.
- *
- * Note: This component doesn't do anything with its props (other than its
- * children which it renders out). The props are only used by the macros, which
- * registers the demos, the doc path, etc.
  */
-export const Doc = ({ children }: DocProps) => <>{children}</>
+export const Doc = ({
+  path,
+  children,
+  slateDocument,
+  frozenElements,
+  frozenSources,
+}: DocProps) => {
+  const [activeTab, setActiveTab] = useState<TabId>("edit")
+
+  // TODO: Maybe use a callback so the editor can update this source string?
+  const sourceString = useMemo(() => {
+    if (!slateDocument || !frozenSources) return undefined
+    return slateToJsx(slateDocument, {
+      frozenSources,
+    })
+  }, [slateDocument, frozenSources])
+
+  return (
+    <>
+      <div className={styles.tabBar}>
+        <button
+          className={styles.tab({ active: activeTab === "static" })}
+          onClick={() => setActiveTab("static")}
+        >
+          Static
+        </button>
+        <button
+          className={styles.tab({ active: activeTab === "edit" })}
+          onClick={() => setActiveTab("edit")}
+        >
+          Edit
+        </button>
+        <button
+          className={styles.tab({ active: activeTab === "source" })}
+          onClick={() => {
+            setActiveTab("source")
+          }}
+        >
+          Source
+        </button>
+      </div>
+
+      {activeTab === "static" && <StaticDoc>{children}</StaticDoc>}
+
+      {activeTab === "edit" && slateDocument !== undefined && (
+        <DocEditor
+          key={path}
+          slateDocument={slateDocument}
+          frozenElements={frozenElements ?? {}}
+          frozenSources={frozenSources}
+        />
+      )}
+
+      {activeTab === "source" && sourceString !== undefined && (
+        <pre>
+          <code>{sourceString}</code>
+        </pre>
+      )}
+    </>
+  )
+}
+
+export function assertProcessedDocElement(element: React.ReactElement) {
+  if (element.type !== Doc) {
+    throw new Error(
+      `Expected a <Doc> React element but got a <${element.type.toString()}> element instead`
+    )
+  }
+
+  const docElement = element as React.ReactElement<DocProps>
+
+  if (!docElement.props.slateDocument) {
+    throw new Error(
+      `<Doc> element has no slateDocument prop. You need to import { Doc } from "codedocs/macro"`
+    )
+  }
+
+  return docElement as React.ReactElement<ProcessedDocProps>
+}
+
+type StaticDocProps = {
+  children: React.ReactNode
+}
+
+const StaticDoc = ({ children }: StaticDocProps) => {
+  const allChunks = parseDocChunks(children)
+  const chunks = filterChunks(allChunks)
+
+  return (
+    <>
+      {chunks.map((chunk, index) => (
+        <React.Fragment key={index}>{chunk.elements}</React.Fragment>
+      ))}
+    </>
+  )
+}
+
+type TabId = "static" | "edit" | "source"

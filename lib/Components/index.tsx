@@ -1,5 +1,4 @@
 import React from "react"
-import { Link as _Link } from "react-router-dom"
 import * as styles from "./index.css"
 
 export * from "./Search"
@@ -14,8 +13,8 @@ export * from "./layout"
 export * from "./Footer"
 export * from "./Button"
 export * from "./Panel"
-
-export const Link = _Link
+export * from "./Link"
+export * from "./TextInput"
 
 export const PageHeading = ({
   children,

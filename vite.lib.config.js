@@ -17,6 +17,11 @@ export default defineConfig({
     },
 
     rollupOptions: {
+      onwarn(warning, defaultHandler) {
+        // Clean up useless warnings:
+        if (warning.message?.includes('"Fragment" is imported')) return
+        else defaultHandler(warning)
+      },
       // make sure to externalize deps that shouldn't be bundled
       // into your library
       external: [
@@ -31,7 +36,6 @@ export default defineConfig({
         "lodash",
         "minisearch",
         "prettier",
-        "react-ace",
         "react-laag",
         "react-use",
         "body-scroll-lock",
@@ -55,7 +59,6 @@ export default defineConfig({
           "lodash": "lodash",
           "minisearch": "minisearch",
           "prettier": "prettier",
-          "react-ace": "reactace",
           "react-laag": "reactlaag",
           "react-use": "reactuse",
           "body-scroll-lock": "bodyscrolllock",

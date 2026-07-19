@@ -47,8 +47,12 @@ export const useFocusGroup = ({ onFocus, onBlur }: FocusGroupOptions) => {
 
           cleanupTimeoutRef.current = setTimeout(() => {
             for (const id in elementsByIdRef.current) {
-              if (!elementsByIdRef.current[id].isConnected) {
-                if (focusedElementRef.current === elementsByIdRef.current[id]) {
+              const member = elementsByIdRef.current[id]
+              if (!member) {
+                continue
+              }
+              if (!member.isConnected) {
+                if (focusedElementRef.current === member) {
                   focusedElementRef.current = undefined
                   onBlur?.()
                   lastReportedStateRef.current = "blurred"
@@ -108,7 +112,7 @@ export const useFocusGroup = ({ onFocus, onBlur }: FocusGroupOptions) => {
   const focus = useCallback((selector: string) => {
     for (const id in elementsByIdRef.current) {
       const element = elementsByIdRef.current[id]
-      if (element.matches(selector)) {
+      if (element?.matches(selector)) {
         element.focus()
         return
       }
@@ -118,7 +122,7 @@ export const useFocusGroup = ({ onFocus, onBlur }: FocusGroupOptions) => {
   const blur = useCallback((selector: string) => {
     for (const id in elementsByIdRef.current) {
       const element = elementsByIdRef.current[id]
-      if (element.matches(selector)) {
+      if (element?.matches(selector)) {
         element.blur()
         return
       }

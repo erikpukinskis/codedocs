@@ -24,7 +24,15 @@ describe("buildPalette", () => {
     const palette = buildPalette([FooDocs])
 
     expect(palette).toHaveProperty("Button")
-    expect(palette["Button"].component).toBe(Button)
-    expect(palette["Button"].props.label.value).toBe("Click me")
+    const buttonSlot = palette["Button"]
+    if (buttonSlot === undefined) {
+      throw new Error("expected Button in palette")
+    }
+    expect(buttonSlot.component).toBe(Button)
+    const labelProp = buttonSlot.props.label
+    if (labelProp === undefined) {
+      throw new Error("expected label prop on Button")
+    }
+    expect(labelProp.value).toBe("Click me")
   })
 })

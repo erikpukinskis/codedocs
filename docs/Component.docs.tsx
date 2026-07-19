@@ -10,14 +10,13 @@ import {
   faBell as solidBell,
   faCopy as solidCopy,
   faEyeSlash as solidEyeSlash,
-  faPencil as solidPenToSquare,
+  faPenToSquare as solidPenToSquare,
   faCalendar as solidCalendar,
 } from "@fortawesome/free-solid-svg-icons"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { useState } from "react"
 // eslint-disable-next-line no-restricted-imports
 import { Component, Demo, Doc } from "../macro"
-import { Code } from "~/Code"
 
 type TagProps = {
   label: string
@@ -135,7 +134,7 @@ export const ComponentDocs = (
         tag: { type: "slot", value: undefined },
       }}
     />
-    <h3>Button</h3>
+    <h3>Tag</h3>
     <Component
       name="Tag"
       component={Tag}
@@ -182,8 +181,10 @@ export const ComponentDocs = (
       }}
     />
     <h2>Skipped components</h2>
-    Like demos, broken components can be temporarily ignored with the{" "}
-    <code>skip</code> prop:
+    <p>
+      Like demos, broken components can be temporarily ignored with the{" "}
+      <code>skip</code> prop:
+    </p>
     <Component
       skip
       name="SkipMe"
@@ -197,14 +198,15 @@ export const ComponentDocs = (
       Also like demos, components obey the <code>only</code> prop, to allow you
       to focus on a specific component:
     </p>
-    <Code
-      mode="tsx"
-      source={`<Component
-  only
-  name="Button"
-  component={Button}
-  props={...}
-/>`}
-    />
+    <code data-language="tsx">
+      {`
+        <Component
+          only
+          name="Button"
+          component={Button}
+          /* ... */
+        />
+      `}
+    </code>
   </Doc>
 )

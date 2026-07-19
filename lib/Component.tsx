@@ -4,7 +4,6 @@ import * as styles from "./Component.css"
 import { ErrorBoundary } from "./ErrorBoundary"
 import { EventLog, useEventLog } from "./EventLog"
 import type { AllowedPropTypes, PropDefLookup } from "./helpers/componentTypes"
-import { PreviewArea } from "./PreviewArea"
 
 type ComponentProps<PropsType extends Record<string, AllowedPropTypes>> = {
   /**
@@ -41,7 +40,7 @@ export function Component<PropsType extends Record<string, AllowedPropTypes>>({
   component: RenderFunction,
   props: initialProps,
   skip = false,
-  boundingSelectors,
+  boundingSelectors: _onlyUsedInMacro,
 }: ComponentProps<PropsType>) {
   const [propValues, setPropValues] = useState(() =>
     Object.fromEntries(
@@ -69,9 +68,7 @@ export function Component<PropsType extends Record<string, AllowedPropTypes>>({
           </>
         ) : (
           <ErrorBoundary location="demo-area">
-            <PreviewArea boundingSelectors={boundingSelectors}>
-              <RenderFunction {...resolvedProps} />
-            </PreviewArea>
+            <RenderFunction {...resolvedProps} />
           </ErrorBoundary>
         )}
         <EventLog events={events} />

@@ -1,10 +1,9 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import React, { useMemo, useState } from "react"
-import { Code } from "./Code"
+import React, { useEffect, useMemo, useRef } from "react"
+import { CropMarks } from "./CropMarks"
 import * as styles from "./Demo.css"
 import { ErrorBoundary } from "./ErrorBoundary"
 import { EventLog, useEventLog } from "./EventLog"
-import { PreviewArea } from "./PreviewArea"
 
 type ReactChildren = React.ReactElement | React.ReactPortal | string
 
@@ -49,50 +48,49 @@ export type DemoProps<
   | DemoPropsWithChildren
   | DemoPropsWithRenderFunction<ValueType, DependenciesType, VariantsType>
 ) & {
-  source?: string
+  /**
+   * Macro-only: when the doc uses `// @codedocs include-wrapper-in-source`, set
+   * this to show only the demo's inner content in the extracted source (children
+   * concatenation or the `render` body), not the full `<Demo>` element. Ignored
+   * at runtime.
+   */
+  noWrapperInSource?: boolean
   width?: "full" | number
   skip?: boolean
   only?: boolean
   boundingSelectors?: string[]
   dependencies?: DependenciesType
-  dependencySources?: Record<string, string>
-  noWrapperInSource?: boolean
   variants?: VariantsType[]
 }
 
+/**
+ * Renders a code demo. The DOM is intentionally flat:
+ *
+ *   variantContent (grid)         — per-variant wrapper
+ *     demoContent (row 1, col 1)  — wraps {children}, hosts the live render
+ *     CropMarks   (absolute)      — overlay on the demo content cell
+ *     EventLog    (absolute, transient overlay; uses its existing CSS)
+ *
+ * Source code IS NOT rendered here. The macro emits one Slate `code-block`
+ * sibling per source/dependency in the document model, linked back to this
+ * Demo's frozen block via `demoId`.
+ *
+ * Source tabs are also NOT rendered here. They are a facet of the editor:
+ * FrozenBlockElement (in Editor.tsx) renders a DemoTabs row positioned at
+ * the bottom-right of the frozenBlock (which is already position:relative).
+ */
 export function Demo<
   ValueType,
   DependenciesType extends DependencyMap,
   VariantsType extends string = never
 >(props: DemoProps<ValueType, DependenciesType, VariantsType>) {
-  const [activeTab, setActiveTab] = useState<string>("__source")
-  const [showCode, setShowCode] = useState(false)
   const { events, mockCallback } = useEventLog()
-  const [value, setValue] = useState(props.defaultValue)
-
-  const dependencySources = hasDependencies(props)
-    ? props.dependencySources
-    : undefined
-  const dependencyNames = dependencySources
-    ? Object.keys(dependencySources)
-    : []
-
-  const formattedSource = (() => {
-    if (!showCode) return null
-
-    const source =
-      activeTab === "__source" ? props.source : dependencySources?.[activeTab]
-
-    if (!source) return NO_MACRO_ERROR
-
-    return source
-  })()
+  const [value, setValue] = React.useState(props.defaultValue)
 
   const dependencies = (
     hasDependencies(props) ? props.dependencies : {}
   ) as DependenciesType
 
-  // Create the context object to pass to render functions
   const demoContext = useMemo<DemoContext<ValueType, DependenciesType>>(
     () => ({
       value,
@@ -105,99 +103,117 @@ export function Demo<
     [value, dependencies, mockCallback]
   )
 
-  const { width, variants } = props
-
   if (props.skip) {
-    return (
-      <div className={styles.demo} data-component="Demo">
-        <SkippedDemo />
-      </div>
-    )
+    return <SkippedDemo />
   }
 
   const variantsToRender =
-    variants && variants.length > 0 ? variants : [undefined as never]
+    props.variants && props.variants.length > 0
+      ? props.variants
+      : [undefined as never]
+
+  const isFullWidth = props.width === "full"
 
   return (
     <>
-      {variantsToRender.map((variant, i) => (
-        <div
-          key={variant ?? "__default"}
-          className={styles.demo}
-          data-component="Demo"
-          style={{ width: props.width }}
-        >
-          <div
-            className={styles.demoContainer({
-              inline: !width,
-              hasPadding: i === variantsToRender.length - 1,
-            })}
-            data-component="DemoContainer"
-          >
-            <ErrorBoundary location="demo-area">
-              <DemoArea
-                variant={variant}
-                inline={!width}
-                props={props}
-                context={demoContext}
-                boundingSelectors={props.boundingSelectors}
-              />
-            </ErrorBoundary>
+      {variantsToRender.map((variant) => {
+        const content = hasChildren(props) ? (
+          props.children
+        ) : isRenderable(props) ? (
+          <props.render {...demoContext} variant={variant} />
+        ) : null
 
-            {i === variantsToRender.length - 1 && (
-              <div className={styles.tabsContainer}>
-                <div className={styles.tabs}>
-                  <button
-                    className={styles.tab({
-                      active: showCode && activeTab === "__source",
-                    })}
-                    onClick={() => {
-                      if (showCode && activeTab === "__source") {
-                        setShowCode(false)
-                      } else {
-                        setActiveTab("__source")
-                        setShowCode(true)
-                      }
-                    }}
-                  >
-                    Source
-                  </button>
-                  {dependencyNames.map((name) => (
-                    <button
-                      key={name}
-                      className={styles.tab({
-                        active: showCode && activeTab === name,
-                      })}
-                      onClick={() => {
-                        if (showCode && activeTab === name) {
-                          setShowCode(false)
-                        } else {
-                          setActiveTab(name)
-                          setShowCode(true)
-                        }
-                      }}
-                    >
-                      {name}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
+        if (content === null) {
+          throw new Error("not sure what type of demo this is")
+        }
+
+        return (
+          <div
+            key={variant ?? "__default"}
+            className={styles.variantContent({
+              fullWidth: isFullWidth,
+            })}
+            style={{
+              width: typeof props.width === "number" ? props.width : undefined,
+            }}
+            data-component="Demo"
+          >
+            <DemoContent boundingSelectors={props.boundingSelectors}>
+              <ErrorBoundary location="demo-area">{content}</ErrorBoundary>
+            </DemoContent>
+            <div className={styles.cropMarks}>
+              <CropMarks />
+            </div>
             <EventLog events={events} />
           </div>
-
-          {formattedSource && i === variantsToRender.length - 1 && (
-            <Code
-              // Set this key to force re-mount (stat reset) when we switch files:
-              key={activeTab}
-              source={formattedSource}
-              mode="tsx"
-              onClickClose={() => setShowCode(false)}
-            />
-          )}
-        </div>
-      ))}
+        )
+      })}
     </>
+  )
+}
+
+type DemoContentProps = {
+  boundingSelectors?: string[]
+  children: React.ReactNode
+}
+
+/**
+ * Wraps the live demo render and applies the `boundingSelectors` padding. When
+ * children matching the selectors overflow visually, this expands its own
+ * padding so crop marks frame them properly.
+ */
+const DemoContent: React.FC<DemoContentProps> = ({
+  boundingSelectors,
+  children,
+}) => {
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const container = ref.current
+    if (!container || !boundingSelectors?.length) return
+
+    const sync = () => {
+      const selectors = boundingSelectors
+      if (!container.isConnected) return
+      const containerRect = container.getBoundingClientRect()
+      let minX = 0
+      let minY = 0
+      let maxX = containerRect.width
+      let maxY = containerRect.height
+
+      for (const selector of selectors) {
+        const els = Array.from(container.querySelectorAll(selector))
+        for (const el of els) {
+          const r = el.getBoundingClientRect()
+          minX = Math.min(minX, r.left - containerRect.left)
+          minY = Math.min(minY, r.top - containerRect.top)
+          maxX = Math.max(maxX, r.right - containerRect.left)
+          maxY = Math.max(maxY, r.bottom - containerRect.top)
+        }
+      }
+
+      container.style.paddingLeft = `${Math.abs(Math.min(0, minX))}px`
+      container.style.paddingTop = `${Math.abs(Math.min(0, minY))}px`
+      container.style.paddingRight = `${Math.max(
+        0,
+        maxX - containerRect.width
+      )}px`
+      container.style.paddingBottom = `${Math.max(
+        0,
+        maxY - containerRect.height
+      )}px`
+    }
+
+    sync()
+    const observer = new MutationObserver(sync)
+    observer.observe(container, { childList: true, subtree: true })
+    return () => observer.disconnect()
+  }, [boundingSelectors])
+
+  return (
+    <div ref={ref} className={styles.demoContent}>
+      {children}
+    </div>
   )
 }
 
@@ -211,46 +227,6 @@ export const SkippedDemo: React.FC = () => {
       />
       This demo has been skipped.
     </div>
-  )
-}
-
-type DemoAreaProps<
-  ValueType,
-  DependenciesType extends DependencyMap,
-  VariantsType extends string
-> = {
-  props: DemoProps<ValueType, DependenciesType, VariantsType>
-  context: DemoContext<ValueType, DependenciesType>
-  boundingSelectors?: string[]
-  inline: boolean
-  variant: VariantsType
-}
-
-function DemoArea<
-  ValueType,
-  DependenciesType extends DependencyMap,
-  VariantsType extends string
->({
-  props,
-  context,
-  boundingSelectors,
-  inline,
-  variant,
-}: DemoAreaProps<ValueType, DependenciesType, VariantsType>) {
-  const content = hasChildren(props) ? (
-    props.children
-  ) : isRenderable(props) ? (
-    <props.render {...context} variant={variant} />
-  ) : null
-
-  if (!content) {
-    throw new Error("not sure what type of demo this is")
-  }
-
-  return (
-    <PreviewArea boundingSelectors={boundingSelectors} inline={inline}>
-      {content}
-    </PreviewArea>
   )
 }
 
@@ -289,7 +265,3 @@ function isRenderable<
     !Object.prototype.hasOwnProperty.call(demoProps, "props")
   )
 }
-
-const NO_MACRO_ERROR = `// Source code unavailable
-// try installing babel-plugin-macros or vite-plugin-babel-macros and using:
-// import { Demo } from "codedocs/macro"`

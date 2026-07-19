@@ -269,10 +269,15 @@ export const buildSiteTree = (
       parent = newParent
     }
 
+    const pageName = breadcrumbs[0]
+    if (pageName === undefined) {
+      throw new Error(`Page at ${path} had empty breadcrumbs`)
+    }
+
     const page: Page = {
       __typename: "Page",
       path,
-      name: breadcrumbs[0],
+      name: pageName,
       doc,
       parent,
       order,

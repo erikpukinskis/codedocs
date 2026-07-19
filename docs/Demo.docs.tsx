@@ -2,7 +2,6 @@
 import React, { useState } from "react"
 // eslint-disable-next-line no-restricted-imports
 import { Demo, Doc, Placeholder } from "../macro"
-import { Code } from "~/Code"
 
 export const DemoDocs = (
   <Doc path="/Docs/Demo">
@@ -11,14 +10,15 @@ export const DemoDocs = (
       up a demo is just to put some JSX inside your <code>&lt;Demo&gt;</code>{" "}
       tag inside a <code>&lt;Doc&gt;</code>.
     </p>
-    <Code
-      mode="tsx"
-      source={`<Doc path="/Components/Placeholder">
-  <Demo>
-    <Placeholder>Hello, world!</Placeholder>
-  </Demo>
-</Doc>`}
-    />
+    <code data-language="tsx">
+      {`
+        <Doc path="/Components/Placeholder">
+          <Demo>
+            <Placeholder>Hello, world!</Placeholder>
+          </Demo>
+        </Doc>
+      `}
+    </code>
     <p>That gives you something like this:</p>
     <Demo noWrapperInSource>
       <Placeholder>Hello, world!</Placeholder>
@@ -36,6 +36,23 @@ export const DemoDocs = (
     </Demo>
     <h2>Variants</h2>
     <p>Show multiple variations of the same demo at the same time.</p>
+    <Demo
+      variants={["aqua", "bisque", "coral"]}
+      render={({ variant }) => (
+        <button
+          style={{
+            backgroundColor: variant,
+            border: "none",
+            borderRadius: 4,
+            padding: "4px 6px",
+            minWidth: 100,
+          }}
+        >
+          {variant}
+        </button>
+      )}
+    />
+    <p>Laid out horizontally:</p>
     <Demo
       variants={["aqua", "bisque", "coral"]}
       render={({ variant }) => (
@@ -143,16 +160,11 @@ export const DemoDocs = (
       }}
     />
     <h2>Overflowing Elements</h2>
-    <p>
-      Elements which are too wide to fit in the document content div are allowed
-      to overflow, but you will see the crop marks where the overflow happens.
-    </p>
-    <p>A fullscreen mode for demos that need more space is coming soon.</p>
     <Demo>
       <Placeholder style={{ whiteSpace: "nowrap" }}>
-        Elements which are too wide to fit in the document content div are
-        allowed to overflow, but you will see the crop marks where the overflow
-        happens.
+        Elements which are too wide to fit in the <code>&lt;Doc&gt;</code>'s
+        content div are allowed to overflow. This should stick out the right
+        edge of the doc.
       </Placeholder>
     </Demo>
     <h2>Errors In Demos</h2>
@@ -178,18 +190,19 @@ export const DemoDocs = (
       You can focus on a specific demo (or three) by adding the{" "}
       <code>only</code> prop:
     </p>
-    <Code
-      mode="tsx"
-      source={`<Doc path="/">
-  <h2>Focused demo</h2>
-  <p>Additional elements back to the preceding heading will be shown.</p>
-  <Demo only>Only this demo will be rendered</Demo>
+    <code data-language="tsx">
+      {`
+          <Doc path="/">
+            <h2>Focused demo</h2>
+            <p>Additional elements back to the preceding heading will be shown.</p>
+            <Demo only>Only this demo will be rendered</Demo>
 
-  <h2>Hidden demo</h2>
-  <p>Content around the hidden demos is hidden too.</p>
-  <Demo>This demo will be hidden</Demo>
-</Doc>`}
-    />
+            <h2>Hidden demo</h2>
+            <p>Content around the hidden demos is hidden too.</p>
+            <Demo>This demo will be hidden</Demo>
+          </Doc>
+        `}
+    </code>
     <h2>Absolute Positioned Content</h2>
     <p>
       If you would like to expand the demo area to include some absolute
@@ -222,14 +235,9 @@ export const DemoDocs = (
 )
 
 const MyProvider = ({ children }: { children: React.ReactNode }) => {
-  return (
-    <Placeholder>
-      <h3>MyProvider</h3>
-      {children}
-    </Placeholder>
-  )
+  return <Placeholder>MyProvider: {children}</Placeholder>
 }
 
 const useMyHook = () => {
-  return "[hook data]"
+  return "[data from inside provider]"
 }

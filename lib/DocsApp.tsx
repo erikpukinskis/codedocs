@@ -28,7 +28,6 @@ import {
   type PageOrParent,
 } from "~/helpers/buildSiteTree"
 import { NotFound } from "~/NotFound"
-import { PageContent, HomePageComponent } from "~/PageContent"
 import { SearchContextProvider } from "~/SearchContext"
 import { SideNav } from "~/SideNav"
 
@@ -207,6 +206,9 @@ const getFirstPagePath = (parent: PageParent) => {
 
   while (parent) {
     const firstChild = parent.children[0]
+    if (firstChild === undefined) {
+      break
+    }
     path += `/${firstChild.name}`
     if (isPage(firstChild)) {
       break
@@ -251,9 +253,30 @@ const PageComponent = ({ page, copyright }: PageComponentProps) => {
         </Panel>
       </Components.LeftColumn>
       <Components.MainColumn>
-        <PageContent page={page} />
+        <ErrorBoundary>{page.doc}</ErrorBoundary>
         <Components.Footer copyright={copyright} />
       </Components.MainColumn>
+    </Components.Columns>
+  )
+}
+
+type HomePageComponentProps = {
+  page: HomePage
+  copyright: string
+}
+
+export const HomePageComponent = ({
+  page,
+  copyright,
+}: HomePageComponentProps) => {
+  const Components = useComponents()
+
+  return (
+    <Components.Columns>
+      <Components.CenterColumn>
+        {page.doc}
+        <Components.Footer copyright={copyright} />
+      </Components.CenterColumn>
     </Components.Columns>
   )
 }
