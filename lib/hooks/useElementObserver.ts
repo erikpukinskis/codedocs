@@ -18,7 +18,7 @@ export function useElementObserver() {
     (element: HTMLElement | null): void => {
       setElement(element)
     },
-    [setElement]
+    [setElement],
   )
 
   useLayoutEffect(() => {
@@ -33,7 +33,7 @@ export function useElementObserver() {
     }: HTMLElement) => {
       if (!(offsetParent instanceof HTMLElement)) {
         throw new Error(
-          "useResizeObserver cannot observe elements with no offset parent (position: fixed, display: none, body/html, etc)"
+          "useResizeObserver cannot observe elements with no offset parent (position: fixed, display: none, body/html, etc)",
         )
       }
 

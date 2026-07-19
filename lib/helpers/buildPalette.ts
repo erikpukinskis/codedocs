@@ -13,7 +13,7 @@ export function buildPalette(docs: DocElement[]): SlotDefLookup {
 
 function collectComponents(
   children: React.ReactNode,
-  palette: SlotDefLookup
+  palette: SlotDefLookup,
 ): void {
   React.Children.forEach(children, (child) => {
     // TODO: Better type guards that establish ComponentProps vs.
@@ -31,7 +31,7 @@ function collectComponents(
     if (child.props && (child.props as { children?: unknown }).children) {
       collectComponents(
         (child.props as { children: React.ReactNode }).children,
-        palette
+        palette,
       )
     }
   })

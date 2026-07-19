@@ -35,6 +35,6 @@ export function useMergedRefs(...refs: unknown[]) {
     },
     // Note that using refs as dependencies is generally suspect, but it's very
     // intentional in this case (see the loop above).
-    [oldRefs.current]
+    [oldRefs.current],
   )
 }

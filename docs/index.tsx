@@ -33,5 +33,5 @@ createRoot(root).render(
       ToolbarDocs,
     ]}
     githubUrl="https://github.com/ambic-js/codedocs"
-  />
+  />,
 )

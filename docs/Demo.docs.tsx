@@ -94,7 +94,7 @@ export const DemoDocs = (
                 function baz() {
                   return true
                 },
-                new Date()
+                new Date(),
               )
             }
           >

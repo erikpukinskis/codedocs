@@ -32,7 +32,7 @@ type ReactElementWithChildren = ReactElement<{
 }>
 
 function isElementWithChildren(
-  node: ReactElement
+  node: ReactElement,
 ): node is ReactElementWithChildren {
   return Object.prototype.hasOwnProperty.call(node.props, "children")
 }

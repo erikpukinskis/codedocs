@@ -17,7 +17,7 @@ type PositionRelativeRect = {
 
 function getPositionRelativeToRoot(
   root: HTMLElement,
-  rect: Pick<DOMRectReadOnly, "left" | "top" | "width" | "height">
+  rect: Pick<DOMRectReadOnly, "left" | "top" | "width" | "height">,
 ): PositionRelativeRect {
   const o = root.getBoundingClientRect()
   return {
@@ -72,7 +72,7 @@ export const Toolbar: React.FC<ToolbarProps> = ({
       observerRef(el)
       assignRef(rootRef, el)
     },
-    [observerRef, rootRef]
+    [observerRef, rootRef],
   )
   const [didWait, setDidWait] = useState(false)
   const [, bumpAfterLayout] = useReducer((n: number) => n + 1, 0)

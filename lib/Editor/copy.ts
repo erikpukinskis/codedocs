@@ -20,7 +20,7 @@ import { isCodeBlock, isFrozenBlock, type CodeBlock } from "./types"
 export function copyPlainText(
   editor: Editor,
   range: Range,
-  frozenSources?: Record<string, string>
+  frozenSources?: Record<string, string>,
 ): string {
   const chunks: string[] = []
   for (const [_node, path] of Editor.nodes(editor, {
@@ -62,7 +62,7 @@ export function copyPlainText(
 
 function collectDemoCodeBlocksForFrozen(
   editor: Editor,
-  demoFrozenId: string
+  demoFrozenId: string,
 ): { tab: string; text: string; index: number }[] {
   const blocks: { tab: string; text: string; index: number }[] = []
   let index = 0
@@ -88,7 +88,7 @@ function collectDemoCodeBlocksForFrozen(
 
 function liveDemoClipboardPlainText(
   editor: Editor,
-  frozenId: string
+  frozenId: string,
 ): string | null {
   const blocks = collectDemoCodeBlocksForFrozen(editor, frozenId)
   if (blocks.length === 0) return null
@@ -120,7 +120,7 @@ function collectFrozenIdsFromFragment(nodes: Descendant[]): Set<string> {
 function buildEnrichedFrozenSources(
   editor: Editor,
   fragment: Descendant[],
-  base?: Record<string, string>
+  base?: Record<string, string>,
 ): Record<string, string> {
   const out: Record<string, string> = { ...base }
   for (const id of collectFrozenIdsFromFragment(fragment)) {
@@ -135,7 +135,7 @@ function buildEnrichedFrozenSources(
 export function copyHtml(
   editor: Editor,
   range: Range,
-  frozenSources?: Record<string, string>
+  frozenSources?: Record<string, string>,
 ): string {
   const fragment = Editor.fragment(editor, range)
   const enriched = buildEnrichedFrozenSources(editor, fragment, frozenSources)

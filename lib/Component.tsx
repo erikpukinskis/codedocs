@@ -44,14 +44,14 @@ export function Component<PropsType extends Record<string, AllowedPropTypes>>({
 }: ComponentProps<PropsType>) {
   const [propValues, setPropValues] = useState(() =>
     Object.fromEntries(
-      Object.entries(initialProps).map(([key, def]) => [key, def.value])
-    )
+      Object.entries(initialProps).map(([key, def]) => [key, def.value]),
+    ),
   )
 
   const { events } = useEventLog()
 
   const resolvedProps = Object.fromEntries(
-    Object.entries(initialProps).map(([key]) => [key, propValues[key]])
+    Object.entries(initialProps).map(([key]) => [key, propValues[key]]),
   ) as PropsType
 
   return (

@@ -44,7 +44,7 @@ export default createMacro(function codedocsMacro({
 
   const code = state.file.code
   const includeWrapperInSource = code.startsWith(
-    "// @codedocs include-wrapper-in-source"
+    "// @codedocs include-wrapper-in-source",
   )
 
   Doc.forEach((nodePath: NodePath) => {
@@ -69,15 +69,15 @@ export default createMacro(function codedocsMacro({
   const specifiers = specifierIdentifiers.map((identifier) =>
     babel.types.importSpecifier(
       babel.types.identifier(identifier),
-      babel.types.identifier(identifier)
-    )
+      babel.types.identifier(identifier),
+    ),
   )
 
   const importSourceLiteral = babel.types.stringLiteral("codedocs")
 
   const newImport = babel.types.importDeclaration(
     specifiers,
-    importSourceLiteral
+    importSourceLiteral,
   )
 
   state.file.path.node.body.unshift(newImport)

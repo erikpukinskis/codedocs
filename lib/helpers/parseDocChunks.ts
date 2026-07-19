@@ -10,7 +10,7 @@ export type DocChunk = {
  * Checks if an element is a Demo or Component (both support only & skip props).
  */
 function isDemo(
-  element: React.ReactElement
+  element: React.ReactElement,
 ): element is React.ReactElement<DemoProps<unknown>> {
   return element.type === Demo || element.type === Component
 }
@@ -50,7 +50,7 @@ export function parseDocChunks(children: React.ReactNode): DocChunk[] {
  */
 export function chunkHasOnly(chunk: DocChunk): boolean {
   return chunk.elements.some(
-    (el) => React.isValidElement(el) && isDemo(el) && el.props.only
+    (el) => React.isValidElement(el) && isDemo(el) && el.props.only,
   )
 }
 

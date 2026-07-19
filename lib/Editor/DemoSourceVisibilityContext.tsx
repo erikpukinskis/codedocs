@@ -31,7 +31,7 @@ export type DemoSourceVisibility = {
 }
 
 const DemoSourceVisibilityContext = createContext<DemoSourceVisibility | null>(
-  null
+  null,
 )
 
 type DemoSourceVisibilityProviderProps = {
@@ -42,17 +42,17 @@ export const DemoSourceVisibilityProvider: React.FC<
   DemoSourceVisibilityProviderProps
 > = ({ children }) => {
   const [visibleTabs, setVisibleTabs] = useState<Record<string, string | null>>(
-    {}
+    {},
   )
 
   const isVisible = useCallback(
     (demoId: string, tab: string) => visibleTabs[demoId] === tab,
-    [visibleTabs]
+    [visibleTabs],
   )
 
   const visibleTabFor = useCallback(
     (demoId: string) => visibleTabs[demoId] ?? null,
-    [visibleTabs]
+    [visibleTabs],
   )
 
   const show = useCallback((demoId: string, tab: string) => {
@@ -65,7 +65,7 @@ export const DemoSourceVisibilityProvider: React.FC<
 
   const value = useMemo<DemoSourceVisibility>(
     () => ({ isVisible, visibleTabFor, show, hide }),
-    [isVisible, visibleTabFor, show, hide]
+    [isVisible, visibleTabFor, show, hide],
   )
 
   return (

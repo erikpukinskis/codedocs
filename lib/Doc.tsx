@@ -112,7 +112,7 @@ export const Doc = ({
 export function assertProcessedDocElement(element: React.ReactElement) {
   if (element.type !== Doc) {
     throw new Error(
-      `Expected a <Doc> React element but got a <${element.type.toString()}> element instead`
+      `Expected a <Doc> React element but got a <${element.type.toString()}> element instead`,
     )
   }
 
@@ -120,7 +120,7 @@ export function assertProcessedDocElement(element: React.ReactElement) {
 
   if (!docElement.props.slateDocument) {
     throw new Error(
-      `<Doc> element has no slateDocument prop. You need to import { Doc } from "codedocs/macro"`
+      `<Doc> element has no slateDocument prop. You need to import { Doc } from "codedocs/macro"`,
     )
   }
 

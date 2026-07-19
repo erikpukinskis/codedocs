@@ -125,5 +125,5 @@ const HeaderLinks = React.forwardRef<HTMLDivElement, HeaderLinksProps>(
         {children}
       </div>
     )
-  }
+  },
 )

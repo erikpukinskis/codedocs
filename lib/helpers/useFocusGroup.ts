@@ -67,7 +67,7 @@ export const useFocusGroup = ({ onFocus, onBlur }: FocusGroupOptions) => {
       onFocus: function focusGroupHandleFocus(event: React.SyntheticEvent) {
         if (!(event.target instanceof HTMLElement)) {
           throw new Error(
-            "useFocusGroup received a focus event from something other than an element"
+            "useFocusGroup received a focus event from something other than an element",
           )
         }
         focusedElementRef.current = event.target
@@ -106,7 +106,7 @@ export const useFocusGroup = ({ onFocus, onBlur }: FocusGroupOptions) => {
         }
       },
     }),
-    []
+    [],
   )
 
   const focus = useCallback((selector: string) => {
@@ -135,7 +135,7 @@ export const useFocusGroup = ({ onFocus, onBlur }: FocusGroupOptions) => {
       focus,
       blur,
     }),
-    [focusGroupProps, focus]
+    [focusGroupProps, focus],
   )
 }
 

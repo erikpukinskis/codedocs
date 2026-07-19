@@ -20,7 +20,7 @@ test("macro includes source of Demo children", () => {
   const { getByRole } = render(ui)
 
   expect(
-    getByRole("heading", { name: "Demo With Children" })
+    getByRole("heading", { name: "Demo With Children" }),
   ).toBeInTheDocument()
 
   // TODO(erik): Check the source code displays nicely
@@ -38,7 +38,7 @@ test("shows the body of the render prop in a Demo", () => {
   const { getByRole } = render(ui)
 
   expect(
-    getByRole("heading", { name: "Demo With Render Prop" })
+    getByRole("heading", { name: "Demo With Render Prop" }),
   ).toBeInTheDocument()
 
   // If the macro mis-walks the render prop (e.g. wrong JSXElement parent),
@@ -61,7 +61,7 @@ test("macro resolves Demo JSXElement from render prop expression (parent chain)"
   const { getByRole, getByText } = render(ui)
 
   expect(
-    getByRole("heading", { name: "Demo render parent chain" })
+    getByRole("heading", { name: "Demo render parent chain" }),
   ).toBeInTheDocument()
   expect(getByText("macro-demo-render-parent-chain-ok")).toBeInTheDocument()
 })
@@ -78,7 +78,7 @@ test("macro doesn't blow up if you use mock callbacks", () => {
   const { getByRole } = render(ui)
 
   expect(
-    getByRole("heading", { name: "Demo With Mock Callback" })
+    getByRole("heading", { name: "Demo With Mock Callback" }),
   ).toBeInTheDocument()
 
   // TODO(erik): Check the source is just the render function body. Maybe in the

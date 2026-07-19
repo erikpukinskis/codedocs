@@ -78,7 +78,7 @@ function newParagraphBlock(): SlateBlock {
 function redirectTypingFromFrozenAdjacentEmptyLeaf(
   editor: ReactEditor & HistoryEditor,
   text: string,
-  baseInsertText: (t: string) => void
+  baseInsertText: (t: string) => void,
 ): boolean {
   const { selection } = editor
   if (!selection || !Range.isCollapsed(selection)) return false
@@ -150,7 +150,7 @@ function redirectTypingFromFrozenAdjacentEmptyLeaf(
 /** Adjacent list-items with the same listType are one visual list (depth may vary). */
 function isSameListSequence(
   sibling: SlateBlock | undefined,
-  node: ListItemBlock
+  node: ListItemBlock,
 ): sibling is ListItemBlock {
   return (
     sibling !== undefined &&
@@ -163,7 +163,7 @@ function isSameListSequence(
 function getListItemRunEdgeFlags(
   editor: ReactEditor & HistoryEditor,
   path: Path,
-  node: ListItemBlock
+  node: ListItemBlock,
 ): { isFirstInRun: boolean; isLastInRun: boolean } {
   const [parent] = Editor.parent(editor, path)
 
@@ -203,7 +203,7 @@ function getListItemRunEdgeFlags(
 // convertCodeBlockToFlatBlock and convertFlatBlockToCodeBlock.
 function convertListItemToParagraph(
   editor: ReactEditor & HistoryEditor,
-  path: Path
+  path: Path,
 ) {
   Transforms.unsetNodes(editor, ["listType", "depth"], { at: path })
   Transforms.setNodes(editor, { type: "paragraph" } as Partial<SlateBlock>, {
@@ -221,7 +221,7 @@ function convertListItemToParagraph(
  */
 function convertCodeBlockToParagraph(
   editor: ReactEditor & HistoryEditor,
-  path: Path
+  path: Path,
 ) {
   const [codeBlock] = Editor.node(editor, path)
   if (!Element.isElement(codeBlock) || !isCodeBlock(codeBlock)) return
@@ -238,7 +238,7 @@ function convertCodeBlockToParagraph(
         id: `b${Date.now()}`,
         children: [{ text: firstLineText }],
       } as SlateBlock,
-      { at: path }
+      { at: path },
     )
     const rootIdx = path[0]
     if (lines.length > 1 && rootIdx !== undefined) {
@@ -253,7 +253,7 @@ function convertCodeBlockToParagraph(
           language: codeBlock.language,
           children: remainingLines,
         } as SlateBlock,
-        { at: [rootIdx + 1] }
+        { at: [rootIdx + 1] },
       )
     }
   })
@@ -265,7 +265,7 @@ function convertCodeBlockToParagraph(
 function mergeRootBlockIntoEmptyPrecedingListItem(
   editor: ReactEditor & HistoryEditor,
   emptyListPath: Path,
-  sourceBlockPath: Path
+  sourceBlockPath: Path,
 ) {
   const [listItem] = Editor.node(editor, emptyListPath)
   const [sourceBlock] = Editor.node(editor, sourceBlockPath)
@@ -300,7 +300,7 @@ function mergeRootBlockIntoEmptyPrecedingListItem(
 function getDemoClusterRange(
   editor: Editor,
   frozenIdx: number,
-  demoId: string
+  demoId: string,
 ): { start: number; end: number } {
   let end = frozenIdx + 1
   while (end < editor.children.length) {
@@ -323,7 +323,7 @@ function getDemoClusterRange(
 function getDemoClusterRangeFromCodeBlock(
   editor: Editor,
   idx: number,
-  demoId: string
+  demoId: string,
 ): { start: number; end: number } | null {
   let start = idx - 1
   while (start >= 0) {
@@ -425,7 +425,7 @@ function expandRangeForDemoCluster(editor: Editor, range: Range): Range {
 function skipPastHiddenClusterIfNeeded(
   editor: Editor,
   visibility: DemoSourceVisibility,
-  key: "ArrowDown" | "ArrowUp" | "ArrowRight" | "ArrowLeft"
+  key: "ArrowDown" | "ArrowUp" | "ArrowRight" | "ArrowLeft",
 ): boolean {
   const { selection } = editor
   if (!selection) return false
@@ -581,7 +581,7 @@ const DocEditorInner = ({
                 id: `b${Date.now()}`,
                 children: [],
               } as SlateBlock,
-              { at: childPath }
+              { at: childPath },
             )
             return
           }
@@ -779,7 +779,7 @@ const DocEditorInner = ({
         }
       },
     }),
-    [editor]
+    [editor],
   )
 
   const [value, setValue] = useState(slateDocument)
@@ -804,12 +804,12 @@ const DocEditorInner = ({
     (props: RenderElementProps) => (
       <DocElement {...props} frozenElements={frozenElements ?? {}} />
     ),
-    [frozenElements]
+    [frozenElements],
   )
 
   const renderLeaf = useCallback(
     (
-      props: Omit<RenderLeafProps, "children"> & { children: React.ReactNode }
+      props: Omit<RenderLeafProps, "children"> & { children: React.ReactNode },
     ) => {
       let { children: leafChildren } = props
       if (props.leaf.code) leafChildren = <code>{leafChildren}</code>
@@ -830,7 +830,7 @@ const DocEditorInner = ({
         </span>
       )
     },
-    []
+    [],
   )
 
   const decorate = useCallback(
@@ -840,7 +840,7 @@ const DocEditorInner = ({
       try {
         const intersection = Range.intersection(
           ghostSelection,
-          Editor.range(editor, path)
+          Editor.range(editor, path),
         )
         if (!intersection) return []
         return [{ ...intersection, ghostSelection: true } as Range]
@@ -848,7 +848,7 @@ const DocEditorInner = ({
         return []
       }
     },
-    [editor, ghostSelection, isFocused]
+    [editor, ghostSelection, isFocused],
   )
 
   const onKeyDown = useCallback(
@@ -870,7 +870,7 @@ const DocEditorInner = ({
         const skipped = skipPastHiddenClusterIfNeeded(
           editor,
           visibility,
-          event.key
+          event.key,
         )
         if (skipped) {
           event.preventDefault()
@@ -989,7 +989,7 @@ const DocEditorInner = ({
               mergeRootBlockIntoEmptyPrecedingListItem(
                 editor,
                 prevPath,
-                blockPath
+                blockPath,
               )
               return
             }
@@ -1118,7 +1118,7 @@ const DocEditorInner = ({
               id: `b${Date.now()}`,
               children: [{ text: "" }],
             } as SlateBlock, // TODO: Zod
-            { at: [codeBlockIndex + 1] }
+            { at: [codeBlockIndex + 1] },
           )
           Transforms.select(editor, [codeBlockIndex + 1, 0])
         } else if (isEmpty && isLastLine && isDemoSourceBlock) {
@@ -1256,12 +1256,12 @@ const DocEditorInner = ({
           Transforms.setNodes(
             editor,
             { depth: newDepth } as Partial<SlateBlock>,
-            { at: path }
+            { at: path },
           )
         }
       }
     },
-    [editor, visibility]
+    [editor, visibility],
   )
 
   return (
@@ -1339,7 +1339,7 @@ const DocElement = ({
       const { isFirstInRun, isLastInRun } = getListItemRunEdgeFlags(
         editor,
         path,
-        node
+        node,
       )
       return (
         <div
@@ -1420,7 +1420,7 @@ const FrozenBlockElement: React.FC<FrozenBlockElementProps> = ({
   const tabNames = editor.children
     .filter(
       (n): n is Extract<SlateBlock, { type: "code-block" }> =>
-        isCodeBlock(n) && n.demoId === frozenBlock.id
+        isCodeBlock(n) && n.demoId === frozenBlock.id,
     )
     .map((n) => n.tab ?? "")
     .filter(Boolean)

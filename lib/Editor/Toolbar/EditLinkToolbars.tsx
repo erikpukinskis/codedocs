@@ -46,13 +46,13 @@ export const EditLinkToolbar: React.FC<EditLinkToolbarProps> = ({
         const p = pathRef.current
         if (!p) {
           throw new Error(
-            "EditLinkToolbar save: link path lost after mergeAdjacentLinks"
+            "EditLinkToolbar save: link path lost after mergeAdjacentLinks",
           )
         }
         const [node] = Editor.node(editor, p)
         if (!isLinkElement(node)) {
           throw new Error(
-            "EditLinkToolbar save: node at path after merge is not a link"
+            "EditLinkToolbar save: node at path after merge is not a link",
           )
         }
         controls.saveLinkEdit(p, node)

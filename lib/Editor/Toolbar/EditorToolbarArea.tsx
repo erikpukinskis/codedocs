@@ -155,7 +155,7 @@ export const EditorToolbarArea: React.FC<EditorToolbarAreaProps> = ({
         dispatch({ type: "saveLinkEdit", linkPath, linkNode }),
       removeLink: () => dispatch({ type: "removeLink" }),
     }),
-    [editor]
+    [editor],
   )
 
   const matchedToolbar = modeToDescriptor(mode, editor, controls)
@@ -181,7 +181,7 @@ export const EditorToolbarArea: React.FC<EditorToolbarAreaProps> = ({
 function modeToDescriptor(
   mode: ToolbarMode,
   editor: SlateEditor,
-  controls: ToolbarControls
+  controls: ToolbarControls,
 ): ToolbarDescriptor | null {
   switch (mode.kind) {
     case "none":
@@ -266,7 +266,7 @@ function modeToDescriptor(
 
 function toolbarModeReducer(
   state: ToolbarMode,
-  action: ToolbarAction
+  action: ToolbarAction,
 ): ToolbarMode {
   switch (action.type) {
     case "environmentChanged":
@@ -296,7 +296,7 @@ function toolbarModeReducer(
     case "saveLinkDraft":
       if (state.kind !== "linkDraft") {
         throw new Error(
-          "Trying to create a link even though the CreateLinkToolbar is not open?"
+          "Trying to create a link even though the CreateLinkToolbar is not open?",
         )
       }
       return {
@@ -307,7 +307,7 @@ function toolbarModeReducer(
     case "removeLinkDraft":
       if (state.kind !== "linkDraft") {
         throw new Error(
-          "Canceling link creation even though the CreateLinkToolbar is not open?"
+          "Canceling link creation even though the CreateLinkToolbar is not open?",
         )
       }
       return { kind: "none" }
@@ -375,7 +375,7 @@ function rectsEqualEnough(x: DOMRect, y: DOMRect): boolean {
 function resolveToolbarLinkPath(
   editor: SlateEditor,
   hoverPath: Path | null,
-  caretPath: Path | null
+  caretPath: Path | null,
 ): Path | null {
   for (const candidate of [hoverPath, caretPath]) {
     if (!candidate) continue
@@ -387,7 +387,7 @@ function resolveToolbarLinkPath(
 
 function linkPathFromElementPath(
   editor: SlateEditor,
-  elementPath: Path
+  elementPath: Path,
 ): Path | null {
   try {
     const [node] = Editor.node(editor, elementPath)
@@ -416,7 +416,7 @@ function domPointFromClientXY(x: number, y: number): DOMPoint | null {
 
 function elementPathAtPoint(
   editor: SlateEditor,
-  point: { path: Path; offset: number }
+  point: { path: Path; offset: number },
 ): Path | null {
   const above = Editor.above(editor, {
     at: point,

@@ -26,8 +26,8 @@ type PanelState = {
 
 const PanelContext = createContext(
   makeUninitializedContext<PanelContextValue>(
-    "Cannot use PanelContext outside of a PanelProvider"
-  )
+    "Cannot use PanelContext outside of a PanelProvider",
+  ),
 )
 
 type PanelAction =
@@ -139,7 +139,7 @@ export const Panel: React.FC<PanelProps> = ({ panel, title, children }) => {
       </Components.PanelHeader>
       {isOpen && children}
     </Components.Panel>,
-    element
+    element,
   )
 }
 

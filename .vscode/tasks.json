@@ -6,6 +6,7 @@
       "type": "shell",
       "command": "yarn watch:types",
       "problemMatcher": ["$tsc-watch"],
+      "isBackground": true,
       "group": "build",
       "runOptions": {
         "runOn": "folderOpen"

@@ -22,7 +22,7 @@ type MockupContextValue<SlotDefs extends SlotDefLookup> = {
 }
 
 export function useSlot<PropsType extends Record<string, unknown>>(
-  id: string
+  id: string,
 ): [SlotDef<PropsType> | undefined, (slotDef: SlotDef<PropsType>) => void] {
   const { slotsById, setSlotDef } = useContext(MockupContext)
 
@@ -66,8 +66,8 @@ export function useSetProp() {
 
 const MockupContext = createContext(
   makeUninitializedContext<MockupContextValue<SlotDefLookup>>(
-    "Cannot use MockupContext outside of a MockupProvider"
-  )
+    "Cannot use MockupContext outside of a MockupProvider",
+  ),
 )
 
 type MockupProps<Lookup extends PropsLookup> = {
@@ -96,7 +96,7 @@ export function Mockup<Lookup extends PropsLookup>({
   const updateSlotProp = (
     slotId: keyof Lookup,
     propName: string,
-    value: unknown
+    value: unknown,
   ) => {
     setSlotsById((prev) => {
       // TODO: Use immer to make this more concise
@@ -118,7 +118,7 @@ export function Mockup<Lookup extends PropsLookup>({
 
   const calculateInputStyle = (
     target: HTMLElement,
-    editorElement: HTMLElement
+    editorElement: HTMLElement,
   ): React.CSSProperties => {
     const rect = target.getBoundingClientRect()
     const editorRect = editorElement.getBoundingClientRect()
@@ -157,7 +157,7 @@ export function Mockup<Lookup extends PropsLookup>({
     const editable = editables[index]
     if (!editable) {
       throw new Error(
-        `Why are we trying to observe editable ${index} before it exists?`
+        `Why are we trying to observe editable ${index} before it exists?`,
       )
     }
 
@@ -171,7 +171,7 @@ export function Mockup<Lookup extends PropsLookup>({
     const observer = new ResizeObserver(() => {
       const inputStyle = calculateInputStyle(
         editable.targetElement,
-        editorElement
+        editorElement,
       )
       setEditables((prev) => {
         const next: Editables = [...prev]
@@ -338,7 +338,7 @@ export function Mockup<Lookup extends PropsLookup>({
 
     if (!propDef) {
       throw new Error(
-        `Prop ${editable.prop} not found in slot ${editable.slotId}`
+        `Prop ${editable.prop} not found in slot ${editable.slotId}`,
       )
     }
 
@@ -348,7 +348,7 @@ export function Mockup<Lookup extends PropsLookup>({
       throw new Error(
         `Expected string value for prop ${editable.prop} in slot ${
           editable.slotId
-        } but got ${typeof value}`
+        } but got ${typeof value}`,
       )
     }
 
@@ -365,7 +365,7 @@ export function Mockup<Lookup extends PropsLookup>({
       updateSlotProp(
         editable.slotId,
         editable.prop,
-        event.target.value.replace(/ +$/, "\u00A0")
+        event.target.value.replace(/ +$/, "\u00A0"),
       )
     }
 
@@ -514,7 +514,7 @@ function findPropForElementText<Lookup extends PropsLookup>(
   element: HTMLElement,
   slotsById: {
     [key in keyof Lookup]: SlotDef<Lookup[key]>
-  }
+  },
 ): { prop?: string; slotId?: string } {
   const slotElement = element.closest("[data-slot-id]")
 
@@ -524,7 +524,7 @@ function findPropForElementText<Lookup extends PropsLookup>(
 
   if (slotId === undefined) {
     throw new Error(
-      "Found the closest slot element with a data-slot-id but then it was undefined?"
+      "Found the closest slot element with a data-slot-id but then it was undefined?",
     )
   }
 

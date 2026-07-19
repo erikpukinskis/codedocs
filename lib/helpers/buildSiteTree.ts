@@ -99,7 +99,7 @@ export function isSubCategory(parent: PageOrParent): parent is SubCategory {
 }
 
 export function isParentWithPageChildren(
-  parent: PageParent
+  parent: PageParent,
 ): parent is SiteSection | Category | SubCategory {
   return parent.__typename !== "Site"
 }
@@ -114,11 +114,11 @@ export function getPageChildren({
   children,
 }: SiteSection | Category | SubCategory): Page[] {
   const nonPage = (children as ParentLike[]).find(
-    (child) => child.__typename !== "Page"
+    (child) => child.__typename !== "Page",
   )
   if (nonPage) {
     throw new Error(
-      `Expected ${__typename} to have all Page children, but ${nonPage.path} is a ${nonPage.__typename}`
+      `Expected ${__typename} to have all Page children, but ${nonPage.path} is a ${nonPage.__typename}`,
     )
   }
   return children as Page[]
@@ -129,29 +129,29 @@ export function getCategoryChildren({
   children,
 }: SiteSection): Category[] {
   const nonCategory = (children as ParentLike[]).find(
-    (child) => child.__typename !== "Category"
+    (child) => child.__typename !== "Category",
   )
   if (nonCategory) {
     throw new Error(
-      `Expected ${__typename} to have all Category children, but ${nonCategory.path} is a ${nonCategory.__typename}`
+      `Expected ${__typename} to have all Category children, but ${nonCategory.path} is a ${nonCategory.__typename}`,
     )
   }
   return children as Category[]
 }
 
 export function getSubCategoryChildren(
-  category: SiteSection | Category | undefined
+  category: SiteSection | Category | undefined,
 ): SubCategory[] {
   if (!category) return []
 
   const { __typename, children } = category
 
   const nonSubCategory = (children as ParentLike[]).find(
-    (child) => child.__typename !== "SubCategory"
+    (child) => child.__typename !== "SubCategory",
   )
   if (nonSubCategory) {
     throw new Error(
-      `Expected ${__typename} to have all SubCategory children, but ${nonSubCategory.path} is a ${nonSubCategory.__typename}`
+      `Expected ${__typename} to have all SubCategory children, but ${nonSubCategory.path} is a ${nonSubCategory.__typename}`,
     )
   }
   return children as SubCategory[]
@@ -163,7 +163,7 @@ export function getSubCategoryChildren(
  * all the necessary metadata we need to render them.
  */
 export const buildSiteTree = (
-  docs: DocElement[]
+  docs: DocElement[],
 ): Record<string, PageOrParent> => {
   const pagesByPath: Record<string, PageOrParent> = {}
 
@@ -181,7 +181,7 @@ export const buildSiteTree = (
       const { fileName, lineNumber, columnNumber } = (doc as DocElementInternal)
         ._source
       throw new Error(
-        `Doc paths must start with a /... try <Doc path="/${doc.props.path}"> at ${fileName}:${lineNumber}:${columnNumber}`
+        `Doc paths must start with a /... try <Doc path="/${doc.props.path}"> at ${fileName}:${lineNumber}:${columnNumber}`,
       )
     }
 
@@ -201,13 +201,13 @@ export const buildSiteTree = (
 
     if (breadcrumbs.length > 4) {
       throw new Error(
-        `Doc path ${path} has too many segments, the maximum depth is [Site Section]/[Category]/[Subcategory]/[Page]`
+        `Doc path ${path} has too many segments, the maximum depth is [Site Section]/[Category]/[Subcategory]/[Page]`,
       )
     }
 
     if (breadcrumbs.length < 2) {
       throw new Error(
-        `Doc path ${path} is missing a site section. Try path="/Docs/${path}" or path="/" for the home page`
+        `Doc path ${path} is missing a site section. Try path="/Docs/${path}" or path="/" for the home page`,
       )
     }
 
@@ -262,7 +262,7 @@ export const buildSiteTree = (
         ;(parent as Category).children.push(newParent)
       } else {
         throw new Error(
-          `Unable to determine parent type for ${breadcrumb} within ${path}`
+          `Unable to determine parent type for ${breadcrumb} within ${path}`,
         )
       }
 
@@ -330,7 +330,7 @@ export const getNav = (page: Page) => {
         throw new Error(
           `Parent ${
             parent.path as string
-          } is the current page's parent but it has no children?`
+          } is the current page's parent but it has no children?`,
         )
       }
       pages = getPageChildren(parent)
@@ -364,16 +364,16 @@ export const getNav = (page: Page) => {
 
   if (!pages) {
     throw new Error(
-      `No sibling pages created... Page ${page.path} had no parent?`
+      `No sibling pages created... Page ${page.path} had no parent?`,
     )
   }
 
   const categories = allChildren.filter(
-    ({ __typename }) => __typename === "Category"
+    ({ __typename }) => __typename === "Category",
   ) as Category[]
 
   const subCategories = allChildren.filter(
-    ({ __typename }) => __typename === "SubCategory"
+    ({ __typename }) => __typename === "SubCategory",
   ) as SubCategory[]
 
   return {
