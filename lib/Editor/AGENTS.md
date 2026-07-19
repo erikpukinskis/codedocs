@@ -13,4 +13,3 @@ Structural operations on them (type conversion, split, merge, delete) are forbid
 ## Editor Tests
 
 Try not to use Slate APIs directly in tests. Ideally use the UI to interact with the editor. If absolutely necessary, wrap Slate APIs in the imperative handle set by `DocEditor`.
-
