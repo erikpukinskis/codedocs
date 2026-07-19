@@ -1,4 +1,5 @@
 # Code block backspace behavior
+
 _Exported on 5/16/2026 at 13:00:44 PDT from Cursor (3.2.16)_
 
 ---
@@ -24,6 +25,7 @@ Let me look at the `select` method and the `DocEditorHandle` type in `DocEditor.
 Now I have a clear picture. The test is pressing `{delete}` (forward delete) for the second key, but the user wants backspace behavior. Let me implement `convertCodeBlockToParagraph` and add the backspace handler, then update the test to use `{backspace}`.
 
 The structure to handle:
+
 - `[0]` code-block → `[0]` paragraph
 - The code-block's first `code-line` text becomes the paragraph's text leaf
 - Remaining `code-line`s (if any) become a new code-block after the paragraph
@@ -51,6 +53,7 @@ Pre-existing failure. Let me restore my changes and find the right test invocati
 All tests pass. Here's a summary of what was implemented:
 
 **`convertCodeBlockToParagraph`** — a new function (analogous to `convertListItemToParagraph`) that:
+
 - Reads the first `code-line`'s text content
 - Removes the `code-block` and inserts a `paragraph` with that text
 - If there were multiple lines, the remaining lines are kept as a new `code-block` immediately after
@@ -58,4 +61,3 @@ All tests pass. Here's a summary of what was implemented:
 **`onKeyDown` handler** — added a check in the `Backspace` branch: when the cursor is at the very start of a non-demoId `code-block`, `event.preventDefault()` is called and `convertCodeBlockToParagraph` runs — exactly the same pattern as the list-item case.
 
 **Test** — updated the second keypress from `{delete}` (forward delete) to `{backspace}`, matching what the user described.
-
