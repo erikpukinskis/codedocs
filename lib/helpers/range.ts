@@ -2,11 +2,7 @@ import { Editor, Range, Text } from "slate"
 import { isCodeBlock, isFrozenBlock, isLineOfCodeElement } from "~/Editor/types"
 
 export type FormatMark =
-  | "bold"
-  | "italic"
-  | "underline"
-  | "strikethrough"
-  | "code"
+  "bold" | "italic" | "underline" | "strikethrough" | "code"
 
 export const NON_CODE_FORMAT_MARKS: Exclude<FormatMark, "code">[] = [
   "bold",
@@ -28,7 +24,7 @@ function textLeavesInRange(editor: Editor, selection: Range): Text[] {
     // to reflect only text actually inside the selection.
     const intersection = Range.intersection(
       selection,
-      Editor.range(editor, path)
+      Editor.range(editor, path),
     )
     if (!intersection || Range.isCollapsed(intersection)) continue
 
@@ -40,10 +36,10 @@ function textLeavesInRange(editor: Editor, selection: Range): Text[] {
 export function isMarkActiveInSelection(
   editor: Editor,
   key: FormatMark,
-  selection: Range
+  selection: Range,
 ): boolean {
   const leaves = textLeavesInRange(editor, selection).filter((leaf) =>
-    key === "code" ? true : !leaf.code
+    key === "code" ? true : !leaf.code,
   )
   if (leaves.length === 0) return false
   return leaves.every((n) => Boolean(n[key]))
@@ -52,7 +48,7 @@ export function isMarkActiveInSelection(
 /** Returns true if the range can be formatted (bold, italic, etc) */
 export function isFormattableRange(
   editor: Editor,
-  range?: Range
+  range?: Range,
 ): range is Range {
   if (!range) return false
   const [match] = Editor.nodes(editor, {

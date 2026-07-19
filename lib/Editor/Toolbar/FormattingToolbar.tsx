@@ -40,7 +40,7 @@ const unsetBeforeApplyBlockType: Partial<Record<SlateBlock["type"], string[]>> =
   }
 
 function isTextBlockNode(
-  node: Node
+  node: Node,
 ): node is SlateBlock & { type: "paragraph" | "heading" | "list-item" } {
   return isParagraphBlock(node) || isHeadingBlock(node) || isListItemBlock(node)
 }
@@ -68,7 +68,7 @@ function applyBlockType<T extends SlateBlock["type"]>(
   editor: SlateEditor,
   at: Range,
   type: T,
-  options: ApplyBlockTypeOptions<T>
+  options: ApplyBlockTypeOptions<T>,
 ) {
   const toUnset = unsetBeforeApplyBlockType[type]
   const seen = new Set<string>()
@@ -96,7 +96,7 @@ function applyBlockType<T extends SlateBlock["type"]>(
         id,
         ...(options as Record<string, unknown>),
       } as Partial<SlateBlock>,
-      { at: path }
+      { at: path },
     )
   }
 }
@@ -140,7 +140,7 @@ export const FormattingToolbarContent: React.FC<
           at: range,
           match: matchAnyTextLeaf,
           split: true,
-        }
+        },
       )
       return
     }
@@ -161,7 +161,7 @@ export const FormattingToolbarContent: React.FC<
         at: range,
         match: matchNonCodeTextLeaf,
         split: true,
-      }
+      },
     )
   }
 
@@ -192,7 +192,7 @@ export const FormattingToolbarContent: React.FC<
     const { linkPath, linkNode } = wrapRangeAsLink(
       editor,
       range,
-      LINK_DRAFT_PLACEHOLDER_URL
+      LINK_DRAFT_PLACEHOLDER_URL,
     )
     const draft: LinkDraft = {
       linkPath,

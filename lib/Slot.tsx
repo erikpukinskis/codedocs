@@ -105,7 +105,7 @@ export function useDroppableSlot({ location }: UseDroppableSlotArgs) {
 
       if (!componentDef) {
         throw new Error(
-          `Component ${event.operation.source.id} not found in palette`
+          `Component ${event.operation.source.id} not found in palette`,
         )
       }
 

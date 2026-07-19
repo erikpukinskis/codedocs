@@ -45,7 +45,7 @@ export function makeUninitializedContext<ContextType>(message: string) {
 
         throw new Error(`${message}: tried getting context.${prop.toString()}`)
       },
-    }
+    },
   ) as ContextType
 }
 

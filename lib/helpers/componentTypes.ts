@@ -82,7 +82,7 @@ export type PropsLookup = Record<string, Record<string, AllowedPropTypes>>
  */
 export function isEmptySlot(
   slotDef: SlotDef<Record<string, unknown>>,
-  propName: string
+  propName: string,
 ): boolean {
   const propDef = slotDef.props[propName]
 

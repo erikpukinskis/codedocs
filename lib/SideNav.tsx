@@ -33,8 +33,8 @@ export const SideNav = ({
     categories.length > 0
       ? categories
       : subCategories.length > 0
-      ? subCategories
-      : pages
+        ? subCategories
+        : pages
 
   return (
     <>

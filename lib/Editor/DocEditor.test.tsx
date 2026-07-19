@@ -23,53 +23,53 @@ describe("DocEditor", () => {
       const loneCodeLine = assertProcessedDocElement(LoneCodeLineDocs)
 
       const { getByRole } = render(
-        <DocEditor slateDocument={loneCodeLine.props.slateDocument} />
+        <DocEditor slateDocument={loneCodeLine.props.slateDocument} />,
       )
 
       expect(getByRole("textbox")).toHaveTextContent(
-        '1console.log("hello, world")'
+        '1console.log("hello, world")',
       )
     })
 
     test("paragraphs above and below a code line should turn it into a code block", () => {
       const loneCodeLine = assertProcessedDocElement(
-        ParagraphsAboveAndBelowCodeLineDocs
+        ParagraphsAboveAndBelowCodeLineDocs,
       )
 
       const { getByRole } = render(
-        <DocEditor slateDocument={loneCodeLine.props.slateDocument} />
+        <DocEditor slateDocument={loneCodeLine.props.slateDocument} />,
       )
 
       expect(getByRole("textbox")).toHaveTextContent(
-        'This is a paragraph above a code block.1console.log("hello, world")'
+        'This is a paragraph above a code block.1console.log("hello, world")',
       )
     })
 
     test("code blocks within paragraphs should become inline code elements", () => {
       const loneCodeLine = assertProcessedDocElement(
-        CodeLineWithinParagraphDocs
+        CodeLineWithinParagraphDocs,
       )
 
       const { getByRole } = render(
-        <DocEditor slateDocument={loneCodeLine.props.slateDocument} />
+        <DocEditor slateDocument={loneCodeLine.props.slateDocument} />,
       )
 
       expect(getByRole("textbox")).toHaveTextContent(
-        `This is a paragraph, long enough to take its own line and has asymbolembedded in it.`
+        `This is a paragraph, long enough to take its own line and has asymbolembedded in it.`,
       )
     })
 
     test("Even if there are no block level siblings, we can assume all top level code tags are block-level elements.", () => {
       const loneCodeLine = assertProcessedDocElement(
-        CodeLineSurroundedWithTextDocs
+        CodeLineSurroundedWithTextDocs,
       )
 
       const { getByRole } = render(
-        <DocEditor slateDocument={loneCodeLine.props.slateDocument} />
+        <DocEditor slateDocument={loneCodeLine.props.slateDocument} />,
       )
 
       expect(getByRole("textbox")).toHaveTextContent(
-        "This will be a text node, but because this code tag...1symbolis at the top level, these will become three block-level elements."
+        "This will be a text node, but because this code tag...1symbolis at the top level, these will become three block-level elements.",
       )
     })
   })
@@ -80,7 +80,7 @@ describe("DocEditor", () => {
     const ref = createRef<DocEditorHandle>()
 
     const { getByRole } = render(
-      <DocEditor ref={ref} slateDocument={loneCodeLine.props.slateDocument} />
+      <DocEditor ref={ref} slateDocument={loneCodeLine.props.slateDocument} />,
     )
 
     const editor = getByRole("textbox")
@@ -98,13 +98,13 @@ describe("DocEditor", () => {
     await userEvent.keyboard("{backspace}")
 
     await waitFor(() =>
-      expect(editor.textContent).toBe("\ufeffStart writing...")
+      expect(editor.textContent).toBe("\ufeffStart writing..."),
     )
   })
 
   test("click focuses editor and places cursor outside placeholder", async () => {
     const { getByRole } = render(
-      <DocEditor slateDocument={EMPTY_DOCUMENT} frozenElements={{}} />
+      <DocEditor slateDocument={EMPTY_DOCUMENT} frozenElements={{}} />,
     )
     const editor = getByRole("textbox")
 
@@ -123,7 +123,11 @@ describe("DocEditor", () => {
     const ref = createRef<DocEditorHandle>()
 
     const { findByText, getByRole } = render(
-      <DocEditor ref={ref} slateDocument={EMPTY_DOCUMENT} frozenElements={{}} />
+      <DocEditor
+        ref={ref}
+        slateDocument={EMPTY_DOCUMENT}
+        frozenElements={{}}
+      />,
     )
 
     const editor = getByRole("textbox")

@@ -18,16 +18,16 @@ export const LINK_DRAFT_PLACEHOLDER_URL = ""
 export function wrapRangeAsLink(
   editor: SlateEditor,
   range: Range,
-  url: string
+  url: string,
 ): { linkPath: Path; linkNode: LinkElementNode } {
   if (!Editor.hasPath(editor, range.anchor.path)) {
     throw new Error(
-      "wrapRangeAsLink: draft range anchor is no longer valid for this document"
+      "wrapRangeAsLink: draft range anchor is no longer valid for this document",
     )
   }
   if (!Editor.hasPath(editor, range.focus.path)) {
     throw new Error(
-      "wrapRangeAsLink: draft range focus is no longer valid for this document"
+      "wrapRangeAsLink: draft range focus is no longer valid for this document",
     )
   }
 
@@ -41,7 +41,7 @@ export function wrapRangeAsLink(
   }
   if (!hasTextInRange) {
     throw new Error(
-      "wrapRangeAsLink: no text nodes in range; nothing to wrap as a link"
+      "wrapRangeAsLink: no text nodes in range; nothing to wrap as a link",
     )
   }
 
@@ -61,7 +61,7 @@ export function wrapRangeAsLink(
         url,
         children: [],
       } as LinkElementNode,
-      { at: range, match: Text.isText, split: true }
+      { at: range, match: Text.isText, split: true },
     )
     // `range` is a plain JS object — Slate does not update it when wrapNodes
     // splits text nodes at the range boundaries. Use editor.selection instead,
@@ -76,7 +76,7 @@ export function wrapRangeAsLink(
     })
     if (!wrapped) {
       throw new Error(
-        "wrapRangeAsLink: after wrap, could not find link at selection anchor"
+        "wrapRangeAsLink: after wrap, could not find link at selection anchor",
       )
     }
     const [, linkPath] = wrapped
@@ -87,13 +87,13 @@ export function wrapRangeAsLink(
       const pathAfterMerge = pathRef.current
       if (!pathAfterMerge) {
         throw new Error(
-          "wrapRangeAsLink: link path lost after mergeAdjacentLinks"
+          "wrapRangeAsLink: link path lost after mergeAdjacentLinks",
         )
       }
       const [node] = Editor.node(editor, pathAfterMerge)
       if (!isLinkElement(node)) {
         throw new Error(
-          "wrapRangeAsLink: node at path after merge is not a link element"
+          "wrapRangeAsLink: node at path after merge is not a link element",
         )
       }
       resolved = { linkPath: pathAfterMerge, linkNode: node }

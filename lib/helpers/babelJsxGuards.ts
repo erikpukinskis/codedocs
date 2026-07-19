@@ -14,7 +14,7 @@ import {
 
 export function isNamedJSXAttribute(
   node: Node | null | undefined,
-  name: string
+  name: string,
 ): node is JSXAttribute {
   if (node == null) return false
   else if (!isJSXAttribute(node)) return false
@@ -24,7 +24,7 @@ export function isNamedJSXAttribute(
 
 export function isNamedJSXElement(
   node: Node | null | undefined,
-  name: string
+  name: string,
 ): node is JSXElement {
   if (node == null) return false
   else if (!isJSXElement(node)) return false

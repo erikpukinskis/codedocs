@@ -32,7 +32,7 @@
  */
 export function getDraggingComponentTransform(
   rect: DOMRect,
-  event: PointerEvent
+  event: PointerEvent,
 ) {
   /** Distances between the cursor and the top left cornerof the component */
   const cx = event.clientX - rect.left

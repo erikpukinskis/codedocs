@@ -10,7 +10,7 @@ type DropdownOptions<ItemType> = {
 
 export const useDropdown = <ItemType>(
   items: ItemType[] | undefined,
-  { label, onInputChange, getOptionId, onSelect }: DropdownOptions<ItemType>
+  { label, onInputChange, getOptionId, onSelect }: DropdownOptions<ItemType>,
 ) => {
   const [isHidden, setHidden] = useState(false)
   const [highlightedIndex, setHighlightedIndex] = useState<number>(-1)
@@ -24,7 +24,7 @@ export const useDropdown = <ItemType>(
     function keepSelectionWithinResults() {
       setHighlightedIndex(-1)
     },
-    [items]
+    [items],
   )
 
   const activeDescendantId = useMemo(
@@ -36,7 +36,7 @@ export const useDropdown = <ItemType>(
       if (activeItem === undefined) return undefined
       return getOptionId(activeItem)
     },
-    [items, highlightedIndex]
+    [items, highlightedIndex],
   )
 
   const handleKeys = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -82,7 +82,7 @@ export const useDropdown = <ItemType>(
   const handleInputChange = (event: React.ChangeEvent) => {
     if (!(event.target instanceof HTMLInputElement)) {
       throw new Error(
-        "useDropdown input change target was not an HTMLInputElement?"
+        "useDropdown input change target was not an HTMLInputElement?",
       )
     }
     setQuery(event.target.value)

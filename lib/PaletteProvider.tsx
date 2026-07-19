@@ -38,15 +38,15 @@ type PaletteContextValue = {
 
 const PaletteContext = createContext(
   makeUninitializedContext<PaletteContextValue>(
-    "Cannot use PaletteContext outside of a PaletteProvider"
-  )
+    "Cannot use PaletteContext outside of a PaletteProvider",
+  ),
 )
 
 type PaletteAction = { type: "request-palette" } | { type: "release-palette" }
 
 function paletteReducer(
   state: { palette: SlotDefLookup; numRequests: number },
-  action: PaletteAction
+  action: PaletteAction,
 ): { palette: SlotDefLookup; numRequests: number } {
   switch (action.type) {
     case "request-palette":
@@ -126,7 +126,7 @@ function Palette<ComponentDefs extends PropsLookup>({
 
       const { tx, ty } = getDraggingComponentTransform(
         event.operation.source.element.getBoundingClientRect(),
-        event.operation.activatorEvent
+        event.operation.activatorEvent,
       )
 
       document.documentElement.style.setProperty("--drag-tx", `${tx}px`)
@@ -171,13 +171,13 @@ function ComponentSource<PropsType extends Record<string, AllowedPropTypes>>({
 }
 
 export function getPropValues<
-  PropsType extends Record<string, AllowedPropTypes>
+  PropsType extends Record<string, AllowedPropTypes>,
 >(propDefLookup: PropDefLookup<PropsType>) {
   return Object.entries(propDefLookup).reduce(
     (acc, [key, propDef]) => ({
       ...acc,
       [key]: propDef.value,
     }),
-    {} as PropsType
+    {} as PropsType,
   )
 }

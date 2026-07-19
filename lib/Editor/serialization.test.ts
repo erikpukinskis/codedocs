@@ -22,7 +22,7 @@ describe("slateToHtml", () => {
     ]
     const html = slateToHtml(slateDocument)
     expect(html).toBe(
-      '<pre style="font-family: Consolas, Menlo, \'Courier New\', monospace; color: #6b54c0"><code data-language="tsx">function hello() {\n  return &#39;world&#39;\n}</code></pre><br />'
+      '<pre style="font-family: Consolas, Menlo, \'Courier New\', monospace; color: #6b54c0"><code data-language="tsx">function hello() {\n  return &#39;world&#39;\n}</code></pre><br />',
     )
   })
 
@@ -36,7 +36,7 @@ describe("slateToHtml", () => {
     ]
     const html = slateToHtml(slateDocument)
     expect(html).toBe(
-      "<p>use <code style=\"font-family: Consolas, Menlo, 'Courier New', monospace; color: #6b54c0\">fn()</code></p>"
+      "<p>use <code style=\"font-family: Consolas, Menlo, 'Courier New', monospace; color: #6b54c0\">fn()</code></p>",
     )
   })
 
@@ -52,7 +52,7 @@ describe("slateToHtml", () => {
       frozenSources: { f1: "const x = 1\nconsole.log(x)" },
     })
     expect(html).toBe(
-      '<pre style="font-family: Consolas, Menlo, \'Courier New\', monospace; color: #6b54c0"><code data-language="tsx">const x = 1\nconsole.log(x)</code></pre><br />'
+      '<pre style="font-family: Consolas, Menlo, \'Courier New\', monospace; color: #6b54c0"><code data-language="tsx">const x = 1\nconsole.log(x)</code></pre><br />',
     )
   })
 

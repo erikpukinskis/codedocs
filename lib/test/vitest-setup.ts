@@ -22,7 +22,7 @@ const server = setupServer(
     return HttpResponse.text("", {
       headers: { "Content-Type": "text/css" },
     })
-  })
+  }),
 )
 
 // Start server before all tests

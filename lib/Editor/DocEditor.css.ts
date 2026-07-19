@@ -76,7 +76,7 @@ globalStyle(
   '[data-description="frozen block"] [data-slate-spacer]::selection',
   {
     background: "transparent",
-  }
+  },
 )
 
 /**

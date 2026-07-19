@@ -18,7 +18,7 @@ export type PropsLike = Record<string, unknown>
 
 export type DemoContext<
   ValueType,
-  DependenciesType extends DependencyMap = DependencyMap
+  DependenciesType extends DependencyMap = DependencyMap,
 > = {
   value: ValueType | undefined
   setValue: (value: ValueType | undefined) => void
@@ -32,7 +32,7 @@ export type DependencyMap = Record<string, unknown>
 type DemoPropsWithRenderFunction<
   ValueType = unknown,
   DependenciesType extends DependencyMap = DependencyMap,
-  VariantsType extends string = never
+  VariantsType extends string = never,
 > = {
   render: React.FC<
     DemoContext<ValueType, DependenciesType> & { variant: VariantsType }
@@ -43,7 +43,7 @@ type DemoPropsWithRenderFunction<
 export type DemoProps<
   ValueType,
   DependenciesType extends DependencyMap = DependencyMap,
-  VariantsType extends string = never
+  VariantsType extends string = never,
 > = (
   | DemoPropsWithChildren
   | DemoPropsWithRenderFunction<ValueType, DependenciesType, VariantsType>
@@ -82,7 +82,7 @@ export type DemoProps<
 export function Demo<
   ValueType,
   DependenciesType extends DependencyMap,
-  VariantsType extends string = never
+  VariantsType extends string = never,
 >(props: DemoProps<ValueType, DependenciesType, VariantsType>) {
   const { events, mockCallback } = useEventLog()
   const [value, setValue] = React.useState(props.defaultValue)
@@ -100,7 +100,7 @@ export function Demo<
       },
       ...dependencies,
     }),
-    [value, dependencies, mockCallback]
+    [value, dependencies, mockCallback],
   )
 
   if (props.skip) {
@@ -196,11 +196,11 @@ const DemoContent: React.FC<DemoContentProps> = ({
       container.style.paddingTop = `${Math.abs(Math.min(0, minY))}px`
       container.style.paddingRight = `${Math.max(
         0,
-        maxX - containerRect.width
+        maxX - containerRect.width,
       )}px`
       container.style.paddingBottom = `${Math.max(
         0,
-        maxY - containerRect.height
+        maxY - containerRect.height,
       )}px`
     }
 
@@ -233,9 +233,9 @@ export const SkippedDemo: React.FC = () => {
 function hasChildren<
   ValueType,
   DependenciesType extends DependencyMap,
-  VariantsType extends string
+  VariantsType extends string,
 >(
-  demoProps: DemoProps<ValueType, DependenciesType, VariantsType>
+  demoProps: DemoProps<ValueType, DependenciesType, VariantsType>,
 ): demoProps is DemoProps<ValueType, DependenciesType, VariantsType> &
   DemoPropsWithChildren {
   return Object.prototype.hasOwnProperty.call(demoProps, "children")
@@ -244,9 +244,9 @@ function hasChildren<
 function hasDependencies<
   ValueType,
   DependenciesType extends DependencyMap,
-  VariantsType extends string
+  VariantsType extends string,
 >(
-  demoProps: DemoProps<ValueType, DependenciesType, VariantsType>
+  demoProps: DemoProps<ValueType, DependenciesType, VariantsType>,
 ): demoProps is DemoProps<ValueType, DependenciesType, VariantsType> &
   DemoPropsWithRenderFunction<ValueType, DependenciesType, VariantsType> {
   return Object.prototype.hasOwnProperty.call(demoProps, "dependencies")
@@ -255,9 +255,9 @@ function hasDependencies<
 function isRenderable<
   ValueType,
   DependenciesType extends DependencyMap,
-  VariantsType extends string
+  VariantsType extends string,
 >(
-  demoProps: DemoProps<ValueType, DependenciesType, VariantsType>
+  demoProps: DemoProps<ValueType, DependenciesType, VariantsType>,
 ): demoProps is DemoProps<ValueType, DependenciesType, VariantsType> &
   DemoPropsWithRenderFunction<ValueType, DependenciesType, VariantsType> {
   return (

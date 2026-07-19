@@ -87,10 +87,10 @@ You're right that using `<pre><code>` makes more sense. Here's why and how:
 if (tagName === "Code") {
   // Extract the source and mode props
   const sourceAttr = child.openingElement.attributes.find(
-    (a): a is JSXAttribute => isNamedJSXAttribute(a, "source")
+    (a): a is JSXAttribute => isNamedJSXAttribute(a, "source"),
   )
   const modeAttr = child.openingElement.attributes.find(
-    (a): a is JSXAttribute => isNamedJSXAttribute(a, "mode")
+    (a): a is JSXAttribute => isNamedJSXAttribute(a, "mode"),
   )
 
   const source =
@@ -107,7 +107,7 @@ if (tagName === "Code") {
       objectProperty(identifier("type"), stringLiteral("code-block")),
       objectProperty(
         identifier("id"),
-        stringLiteral(`b${processState.blockId++}`)
+        stringLiteral(`b${processState.blockId++}`),
       ),
       objectProperty(identifier("language"), stringLiteral(language)),
       objectProperty(
@@ -116,9 +116,9 @@ if (tagName === "Code") {
           objectExpression([
             objectProperty(identifier("text"), stringLiteral(source)),
           ]),
-        ])
+        ]),
       ),
-    ])
+    ]),
   )
   continue
 }
@@ -227,7 +227,7 @@ if (event.key === "Enter") {
       Transforms.setNodes(
         editor,
         { type: "code-block", language: "plaintext" },
-        { at: path }
+        { at: path },
       )
       Transforms.delete(editor, { at: path, unit: "block" })
       // Insert empty text
@@ -1148,7 +1148,7 @@ const DocElement = ({ attributes, children, element, frozenElements }: DocElemen
 ```typescript
 export function slateToJsx(
   nodes: Descendant[],
-  frozenSources: Record<string, string>
+  frozenSources: Record<string, string>,
 ): string {
   const parts: string[] = []
   let listBuffer: SlateBlock[] = []
@@ -1336,7 +1336,7 @@ const withCodeBlocks = (editor) => {
 
 const editor = useMemo(
   () => withCodeBlocks(withHistory(withReact(createEditor()))),
-  []
+  [],
 )
 ```
 

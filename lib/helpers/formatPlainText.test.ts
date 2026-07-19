@@ -9,7 +9,7 @@ describe("formatPlainTextCodeBlock", () => {
       `
     const result = formatPlainTextCodeBlock(input)
     expect(result).toBe(
-      "npm run codedocs login\nnpm run codedocs deploy path/to/my-docs"
+      "npm run codedocs login\nnpm run codedocs deploy path/to/my-docs",
     )
   })
 })

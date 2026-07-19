@@ -25,7 +25,7 @@ export const useComponents = () => {
   const Components = useContext(ComponentContext)
   if (!Components.Link) {
     throw new Error(
-      "Cannot use useComponents outside of a ComponentContextProvider"
+      "Cannot use useComponents outside of a ComponentContextProvider",
     )
   }
   return Components

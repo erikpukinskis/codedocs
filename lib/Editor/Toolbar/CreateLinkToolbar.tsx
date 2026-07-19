@@ -61,13 +61,13 @@ export const CreateLinkToolbar: React.FC<CreateLinkToolbarProps> = ({
         const pathAfterMerge = pathRef.current
         if (!pathAfterMerge) {
           throw new Error(
-            "CreateLinkToolbar save: link path lost after mergeAdjacentLinks"
+            "CreateLinkToolbar save: link path lost after mergeAdjacentLinks",
           )
         }
         const [node] = Editor.node(editor, pathAfterMerge)
         if (!isLinkElement(node)) {
           throw new Error(
-            "CreateLinkToolbar save: node at path after merge is not a link"
+            "CreateLinkToolbar save: node at path after merge is not a link",
           )
         }
         controls.saveLinkDraft(pathAfterMerge, node)

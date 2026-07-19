@@ -24,7 +24,7 @@ export const useSearchQuery = (): [string, (q: string) => void] => {
   const { query, setQuery } = useContext(SearchContext)
   if (!setQuery) {
     throw new Error(
-      "Cannot use useSearchQuery outside of a SearchContextProvider"
+      "Cannot use useSearchQuery outside of a SearchContextProvider",
     )
   }
 
@@ -92,7 +92,7 @@ export const SearchContextProvider = ({
 
       return documents
     },
-    [pagesByPath]
+    [pagesByPath],
   )
 
   const miniSearch = useMemo(() => {
@@ -118,7 +118,7 @@ export const SearchContextProvider = ({
       const terms = query.split(" ").filter((term) => /[^\s]/.test(term))
 
       const pattern =
-        terms.length === 1 ? terms[0] ?? query : `/(${terms.join("|")})/gi`
+        terms.length === 1 ? (terms[0] ?? query) : `/(${terms.join("|")})/gi`
 
       const titleChunks = highlightWords({ text: result.title, query: pattern })
 

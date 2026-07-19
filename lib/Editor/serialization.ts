@@ -26,7 +26,7 @@ type SlateToJsxOptions = {
  */
 export function slateToJsx(
   nodes: Descendant[],
-  { frozenSources }: SlateToJsxOptions
+  { frozenSources }: SlateToJsxOptions,
 ): string {
   return serializeSlate(nodes, {
     format: "jsx",
@@ -54,7 +54,7 @@ export function extractCodeBlockSourceText(node: CodeBlock): string {
 }
 
 function orderDemoSourceTabsForHtml(
-  blocks: { tab: string; text: string; index: number }[]
+  blocks: { tab: string; text: string; index: number }[],
 ): { tab: string; text: string; index: number }[] {
   return [...blocks].sort((a, b) => {
     const aPrimary = a.tab === "Source" ? 0 : 1
@@ -68,7 +68,7 @@ function orderDemoSourceTabsForHtml(
  * One source string with each demo tab section prefixed by `/** name *\/` (Source first).
  */
 export function demoSourcesWithTabComments(
-  blocks: { tab: string; text: string; index: number }[]
+  blocks: { tab: string; text: string; index: number }[],
 ): string {
   const ordered = orderDemoSourceTabsForHtml(blocks)
   if (blocks.length === 1) {
@@ -85,7 +85,7 @@ export function demoSourcesWithTabComments(
  */
 export function slateToHtml(
   nodes: Descendant[],
-  { frozenSources }: SlateToHtmlOptions = {}
+  { frozenSources }: SlateToHtmlOptions = {},
 ): string {
   return serializeSlate(nodes, {
     format: "html",
@@ -105,7 +105,7 @@ function isParagraphWrappedFrozenBlock(node: Descendant): boolean {
   if (!node.children.some(isFrozenBlock)) return false
   // TODO(erik): Can we make this stricter? Enforce that it's Text + Frozen + Text and throw an error otherwise?
   return node.children.every(
-    (c) => isFrozenBlock(c) || (Text.isText(c) && c.text === "")
+    (c) => isFrozenBlock(c) || (Text.isText(c) && c.text === ""),
   )
 }
 
@@ -128,7 +128,7 @@ function firstFrozenIdInRootBlock(node: Descendant): string | null {
 function skipPastDemoClusterCodeBlocks(
   nodes: Descendant[],
   headIndex: number,
-  demoId: string
+  demoId: string,
 ): number {
   let j = headIndex + 1
   while (j < nodes.length) {
@@ -146,7 +146,7 @@ function renderDemoClusterHtml(
   nodes: Descendant[],
   headIndex: number,
   demoId: string,
-  options: SerializeSlateOptions
+  options: SerializeSlateOptions,
 ): string {
   const { format, frozenSources } = options
   const enriched = frozenSources?.[demoId]
@@ -195,7 +195,7 @@ function renderDemoClusterHtml(
  */
 function serializeSlate(
   nodes: Descendant[],
-  options: SerializeSlateOptions
+  options: SerializeSlateOptions,
 ): string {
   const lines: string[] = []
   let listBuffer: ListItemBlock[] = []
@@ -282,7 +282,7 @@ export const CODE_STYLES = [
 
 function serializeTextNode(
   node: SlateLeaf,
-  format: SerializationFormat
+  format: SerializationFormat,
 ): string {
   let text = node.text
   if (!text) return ""
@@ -300,7 +300,7 @@ function serializeTextNode(
 
 function serializeInlineChildren(
   children: Descendant[],
-  options: SerializeSlateOptions
+  options: SerializeSlateOptions,
 ): string {
   const { format } = options
   return children
@@ -337,7 +337,7 @@ function serializeInlineChildren(
 
 function serializeBlock(
   node: SlateBlock,
-  options: SerializeSlateOptions
+  options: SerializeSlateOptions,
 ): string {
   if (!isSlateBlock(node)) return ""
 
@@ -350,7 +350,7 @@ function serializeBlock(
       if (
         hasFrozen &&
         node.children.every(
-          (c) => isFrozenBlock(c) || (Text.isText(c) && c.text === "")
+          (c) => isFrozenBlock(c) || (Text.isText(c) && c.text === ""),
         )
       ) {
         return children
@@ -395,7 +395,7 @@ function serializeBlock(
  */
 function serializeListItems(
   items: ListItemBlock[],
-  options: SerializeSlateOptions
+  options: SerializeSlateOptions,
 ): string {
   if (items.length === 0) return ""
 

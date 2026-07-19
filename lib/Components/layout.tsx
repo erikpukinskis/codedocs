@@ -21,7 +21,7 @@ export const Columns = ({
 )
 
 export const LogoIcon = (
-  props: React.ComponentPropsWithoutRef<typeof FontAwesomeIcon>
+  props: React.ComponentPropsWithoutRef<typeof FontAwesomeIcon>,
 ) => <FontAwesomeIcon className={styles.logoIcon} {...props} />
 
 export const FixedTopHeader = ({

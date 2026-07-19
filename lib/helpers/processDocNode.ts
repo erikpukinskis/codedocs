@@ -41,14 +41,10 @@ import { formatTypescript } from "./formatTypeScript"
 
 /** JSX child node (element children array item). */
 export type JSXChild =
-  | JSXText
-  | JSXExpressionContainer
-  | JSXSpreadChild
-  | JSXElement
-  | JSXFragment
+  JSXText | JSXExpressionContainer | JSXSpreadChild | JSXElement | JSXFragment
 
 function getJsxTagName(
-  name: JSXElement["openingElement"]["name"]
+  name: JSXElement["openingElement"]["name"],
 ): string | undefined {
   return isJSXIdentifier(name) ? name.name : undefined
 }
@@ -103,7 +99,7 @@ export function processDocNode({
       },
     },
     nodePath.scope,
-    parentPath
+    parentPath,
   )
 }
 
@@ -112,7 +108,7 @@ export function processDocNode({
  */
 function visitDocJSXIdentifier(
   path: NodePath,
-  ctx: { state: PluginPass; code: string; includeWrapper: boolean }
+  ctx: { state: PluginPass; code: string; includeWrapper: boolean },
 ): void {
   const parentPath = path.parentPath
   if (!parentPath || !isJSXOpeningElement(parentPath.node)) return
@@ -125,7 +121,7 @@ function visitDocJSXIdentifier(
 
   if (
     openingElement.attributes.some((attr) =>
-      isNamedJSXAttribute(attr, "slateDocument")
+      isNamedJSXAttribute(attr, "slateDocument"),
     )
   ) {
     return
@@ -177,7 +173,7 @@ function visitDocJSXIdentifier(
                 objectProperty(identifier("type"), stringLiteral("paragraph")),
                 objectProperty(
                   identifier("id"),
-                  stringLiteral(`b${processState.blockId++}`)
+                  stringLiteral(`b${processState.blockId++}`),
                 ),
                 objectProperty(
                   identifier("children"),
@@ -185,9 +181,9 @@ function visitDocJSXIdentifier(
                     objectExpression([
                       objectProperty(identifier("text"), stringLiteral(t)),
                     ]),
-                  ])
+                  ]),
                 ),
-              ])
+              ]),
             )
           }
         }
@@ -200,10 +196,10 @@ function visitDocJSXIdentifier(
         objectProperty(identifier("type"), stringLiteral("paragraph")),
         objectProperty(
           identifier("id"),
-          stringLiteral(`b${processState.blockId++}`)
+          stringLiteral(`b${processState.blockId++}`),
         ),
         objectProperty(identifier("children"), arrayExpression(inlineResult)),
-      ])
+      ]),
     )
   }
 
@@ -257,13 +253,13 @@ function visitDocJSXIdentifier(
             objectProperty(identifier("type"), stringLiteral("paragraph")),
             objectProperty(
               identifier("id"),
-              stringLiteral(`b${processState.blockId++}`)
+              stringLiteral(`b${processState.blockId++}`),
             ),
             objectProperty(
               identifier("children"),
-              arrayExpression(childrenArr)
+              arrayExpression(childrenArr),
             ),
-          ])
+          ]),
         )
       }
       continue
@@ -287,14 +283,14 @@ function visitDocJSXIdentifier(
             objectProperty(identifier("type"), stringLiteral("heading")),
             objectProperty(
               identifier("id"),
-              stringLiteral(`b${processState.blockId++}`)
+              stringLiteral(`b${processState.blockId++}`),
             ),
             objectProperty(identifier("level"), numericLiteral(level)),
             objectProperty(
               identifier("children"),
-              arrayExpression(childrenArr)
+              arrayExpression(childrenArr),
             ),
-          ])
+          ]),
         )
       }
       continue
@@ -308,14 +304,14 @@ function visitDocJSXIdentifier(
         processState,
         parseInlineChildrenFn,
         freezeBlockFn,
-        makeEmptyChildrenFn
+        makeEmptyChildrenFn,
       )
       continue
     }
 
     if (tagName === "code") {
       const languageAttr = child.openingElement.attributes.find(
-        (a): a is JSXAttribute => isNamedJSXAttribute(a, "data-language")
+        (a): a is JSXAttribute => isNamedJSXAttribute(a, "data-language"),
       )
       const languageValue = languageAttr?.value
       const language =
@@ -327,7 +323,7 @@ function visitDocJSXIdentifier(
         preserveWhitespace: true,
       })
       processState.blockNodes.push(
-        makeCodeBlockNode(language, rawText ?? "", processState)
+        makeCodeBlockNode(language, rawText ?? "", processState),
       )
       continue
     }
@@ -335,13 +331,13 @@ function visitDocJSXIdentifier(
     if (tagName === "pre") {
       const codeElement = child.children.find(
         (c): c is JSXElement =>
-          isJSXElement(c) && getJsxTagName(c.openingElement.name) === "code"
+          isJSXElement(c) && getJsxTagName(c.openingElement.name) === "code",
       )
 
       // TODO: rewrite to use early returns.
       if (codeElement) {
         const languageAttr = codeElement.openingElement.attributes.find(
-          (a): a is JSXAttribute => isNamedJSXAttribute(a, "data-language")
+          (a): a is JSXAttribute => isNamedJSXAttribute(a, "data-language"),
         )
         const languageValue = languageAttr?.value
         const language =
@@ -353,7 +349,7 @@ function visitDocJSXIdentifier(
           preserveWhitespace: true,
         })
         processState.blockNodes.push(
-          makeCodeBlockNode(language, rawText ?? "", processState)
+          makeCodeBlockNode(language, rawText ?? "", processState),
         )
         continue
       }
@@ -367,8 +363,8 @@ function visitDocJSXIdentifier(
   openingElement.attributes.push(
     jsxAttribute(
       jsxIdentifier("slateDocument"),
-      jsxExpressionContainer(arrayExpression(processState.blockNodes))
-    )
+      jsxExpressionContainer(arrayExpression(processState.blockNodes)),
+    ),
   )
 
   if (Object.keys(processState.frozenElements).length > 0) {
@@ -378,11 +374,11 @@ function visitDocJSXIdentifier(
         jsxExpressionContainer(
           objectExpression(
             Object.entries(processState.frozenElements).map(([id, node]) =>
-              objectProperty(stringLiteral(id), node)
-            )
-          )
-        )
-      )
+              objectProperty(stringLiteral(id), node),
+            ),
+          ),
+        ),
+      ),
     )
   }
 
@@ -393,11 +389,11 @@ function visitDocJSXIdentifier(
         jsxExpressionContainer(
           objectExpression(
             Object.entries(processState.frozenSources).map(([id, source]) =>
-              objectProperty(stringLiteral(id), stringLiteral(source))
-            )
-          )
-        )
-      )
+              objectProperty(stringLiteral(id), stringLiteral(source)),
+            ),
+          ),
+        ),
+      ),
     )
   }
 }
@@ -409,7 +405,7 @@ function visitDocJSXIdentifier(
  * Returns null if any unknown inline is found (caller should freeze the block).
  */
 function parseInlineChildren(
-  childNodes: JSXChild[]
+  childNodes: JSXChild[],
 ): ObjectExpression[] | null {
   const result: ObjectExpression[] = []
   for (const child of childNodes) {
@@ -427,9 +423,9 @@ function parseInlineChildren(
           objectExpression([
             objectProperty(
               identifier("text"),
-              stringLiteral(child.expression.value)
+              stringLiteral(child.expression.value),
             ),
-          ])
+          ]),
         )
       }
       continue
@@ -460,7 +456,7 @@ function parseInlineChildren(
 
     if (tagName === "a") {
       const hrefAttr = child.openingElement.attributes.find(
-        (a): a is JSXAttribute => isNamedJSXAttribute(a, "href")
+        (a): a is JSXAttribute => isNamedJSXAttribute(a, "href"),
       )
       const hrefValue = hrefAttr?.value
       const url = hrefValue && isStringLiteral(hrefValue) ? hrefValue.value : ""
@@ -472,7 +468,7 @@ function parseInlineChildren(
           objectProperty(identifier("type"), stringLiteral("link")),
           objectProperty(identifier("url"), stringLiteral(url)),
           objectProperty(identifier("children"), arrayExpression(linkChildren)),
-        ])
+        ]),
       )
       continue
     }
@@ -539,7 +535,7 @@ type GetJSXTextContentOptions = {
  */
 function getJSXTextContent(
   childNodes: JSXChild[],
-  { preserveWhitespace = false }: GetJSXTextContentOptions = {}
+  { preserveWhitespace = false }: GetJSXTextContentOptions = {},
 ): string | null {
   let text = ""
   for (const child of childNodes) {
@@ -572,7 +568,7 @@ function getJSXTextContent(
 function makeCodeBlockNode(
   language: string,
   rawText: string,
-  processState: ProcessDocState
+  processState: ProcessDocState,
 ): ObjectExpression {
   let textToSplit = rawText
   if (language === "tsx" || language === "typescript") {
@@ -591,16 +587,16 @@ function makeCodeBlockNode(
           objectExpression([
             objectProperty(identifier("text"), stringLiteral(lineText)),
           ]),
-        ])
+        ]),
       ),
-    ])
+    ]),
   )
 
   return objectExpression([
     objectProperty(identifier("type"), stringLiteral("code-block")),
     objectProperty(
       identifier("id"),
-      stringLiteral(`b${processState.blockId++}`)
+      stringLiteral(`b${processState.blockId++}`),
     ),
     objectProperty(identifier("language"), stringLiteral(language)),
     objectProperty(identifier("children"), arrayExpression(codeLineNodes)),
@@ -614,7 +610,7 @@ function makeCodeBlockNode(
 function isStaticDemoFullWidth(node: JSXElement): boolean {
   if (!isNamedJSXElement(node, "Demo")) return false
   const widthAttr = node.openingElement.attributes.find(
-    (a): a is JSXAttribute => isNamedJSXAttribute(a, "width")
+    (a): a is JSXAttribute => isNamedJSXAttribute(a, "width"),
   )
   const value = widthAttr?.value
   if (value === undefined) return false
@@ -647,7 +643,7 @@ function makeFrozenNode(id: string, fullWidth: boolean): ObjectExpression {
         objectExpression([
           objectProperty(identifier("text"), stringLiteral("")),
         ]),
-      ])
+      ]),
     ),
   ])
 }
@@ -661,7 +657,7 @@ function makeEmptyChildren(): ObjectExpression[] {
 
 function getSource(
   node: { start?: number | null; end?: number | null },
-  code: string
+  code: string,
 ): string {
   const start = node.start ?? 0
   const end = node.end ?? code.length
@@ -677,14 +673,14 @@ function getSource(
 function extractDemoSource(
   demoNode: JSXElement,
   code: string,
-  includeWrapper: boolean
+  includeWrapper: boolean,
 ): string {
   const opening = demoNode.openingElement
   const noWrapperInSource = opening.attributes.some((attr) =>
-    isNamedJSXAttribute(attr, "noWrapperInSource")
+    isNamedJSXAttribute(attr, "noWrapperInSource"),
   )
   const renderAttr = opening.attributes.find((a) =>
-    isNamedJSXAttribute(a, "render")
+    isNamedJSXAttribute(a, "render"),
   )
   if (renderAttr?.value?.type === "JSXExpressionContainer") {
     const expression = renderAttr.value.expression
@@ -718,12 +714,12 @@ function extractDemoSource(
  */
 function extractDemoDependencySources(
   demoNode: JSXElement,
-  code: string
+  code: string,
 ): Record<string, string> {
   const dependenciesAttr = demoNode.openingElement.attributes.find(
     (attr): attr is JSXAttribute =>
       isNamedJSXAttribute(attr, "dependencies") &&
-      attr.value?.type === "JSXExpressionContainer"
+      attr.value?.type === "JSXExpressionContainer",
   )
   if (
     !dependenciesAttr?.value ||
@@ -741,12 +737,12 @@ function extractDemoDependencySources(
       prop.key.type === "Identifier"
         ? prop.key.name
         : isStringLiteral(prop.key)
-        ? prop.key.value
-        : null
+          ? prop.key.value
+          : null
     if (keyName === null) continue
     const valueSource = getSource(
       prop.value as { start?: number | null; end?: number | null },
-      code
+      code,
     )
     result[keyName] = valueSource
   }
@@ -758,7 +754,7 @@ function freezeBlock(
   node: JSXElement,
   processState: ProcessDocState,
   code: string,
-  includeWrapper: boolean
+  includeWrapper: boolean,
 ): void {
   const id = `f${processState.frozenId++}`
   processState.frozenElements[id] = node
@@ -786,17 +782,17 @@ function pushDemoSourceCodeBlocks(
   demoId: string,
   processState: ProcessDocState,
   code: string,
-  includeWrapper: boolean
+  includeWrapper: boolean,
 ): void {
   const source = extractDemoSource(demoNode, code, includeWrapper)
   processState.blockNodes.push(
-    makeDemoCodeBlockNode(source, demoId, "Source", processState)
+    makeDemoCodeBlockNode(source, demoId, "Source", processState),
   )
 
   const dependencySources = extractDemoDependencySources(demoNode, code)
   for (const [name, depSource] of Object.entries(dependencySources)) {
     processState.blockNodes.push(
-      makeDemoCodeBlockNode(depSource, demoId, name, processState)
+      makeDemoCodeBlockNode(depSource, demoId, name, processState),
     )
   }
 }
@@ -810,7 +806,7 @@ function makeDemoCodeBlockNode(
   rawText: string,
   demoId: string,
   tab: string,
-  processState: ProcessDocState
+  processState: ProcessDocState,
 ): ObjectExpression {
   const formatted = formatTypescript(rawText)
   const lines = formatted.split("\n")
@@ -823,16 +819,16 @@ function makeDemoCodeBlockNode(
           objectExpression([
             objectProperty(identifier("text"), stringLiteral(lineText)),
           ]),
-        ])
+        ]),
       ),
-    ])
+    ]),
   )
 
   return objectExpression([
     objectProperty(identifier("type"), stringLiteral("code-block")),
     objectProperty(
       identifier("id"),
-      stringLiteral(`b${processState.blockId++}`)
+      stringLiteral(`b${processState.blockId++}`),
     ),
     objectProperty(identifier("language"), stringLiteral("tsx")),
     objectProperty(identifier("demoId"), stringLiteral(demoId)),
@@ -851,7 +847,7 @@ function processListItems(
   processState: ProcessDocState,
   parseInlineChildrenFn: (childNodes: JSXChild[]) => ObjectExpression[] | null,
   freezeBlockFn: (node: JSXElement) => void,
-  makeEmptyChildrenFn: () => ObjectExpression[]
+  makeEmptyChildrenFn: () => ObjectExpression[],
 ): void {
   for (const child of listElement.children) {
     if (isJSXText(child)) continue
@@ -888,12 +884,12 @@ function processListItems(
           objectProperty(identifier("type"), stringLiteral("list-item")),
           objectProperty(
             identifier("id"),
-            stringLiteral(`b${processState.blockId++}`)
+            stringLiteral(`b${processState.blockId++}`),
           ),
           objectProperty(identifier("listType"), stringLiteral(listType)),
           objectProperty(identifier("depth"), numericLiteral(depth)),
           objectProperty(identifier("children"), arrayExpression(childrenArr)),
-        ])
+        ]),
       )
     }
 
@@ -906,7 +902,7 @@ function processListItems(
         processState,
         parseInlineChildrenFn,
         freezeBlockFn,
-        makeEmptyChildrenFn
+        makeEmptyChildrenFn,
       )
     }
   }
