@@ -1336,9 +1336,6 @@
   version "0.0.0-semantically-released"
   resolved "./vendor/testing-library-user-event-0.0.0-semantically-released.tgz#5e318d9434c8538e7d189786db4cb64925ceafe0"
 
-"@testing-library/user-event@file:.yalc/@testing-library/user-event":
-  version "0.0.0-semantically-released"
-
 "@types/aria-query@^5.0.1":
   version "5.0.4"
   resolved "https://registry.yarnpkg.com/@types/aria-query/-/aria-query-5.0.4.tgz#1a31c3d378850d2778dabb6374d036dcba4ba708"
