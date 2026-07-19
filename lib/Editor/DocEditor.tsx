@@ -14,7 +14,7 @@ import {
   Text,
   Transforms,
 } from "slate"
-import type { Element as SlateElement, NodeEntry, Point } from "slate"
+import type { Element as SlateElement, NodeEntry } from "slate"
 import { withHistory, type HistoryEditor } from "slate-history"
 import {
   Editable,
@@ -198,6 +198,9 @@ function getListItemRunEdgeFlags(
   return { isFirstInRun, isLastInRun }
 }
 
+// TODO: Replace with convertFlatBlock(editor, path, newType, extraProps?) once
+// paragraph ↔ heading ↔ list-item conversions are all needed. See also
+// convertCodeBlockToFlatBlock and convertFlatBlockToCodeBlock.
 function convertListItemToParagraph(
   editor: ReactEditor & HistoryEditor,
   path: Path
@@ -208,6 +211,9 @@ function convertListItemToParagraph(
   })
 }
 
+// TODO: Replace with convertCodeBlockToFlatBlock(editor, path, newType, extraProps?)
+// when generalizing block conversions. That function must guard against demoId
+// code-blocks (structural operations on those are forbidden; text edits are fine).
 /**
  * Replace a code-block at `path` with a paragraph whose text is the first
  * code-line's content. If the code-block had more than one line, the remaining
@@ -500,6 +506,10 @@ function skipPastHiddenClusterIfNeeded(
   return true
 }
 
+/**
+ * Some imperative methods for tests to interact with the editor in a JSDOM
+ * environment, where there isn't really a functioning native DOM selection.
+ */
 export type DocEditorHandle = {
   select: (range: {
     anchor: {
@@ -511,6 +521,7 @@ export type DocEditorHandle = {
       offset: number | typeof Editor.start | typeof Editor.end
     }
   }) => void
+  focus: () => void
 }
 
 type DocEditorProps = {
@@ -726,8 +737,8 @@ const DocEditorInner = ({
 
   useImperativeHandle(
     ref,
-    () => ({
-      select: ({ anchor, focus }) => {
+    (): DocEditorHandle => ({
+      select({ anchor, focus }) {
         const anchorPoint =
           typeof anchor.offset === "function"
             ? anchor.offset(editor, anchor.path)
@@ -751,6 +762,20 @@ const DocEditorInner = ({
         if (domSelection) {
           domSelection.removeAllRanges()
           domSelection.addRange(domRange)
+        }
+      },
+      focus() {
+        if (editor.selection) {
+          // If there is already a selection, just focus the editor
+          ReactEditor.focus(editor)
+        } else {
+          // If there's no selection, we need to set one, otherwise (in the
+          // JSDOM environment) the editor will be focused but there won't be a
+          // carat to type in, which is weird.
+          this.select({
+            anchor: Editor.start(editor, []),
+            focus: Editor.start(editor, []),
+          })
         }
       },
     }),
@@ -777,7 +802,7 @@ const DocEditorInner = ({
 
   const renderElement = useCallback(
     (props: RenderElementProps) => (
-      <DocElement {...props} frozenElements={frozenElements} />
+      <DocElement {...props} frozenElements={frozenElements ?? {}} />
     ),
     [frozenElements]
   )
@@ -918,6 +943,9 @@ const DocEditorInner = ({
         const blockPath = anchor.path.slice(0, 1) as Path
         const [block] = Editor.node(editor, blockPath)
 
+        // Block-conversion at start: Backspace at the start of a block converts it
+        // to a paragraph. Add new block types here following the same pattern.
+        // The code-block case guards block.demoId === undefined;
         if (
           isListItemBlock(block) &&
           Editor.isStart(editor, anchor, blockPath)

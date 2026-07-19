@@ -12,3 +12,7 @@ Before each response, note what depth you are using, e.g.:
 
 User: Is [this](parseDocChunks.ts#x..y) correct?
 Cursor: (Depth 1) Yes, parseDocChunks is called only within the macro.
+
+## Running tests
+
+`yarn test path/to/file.test.ts`. Don't run the whole test suite unless you have specific reasons to think you may have broken something outside the module you changed.
