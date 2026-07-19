@@ -6,6 +6,7 @@ _Exported on 5/16/2026 at 13:00:44 PDT from Cursor (3.2.16)_
 
 **User**
 
+
 @lib/Editor/DocEditor.test.tsx:98-100 When you're in a code block and you press backspace, it should turn the block into a paragraph, the same way it does when you are in a list item.
 
 ---
