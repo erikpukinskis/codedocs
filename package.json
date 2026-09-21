@@ -53,12 +53,6 @@
     "react-dom": "^19.0.0",
     "react-router-dom": "^6.0.0"
   },
-  "overrides": {
-    "baseline-browser-mapping": "2.10.10"
-  },
-  "resolutions": {
-    "baseline-browser-mapping": "2.10.10"
-  },
   "devDependencies": {
     "@babel/types": "^7.28.0",
     "@fortawesome/fontawesome-common-types": "^7.2.0",
