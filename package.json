@@ -95,8 +95,9 @@
     "vitest": "^4.0.14"
   },
   "scripts": {
-    "all": "yarn && yarn build && yarn fix && yarn check:types && yarn test && echo `echo 8J+OiSBEaWQgYWxs | base64 -d`",
-    "build": "rm -rf dist/* && yarn build:macro && yarn build:lib && yarn build:types",
+    "all": "yarn && build:clean && yarn fix && yarn check:types && yarn test && echo `echo 8J+OiSBEaWQgYWxs | base64 -d`",
+    "build": "yarn build:macro && yarn build:lib && yarn build:types",
+    "build:clean": "rm -rf dist/* && yarn build",
     "build:macro": "vite build --config vite.macro.config.js",
     "build:docs": "vite build --config vite.docs.config.js --mode development && mv site/docs/index.html site && rmdir site/docs && cp site/index.html site/404.html",
     "build:lib": "vite build --config vite.lib.config.js --mode development",
